@@ -166,6 +166,7 @@
           this.mediaRecorder = null;
         } else {
           // 備援：使用 Recorder.js 需初始化 AudioContext
+          // ※ 注意：在 iOS 上，最好在使用者互動中呼叫 resume() 以喚醒 AudioContext
           this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
           this.recorder = null;
         }
@@ -215,7 +216,10 @@
           this.mediaRecorder.onstop = () => {
             this.audioBlob = new Blob(this.chunks, { type: 'audio/webm' });
             this.audioURL = URL.createObjectURL(this.audioBlob);
-            this.audio = new Audio(this.audioURL);
+            // 建立 audio 元素，並設定 playsinline 避免 iOS 全螢幕
+            this.audio = new Audio();
+            this.audio.setAttribute('playsinline', '');
+            this.audio.src = this.audioURL;
             // 設定播放結束事件
             this.audio.onended = () => this.onPlaybackEnded();
             this.statusDisplay.textContent = "狀態：錄音完成";
@@ -227,8 +231,9 @@
           // 備援方案：使用 Recorder.js，錄製 WAV 格式
           let stream = await getAudioStream();
           if (!stream) return;
-          if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          // 若 AudioContext 處於 suspended 狀態，則喚醒（iOS 必須如此）
+          if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
           }
           this.sourceNode = this.audioContext.createMediaStreamSource(stream);
           this.recorder = new Recorder(this.sourceNode, { numChannels: 1 });
@@ -254,7 +259,10 @@
             this.recorder.exportWAV((blob) => {
               this.audioBlob = blob;
               this.audioURL = URL.createObjectURL(blob);
-              this.audio = new Audio(this.audioURL);
+              // 建立 audio 元素並設定 playsinline 屬性
+              this.audio = new Audio();
+              this.audio.setAttribute('playsinline', '');
+              this.audio.src = this.audioURL;
               this.audio.onended = () => this.onPlaybackEnded();
               // 為下一次錄音清除資料
               this.recorder.clear();
@@ -272,9 +280,8 @@
         this.totalLoops = parseInt(this.loopInput.value) || 1;
         this.currentLoop = 1;
         this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-        // 確保音檔從頭開始且載入完成
+        // 將播放進度歸零（移除 load() 呼叫以避免 iOS 問題）
         this.audio.currentTime = 0;
-        this.audio.load();
         if (this.fallbackTimer) {
           clearTimeout(this.fallbackTimer);
           this.fallbackTimer = null;
@@ -282,7 +289,7 @@
         // 設定播放結束事件
         this.audio.onended = () => this.onPlaybackEnded();
         this.audio.play().then(() => {
-          // 若 onended 未觸發，根據音訊長度設置 fallback timer
+          // 設定 fallback timer（若 onended 未觸發）
           if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
             this.fallbackTimer = setTimeout(() => {
               if (!this.audio.paused) {
@@ -319,8 +326,8 @@
         if (this.currentLoop < this.totalLoops) {
           this.currentLoop++;
           this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
+          // 只重置播放進度，不呼叫 load()（避免 iOS 問題）
           this.audio.currentTime = 0;
-          this.audio.load();
           this.audio.play().then(() => {
             if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
               this.fallbackTimer = setTimeout(() => {
@@ -374,4 +381,3 @@
   </script>
 </body>
 </html>
-
