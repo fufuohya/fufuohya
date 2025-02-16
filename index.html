@@ -151,7 +151,9 @@
 
         // 判斷瀏覽器是否支援 MediaRecorder，並檢查錄製格式播放是否支援
         const canPlayWebm = document.createElement('audio').canPlayType('audio/webm; codecs=opus') !== "";
-        this.useMediaRecorder = ('MediaRecorder' in window) && canPlayWebm;
+        // 若為 Android Chrome，強制使用 Recorder.js 備援方案（輸出 WAV 格式）
+        const isMobileChrome = /Chrome/.test(navigator.userAgent) && /Android/.test(navigator.userAgent);
+        this.useMediaRecorder = ('MediaRecorder' in window) && canPlayWebm && !isMobileChrome;
         if (!this.useMediaRecorder) {
           console.log("MediaRecorder 或 WebM 播放不支援，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
         }
@@ -270,7 +272,9 @@
         this.totalLoops = parseInt(this.loopInput.value) || 1;
         this.currentLoop = 1;
         this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
+        // 確保音檔從頭開始且載入完成
         this.audio.currentTime = 0;
+        this.audio.load();
         if (this.fallbackTimer) {
           clearTimeout(this.fallbackTimer);
           this.fallbackTimer = null;
@@ -316,6 +320,7 @@
           this.currentLoop++;
           this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
           this.audio.currentTime = 0;
+          this.audio.load();
           this.audio.play().then(() => {
             if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
               this.fallbackTimer = setTimeout(() => {
@@ -369,3 +374,4 @@
   </script>
 </body>
 </html>
+
