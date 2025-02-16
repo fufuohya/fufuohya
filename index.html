@@ -30,8 +30,8 @@
   <h1>錄音網頁應用程式</h1>
   <p style="text-align:center; margin-bottom:1rem;">
     請使用支援麥克風存取權限的瀏覽器（Android 建議使用 Chrome, iOS 建議使用 Safari）<br>
-    ※ 本程式錄製後會輸出 M4A（使用 MediaRecorder）或 WAV（使用 Recorder.js 備援方案），並自動下載錄音檔<br>
-    播放前請先選擇要撥放的音訊檔，循環播放次數依設定值進行
+    ※ 本程式錄製後會嘗試輸出 MP4 格式（使用 MediaRecorder），若不支援則使用 WAV（Recorder.js 備援方案）<br>
+    錄製完成後會自動下載錄音檔，播放前請先選擇要播放的音訊檔，循環播放次數依設定值進行
   </p>
   <div class="recorders">
     <!-- 錄音區 1 -->
@@ -124,12 +124,22 @@
         this.statusDisplay = container.querySelector('.status');
         this.fallbackTimer = null;
 
-        // 檢查瀏覽器是否支援 MediaRecorder 並支援 audio/mp4 (M4A)
-        // 若不支援，則使用 Recorder.js 備援方案 (WAV)
-        this.useMediaRecorder = ('MediaRecorder' in window) && MediaRecorder.isTypeSupported("audio/mp4");
-        if (!this.useMediaRecorder) {
-          console.log("MediaRecorder 不支援 audio/mp4，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
+        // 檢查瀏覽器是否支援 MediaRecorder 並支援 MP4 格式
+        // 嘗試先用 "audio/mp4"，若不支援則改用 "video/mp4"
+        let mimeType = "audio/mp4";
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = "video/mp4";
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            console.log("MediaRecorder 不支援 MP4 格式，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
+            this.useMediaRecorder = false;
+          } else {
+            this.useMediaRecorder = true;
+          }
+        } else {
+          this.useMediaRecorder = true;
         }
+
+        this.mimeType = mimeType; // 儲存使用的 MIME type
 
         this.isRecording = false;
         this.currentLoop = 0;
@@ -158,8 +168,7 @@
         if (this.useMediaRecorder) {
           let stream = await getAudioStream();
           if (!stream) return;
-          // 使用 audio/mp4 以錄製 M4A 檔案
-          let options = { mimeType: 'audio/mp4' };
+          let options = { mimeType: this.mimeType };
           if (!MediaRecorder.isTypeSupported(options.mimeType)) {
             console.log("指定的 MIME 類型不支援，改用預設設定");
             options = {};
@@ -183,8 +192,8 @@
             console.log("開始錄音...");
           };
           this.mediaRecorder.onstop = () => {
-            // 產生 M4A 檔案
-            this.audioBlob = new Blob(this.chunks, { type: 'audio/mp4' });
+            // 使用指定的 MIME type 產生 MP4 檔案
+            this.audioBlob = new Blob(this.chunks, { type: this.mimeType });
             this.audioURL = URL.createObjectURL(this.audioBlob);
             this.audio = new Audio();
             this.audio.setAttribute('playsinline', '');
@@ -195,9 +204,9 @@
             this.audio.onerror = (e) => { console.error("Audio error:", e); };
             this.statusDisplay.textContent = "狀態：錄音完成";
             this.isRecording = false;
-            console.log("錄音完成 (M4A)，Blob:", this.audioBlob);
-            // 自動下載錄音檔
-            this.downloadAudioFile("m4a");
+            console.log("錄音完成 (MP4)，Blob:", this.audioBlob);
+            // 自動下載錄音檔，副檔名改為 mp4
+            this.downloadAudioFile("mp4");
           };
           this.mediaRecorder.start();
         } else {
@@ -250,12 +259,11 @@
         }
       }
 
-      // 新增自動下載錄音檔方法
+      // 自動下載錄音檔方法，根據參數設定副檔名
       downloadAudioFile(ext) {
         const downloadLink = document.createElement("a");
         downloadLink.href = this.audioURL;
         downloadLink.download = `recording.${ext}`;
-        // 為確保不影響畫面，將連結隱藏並加入 DOM 後觸發點擊
         downloadLink.style.display = "none";
         document.body.appendChild(downloadLink);
         downloadLink.click();
@@ -378,4 +386,5 @@
   </script>
 </body>
 </html>
+
 
