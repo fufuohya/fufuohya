@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>錄音網頁應用程式</title>
   <style>
+    /* 基本重置 */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; padding: 1rem; background-color: #f9f9f9; color: #333; }
     h1 { text-align: center; margin-bottom: 1rem; }
@@ -16,7 +17,10 @@
     .status { font-weight: bold; margin-top: 0.5rem; }
     @media (max-width: 600px) { .controls { flex-direction: column; } }
   </style>
+  <!-- 載入 Recorder.js（用於不支援 MediaRecorder 的環境） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.min.js"></script>
   <script>
+    // 為確保麥克風權限，請透過 HTTPS、localhost 或 file:// 運行
     if (location.protocol !== 'https:' && location.protocol !== 'file:' && location.hostname !== 'localhost') {
       alert('為了獲取麥克風存取權限，請透過 HTTPS 或在 localhost 上運行本頁面。');
     }
@@ -26,11 +30,48 @@
   <h1>錄音網頁應用程式</h1>
   <p style="text-align:center; margin-bottom:1rem;">請使用支援麥克風存取權限的瀏覽器（Android 建議使用 Chrome）</p>
   <div class="recorders">
+    <!-- 錄音區 1 -->
     <div class="recorder" id="recorder-1">
       <h2>錄音區 1</h2>
       <div class="controls">
         <button class="start">開始錄音</button>
         <button class="stop">停止錄音</button>
+        <label>
+          循環次數：
+          <input type="number" class="loop-count" value="1" min="1">
+        </label>
+        <button class="play">播放</button>
+        <button class="pause">暫停</button>
+        <button class="rerecord">重新錄製</button>
+      </div>
+      <p class="status">狀態：待命</p>
+    </div>
+    <!-- 錄音區 2 -->
+    <div class="recorder" id="recorder-2">
+      <h2>錄音區 2</h2>
+      <div class="controls">
+        <button class="start">開始錄音</button>
+        <button class="stop">停止錄音</button>
+        <label>
+          循環次數：
+          <input type="number" class="loop-count" value="1" min="1">
+        </label>
+        <button class="play">播放</button>
+        <button class="pause">暫停</button>
+        <button class="rerecord">重新錄製</button>
+      </div>
+      <p class="status">狀態：待命</p>
+    </div>
+    <!-- 錄音區 3 -->
+    <div class="recorder" id="recorder-3">
+      <h2>錄音區 3</h2>
+      <div class="controls">
+        <button class="start">開始錄音</button>
+        <button class="stop">停止錄音</button>
+        <label>
+          循環次數：
+          <input type="number" class="loop-count" value="1" min="1">
+        </label>
         <button class="play">播放</button>
         <button class="pause">暫停</button>
         <button class="rerecord">重新錄製</button>
@@ -38,8 +79,25 @@
       <p class="status">狀態：待命</p>
     </div>
   </div>
+
   <script>
-    class RecorderApp {
+    // 共用麥克風串流，避免重複請求
+    let globalStream = null;
+    async function getAudioStream() {
+      if (!globalStream) {
+        try {
+          globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          console.log("取得麥克風串流", globalStream);
+        } catch (err) {
+          alert("無法取得麥克風權限：" + err);
+          console.error(err);
+        }
+      }
+      return globalStream;
+    }
+
+    // 自訂錄音類別
+    class CustomRecorder {
       constructor(container) {
         this.container = container;
         this.startBtn = container.querySelector('.start');
@@ -47,74 +105,233 @@
         this.playBtn = container.querySelector('.play');
         this.pauseBtn = container.querySelector('.pause');
         this.rerecordBtn = container.querySelector('.rerecord');
+        this.loopInput = container.querySelector('.loop-count');
         this.statusDisplay = container.querySelector('.status');
-        this.mediaRecorder = null;
+        this.fallbackTimer = null;
+
+        // 檢查瀏覽器是否支援 MediaRecorder 與 audio/webm
+        const canPlayWebm = document.createElement('audio').canPlayType('audio/webm; codecs=opus') !== "";
+        // 若符合條件，則使用 MediaRecorder（包括 mobile Chrome）
+        this.useMediaRecorder = ('MediaRecorder' in window) && canPlayWebm;
+        if (!this.useMediaRecorder) {
+          console.log("MediaRecorder 或 WebM 播放不支援，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
+        }
+
+        this.isRecording = false;
+        this.currentLoop = 0;
+        this.totalLoops = 1;
+        if (this.useMediaRecorder) {
+          this.mediaRecorder = null;
+        } else {
+          // 若使用 fallback，需初始化 AudioContext
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          this.recorder = null;
+        }
         this.audioBlob = null;
         this.audioURL = null;
         this.audio = null;
-        this.chunks = [];
-        this.isRecording = false;
 
+        // 綁定按鈕事件
         this.startBtn.addEventListener('click', () => this.startRecording());
         this.stopBtn.addEventListener('click', () => this.stopRecording());
-        this.playBtn.addEventListener('click', () => this.playAudio());
-        this.pauseBtn.addEventListener('click', () => this.pauseAudio());
+        this.playBtn.addEventListener('click', () => this.startPlayback());
+        this.pauseBtn.addEventListener('click', () => this.pausePlayback());
         this.rerecordBtn.addEventListener('click', () => this.resetRecording());
       }
 
       async startRecording() {
         if (this.isRecording) return;
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          this.mediaRecorder = new MediaRecorder(stream);
+        if (this.useMediaRecorder) {
+          let stream = await getAudioStream();
+          if (!stream) return;
+          let options = { mimeType: 'audio/webm; codecs=opus' };
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            console.log("指定的 MIME 類型不支援，改用預設設定");
+            options = {};
+          }
+          try {
+            this.mediaRecorder = new MediaRecorder(stream, options);
+          } catch (e) {
+            console.error("建立 MediaRecorder 失敗：", e);
+            alert("建立 MediaRecorder 失敗：" + e);
+            return;
+          }
           this.chunks = [];
-          this.mediaRecorder.ondataavailable = (e) => this.chunks.push(e.data);
+          this.mediaRecorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+              this.chunks.push(e.data);
+            }
+          };
+          this.mediaRecorder.onstart = () => {
+            this.statusDisplay.textContent = "狀態：錄音中...";
+            this.isRecording = true;
+            console.log("開始錄音...");
+          };
           this.mediaRecorder.onstop = () => {
             this.audioBlob = new Blob(this.chunks, { type: 'audio/webm' });
             this.audioURL = URL.createObjectURL(this.audioBlob);
-            this.audio = new Audio(this.audioURL);
+            this.audio = new Audio();
+            // 為了在 iOS 上確保行內播放，加入 playsinline 與 webkit-playsinline
+            this.audio.setAttribute('playsinline', '');
+            this.audio.setAttribute('webkit-playsinline', '');
+            this.audio.preload = "auto";
+            this.audio.src = this.audioURL;
+            this.audio.onended = () => this.onPlaybackEnded();
+            this.audio.onerror = (e) => { console.error("Audio error:", e); };
             this.statusDisplay.textContent = "狀態：錄音完成";
+            this.isRecording = false;
+            console.log("錄音完成，Blob:", this.audioBlob);
           };
           this.mediaRecorder.start();
+        } else {
+          let stream = await getAudioStream();
+          if (!stream) return;
+          if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
+          }
+          this.sourceNode = this.audioContext.createMediaStreamSource(stream);
+          this.recorder = new Recorder(this.sourceNode, { numChannels: 1 });
+          this.recorder.record();
           this.isRecording = true;
-          this.statusDisplay.textContent = "狀態：錄音中...";
-        } catch (err) {
-          alert("無法取得麥克風權限: " + err.message);
+          this.statusDisplay.textContent = "狀態：錄音中 (Fallback)...";
+          console.log("使用 Recorder.js 開始錄音");
         }
       }
 
       stopRecording() {
-        if (this.mediaRecorder && this.isRecording) {
-          this.mediaRecorder.stop();
-          this.isRecording = false;
+        if (this.useMediaRecorder) {
+          if (this.mediaRecorder && this.isRecording) {
+            this.mediaRecorder.stop();
+            console.log("停止 MediaRecorder 錄音");
+          }
+        } else {
+          if (this.recorder && this.isRecording) {
+            this.recorder.stop();
+            this.isRecording = false;
+            this.statusDisplay.textContent = "狀態：錄音完成 (Fallback)";
+            this.recorder.exportWAV((blob) => {
+              // 若 blob 的 MIME type 不正確，則強制設定為 "audio/wav"
+              if (!blob.type || blob.type !== "audio/wav") {
+                blob = new Blob([blob], { type: "audio/wav" });
+              }
+              this.audioBlob = blob;
+              this.audioURL = URL.createObjectURL(blob);
+              this.audio = new Audio();
+              this.audio.setAttribute('playsinline', '');
+              this.audio.setAttribute('webkit-playsinline', '');
+              this.audio.preload = "auto";
+              this.audio.src = this.audioURL;
+              this.audio.onended = () => this.onPlaybackEnded();
+              this.audio.onerror = (e) => { console.error("Audio error:", e); };
+              this.recorder.clear();
+              console.log("Recorder.js 錄音完成，Blob:", blob);
+            });
+          }
         }
       }
 
-      playAudio() {
-        if (!this.audio) return alert("請先錄音");
-        this.audio.play();
-        this.statusDisplay.textContent = "狀態：播放中...";
+      startPlayback() {
+        if (!this.audio) {
+          alert("請先錄製聲音再播放");
+          return;
+        }
+        this.totalLoops = parseInt(this.loopInput.value) || 1;
+        this.currentLoop = 1;
+        this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
+        this.audio.currentTime = 0;
+        if (this.fallbackTimer) {
+          clearTimeout(this.fallbackTimer);
+          this.fallbackTimer = null;
+        }
+        this.audio.onended = () => this.onPlaybackEnded();
+        this.audio.play().then(() => {
+          if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
+            this.fallbackTimer = setTimeout(() => {
+              if (!this.audio.paused) {
+                this.audio.pause();
+                this.onPlaybackEnded();
+              }
+            }, this.audio.duration * 1000 + 200);
+          }
+          console.log("開始播放，循環次數：", this.totalLoops);
+        }).catch(err => {
+          console.error("播放失敗:", err);
+          alert("播放失敗: " + err);
+        });
       }
 
-      pauseAudio() {
-        if (this.audio) {
+      pausePlayback() {
+        if (this.audio && !this.audio.paused) {
           this.audio.pause();
+          if (this.fallbackTimer) {
+            clearTimeout(this.fallbackTimer);
+            this.fallbackTimer = null;
+          }
           this.statusDisplay.textContent = "狀態：播放暫停";
+          console.log("播放暫停");
+        }
+      }
+
+      onPlaybackEnded() {
+        if (this.fallbackTimer) {
+          clearTimeout(this.fallbackTimer);
+          this.fallbackTimer = null;
+        }
+        if (this.currentLoop < this.totalLoops) {
+          this.currentLoop++;
+          this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
+          this.audio.currentTime = 0;
+          this.audio.play().then(() => {
+            if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
+              this.fallbackTimer = setTimeout(() => {
+                if (!this.audio.paused) {
+                  this.audio.pause();
+                  this.onPlaybackEnded();
+                }
+              }, this.audio.duration * 1000 + 200);
+            }
+          }).catch(err => {
+            console.error("播放失敗:", err);
+          });
+          console.log("重播中，循環次數：", this.currentLoop);
+        } else {
+          this.statusDisplay.textContent = "狀態：播放結束";
+          console.log("播放結束");
         }
       }
 
       resetRecording() {
-        if (this.audio) {
+        if (this.audio && !this.audio.paused) {
           this.audio.pause();
+        }
+        if (this.fallbackTimer) {
+          clearTimeout(this.fallbackTimer);
+          this.fallbackTimer = null;
+        }
+        if (this.audioURL) {
           URL.revokeObjectURL(this.audioURL);
-          this.audio = null;
         }
         this.audioBlob = null;
         this.audioURL = null;
+        this.audio = null;
+        if (this.useMediaRecorder) {
+          this.chunks = [];
+          this.mediaRecorder = null;
+        } else {
+          if (this.recorder) {
+            this.recorder.clear();
+          }
+        }
         this.statusDisplay.textContent = "狀態：待命";
+        console.log("重置錄音狀態");
       }
     }
-    document.querySelectorAll('.recorder').forEach(container => new RecorderApp(container));
+
+    // 為每個錄音區初始化 CustomRecorder 實例
+    document.querySelectorAll('.recorder').forEach(container => {
+      new CustomRecorder(container);
+    });
   </script>
 </body>
 </html>
+
