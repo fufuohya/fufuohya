@@ -57,10 +57,12 @@
       }
     }
   </style>
+  <!-- 載入 Recorder.js（備援方案，用於不支援 MediaRecorder 的環境，如 iOS Safari） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.min.js"></script>
 </head>
 <body>
   <h1>錄音網頁應用程式</h1>
-  <p style="text-align: center; margin-bottom: 1rem;">請確保您使用的瀏覽器支援 MediaRecorder API 並允許麥克風權限</p>
+  <p style="text-align:center; margin-bottom:1rem;">請使用支援麥克風存取權限的瀏覽器（Android 建議使用 Chrome）</p>
   <div class="recorders">
     <!-- 錄音區 1 -->
     <div class="recorder" id="recorder-1">
@@ -113,14 +115,6 @@
   </div>
 
   <script>
-    // 檢查瀏覽器是否支援必要的 API
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert("您的瀏覽器不支援 getUserMedia API！");
-    }
-    if (typeof MediaRecorder === "undefined") {
-      alert("您的瀏覽器不支援 MediaRecorder API！");
-    }
-
     // 全域變數：共用麥克風串流（避免重複請求）
     let globalStream = null;
     async function getAudioStream() {
@@ -134,8 +128,8 @@
       return globalStream;
     }
 
-    // Recorder 類別，處理單一錄音區的所有功能
-    class Recorder {
+    // 自訂錄音類別，根據環境決定採用 MediaRecorder 或 Recorder.js 備援方案
+    class CustomRecorder {
       constructor(container) {
         this.container = container;
         this.startBtn = container.querySelector('.start');
@@ -146,14 +140,23 @@
         this.loopInput = container.querySelector('.loop-count');
         this.statusDisplay = container.querySelector('.status');
 
-        this.mediaRecorder = null;
-        this.chunks = [];
-        this.audioBlob = null;
-        this.audioURL = null;
-        this.audio = null;
+        // 檢查是否支援 MediaRecorder
+        this.useMediaRecorder = ('MediaRecorder' in window);
         this.isRecording = false;
         this.currentLoop = 0;
         this.totalLoops = 1;
+
+        // MediaRecorder 相關
+        if (this.useMediaRecorder) {
+          this.mediaRecorder = null;
+        } else {
+          // 備援：使用 Recorder.js 需初始化 AudioContext
+          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          this.recorder = null;
+        }
+        this.audioBlob = null;
+        this.audioURL = null;
+        this.audio = null;
 
         // 綁定按鈕事件
         this.startBtn.addEventListener('click', () => this.startRecording());
@@ -165,92 +168,4 @@
 
       async startRecording() {
         if (this.isRecording) return;
-        let stream = await getAudioStream();
-        if (!stream) return;
-
-        // 初始化 MediaRecorder 並開始錄音
-        this.mediaRecorder = new MediaRecorder(stream);
-        this.chunks = [];
-
-        this.mediaRecorder.ondataavailable = (e) => {
-          this.chunks.push(e.data);
-        };
-        this.mediaRecorder.onstart = () => {
-          this.statusDisplay.textContent = "狀態：錄音中...";
-          this.isRecording = true;
-        };
-        this.mediaRecorder.onstop = () => {
-          // 將錄音資料轉成 Blob 並建立 Audio 元素
-          this.audioBlob = new Blob(this.chunks, { type: 'audio/webm' });
-          this.audioURL = URL.createObjectURL(this.audioBlob);
-          this.audio = new Audio(this.audioURL);
-          this.audio.onended = () => this.onPlaybackEnded();
-          this.statusDisplay.textContent = "狀態：錄音完成";
-          this.isRecording = false;
-        };
-
-        this.mediaRecorder.start();
-      }
-
-      stopRecording() {
-        if (this.mediaRecorder && this.isRecording) {
-          this.mediaRecorder.stop();
-        }
-      }
-
-      startPlayback() {
-        if (!this.audio) {
-          alert("請先錄製聲音再播放");
-          return;
-        }
-        // 取得使用者設定的循環播放次數
-        this.totalLoops = parseInt(this.loopInput.value) || 1;
-        this.currentLoop = 1;
-        this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-        this.audio.currentTime = 0;
-        this.audio.play();
-      }
-
-      pausePlayback() {
-        if (this.audio && !this.audio.paused) {
-          this.audio.pause();
-          this.statusDisplay.textContent = "狀態：播放暫停";
-        }
-      }
-
-      // 當一次播放結束時判斷是否需重播
-      onPlaybackEnded() {
-        if (this.currentLoop < this.totalLoops) {
-          this.currentLoop++;
-          this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-          this.audio.currentTime = 0;
-          this.audio.play();
-        } else {
-          this.statusDisplay.textContent = "狀態：播放結束";
-        }
-      }
-
-      resetRecording() {
-        // 若正在播放則先暫停
-        if (this.audio && !this.audio.paused) {
-          this.audio.pause();
-        }
-        // 清除錄音資料與狀態，並釋放 URL 物件
-        if (this.audioURL) {
-          URL.revokeObjectURL(this.audioURL);
-        }
-        this.audioBlob = null;
-        this.audioURL = null;
-        this.audio = null;
-        this.chunks = [];
-        this.statusDisplay.textContent = "狀態：待命";
-      }
-    }
-
-    // 為每個錄音區初始化 Recorder 實例
-    document.querySelectorAll('.recorder').forEach(container => {
-      new Recorder(container);
-    });
-  </script>
-</body>
-</html>
+        if (this.useMedi
