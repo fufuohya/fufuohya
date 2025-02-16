@@ -6,61 +6,21 @@
   <title>錄音網頁應用程式</title>
   <style>
     /* 基本重置 */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: Arial, sans-serif;
-      padding: 1rem;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    .recorders {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .recorder {
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .recorder h2 {
-      margin-bottom: 0.5rem;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .controls button, .controls input {
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
-    .status {
-      font-weight: bold;
-      margin-top: 0.5rem;
-    }
-    /* 響應式設計：手機版 */
-    @media (max-width: 600px) {
-      .controls {
-        flex-direction: column;
-      }
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; padding: 1rem; background-color: #f9f9f9; color: #333; }
+    h1 { text-align: center; margin-bottom: 1rem; }
+    .recorders { display: flex; flex-direction: column; gap: 1rem; }
+    .recorder { background-color: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .recorder h2 { margin-bottom: 0.5rem; }
+    .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .controls button, .controls input { padding: 0.5rem; font-size: 1rem; }
+    .status { font-weight: bold; margin-top: 0.5rem; }
+    @media (max-width: 600px) { .controls { flex-direction: column; } }
   </style>
-  <!-- 載入 Recorder.js（備援方案，用於不支援 MediaRecorder 的環境，如 iOS Safari 或錄音格式播放有問題時） -->
+  <!-- 載入 Recorder.js（用於不支援 MediaRecorder 的環境） -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.min.js"></script>
   <script>
-    // 為確保麥克風存取權限，請透過 HTTPS、localhost 或 file:// 運行
+    // 為確保麥克風權限，請透過 HTTPS、localhost 或 file:// 運行
     if (location.protocol !== 'https:' && location.protocol !== 'file:' && location.hostname !== 'localhost') {
       alert('為了獲取麥克風存取權限，請透過 HTTPS 或在 localhost 上運行本頁面。');
     }
@@ -121,7 +81,7 @@
   </div>
 
   <script>
-    // 全域變數：共用麥克風串流（避免重複請求）
+    // 共用麥克風串流，避免重複請求
     let globalStream = null;
     async function getAudioStream() {
       if (!globalStream) {
@@ -136,7 +96,7 @@
       return globalStream;
     }
 
-    // 自訂錄音類別，根據環境決定採用 MediaRecorder 或 Recorder.js 備援方案
+    // 自訂錄音類別
     class CustomRecorder {
       constructor(container) {
         this.container = container;
@@ -147,26 +107,23 @@
         this.rerecordBtn = container.querySelector('.rerecord');
         this.loopInput = container.querySelector('.loop-count');
         this.statusDisplay = container.querySelector('.status');
-        this.fallbackTimer = null; // 用於播放 fallback 計時
+        this.fallbackTimer = null;
 
-        // 判斷瀏覽器是否支援 MediaRecorder，並檢查錄製格式播放是否支援
+        // 檢查瀏覽器是否支援 MediaRecorder 與 audio/webm
         const canPlayWebm = document.createElement('audio').canPlayType('audio/webm; codecs=opus') !== "";
-        // 若為 Android Chrome，強制使用 Recorder.js 備援方案（輸出 WAV 格式）
-        const isMobileChrome = /Chrome/.test(navigator.userAgent) && /Android/.test(navigator.userAgent);
-        this.useMediaRecorder = ('MediaRecorder' in window) && canPlayWebm && !isMobileChrome;
+        // 若符合條件，則使用 MediaRecorder（包括 mobile Chrome）
+        this.useMediaRecorder = ('MediaRecorder' in window) && canPlayWebm;
         if (!this.useMediaRecorder) {
           console.log("MediaRecorder 或 WebM 播放不支援，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
         }
 
-        // 初始化錄音屬性
         this.isRecording = false;
         this.currentLoop = 0;
         this.totalLoops = 1;
         if (this.useMediaRecorder) {
           this.mediaRecorder = null;
         } else {
-          // 備援：使用 Recorder.js 需初始化 AudioContext
-          // ※ iOS 上需在使用者互動中喚醒 AudioContext
+          // 若使用 fallback，需初始化 AudioContext
           this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
           this.recorder = null;
         }
@@ -187,8 +144,6 @@
         if (this.useMediaRecorder) {
           let stream = await getAudioStream();
           if (!stream) return;
-
-          // 嘗試指定 MIME 類型
           let options = { mimeType: 'audio/webm; codecs=opus' };
           if (!MediaRecorder.isTypeSupported(options.mimeType)) {
             console.log("指定的 MIME 類型不支援，改用預設設定");
@@ -201,7 +156,6 @@
             alert("建立 MediaRecorder 失敗：" + e);
             return;
           }
-          
           this.chunks = [];
           this.mediaRecorder.ondataavailable = (e) => {
             if (e.data && e.data.size > 0) {
@@ -216,22 +170,20 @@
           this.mediaRecorder.onstop = () => {
             this.audioBlob = new Blob(this.chunks, { type: 'audio/webm' });
             this.audioURL = URL.createObjectURL(this.audioBlob);
-            // 建立 audio 元素，並設定 playsinline 避免 iOS 全螢幕
             this.audio = new Audio();
             this.audio.setAttribute('playsinline', '');
+            this.audio.preload = "auto";
             this.audio.src = this.audioURL;
-            // 設定播放結束事件
             this.audio.onended = () => this.onPlaybackEnded();
+            this.audio.onerror = (e) => { console.error("Audio error:", e); };
             this.statusDisplay.textContent = "狀態：錄音完成";
             this.isRecording = false;
             console.log("錄音完成，Blob:", this.audioBlob);
           };
           this.mediaRecorder.start();
         } else {
-          // 備援方案：使用 Recorder.js，錄製 WAV 格式
           let stream = await getAudioStream();
           if (!stream) return;
-          // 若 AudioContext 處於 suspended 狀態，則喚醒（iOS 必須如此）
           if (this.audioContext.state === 'suspended') {
             await this.audioContext.resume();
           }
@@ -255,16 +207,19 @@
             this.recorder.stop();
             this.isRecording = false;
             this.statusDisplay.textContent = "狀態：錄音完成 (Fallback)";
-            // 將錄音資料轉成 Blob
             this.recorder.exportWAV((blob) => {
+              // 若 blob 的 MIME type 不正確，則強制設定為 "audio/wav"
+              if (!blob.type || blob.type !== "audio/wav") {
+                blob = new Blob([blob], { type: "audio/wav" });
+              }
               this.audioBlob = blob;
               this.audioURL = URL.createObjectURL(blob);
-              // 建立 audio 元素並設定 playsinline 屬性
               this.audio = new Audio();
               this.audio.setAttribute('playsinline', '');
+              this.audio.preload = "auto";
               this.audio.src = this.audioURL;
               this.audio.onended = () => this.onPlaybackEnded();
-              // 為下一次錄音清除資料
+              this.audio.onerror = (e) => { console.error("Audio error:", e); };
               this.recorder.clear();
               console.log("Recorder.js 錄音完成，Blob:", blob);
             });
@@ -280,16 +235,13 @@
         this.totalLoops = parseInt(this.loopInput.value) || 1;
         this.currentLoop = 1;
         this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-        // 將播放進度歸零（不呼叫 load() 以避免 iOS 問題）
         this.audio.currentTime = 0;
         if (this.fallbackTimer) {
           clearTimeout(this.fallbackTimer);
           this.fallbackTimer = null;
         }
-        // 設定播放結束事件
         this.audio.onended = () => this.onPlaybackEnded();
         this.audio.play().then(() => {
-          // 設定 fallback timer（若 onended 未觸發）
           if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
             this.fallbackTimer = setTimeout(() => {
               if (!this.audio.paused) {
@@ -317,7 +269,6 @@
         }
       }
 
-      // 當一次播放結束時判斷是否需重播
       onPlaybackEnded() {
         if (this.fallbackTimer) {
           clearTimeout(this.fallbackTimer);
@@ -326,7 +277,6 @@
         if (this.currentLoop < this.totalLoops) {
           this.currentLoop++;
           this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-          // 只重置播放進度，不呼叫 load()（避免 iOS 問題）
           this.audio.currentTime = 0;
           this.audio.play().then(() => {
             if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
