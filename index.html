@@ -166,7 +166,7 @@
           this.mediaRecorder = null;
         } else {
           // 備援：使用 Recorder.js 需初始化 AudioContext
-          // ※ 注意：在 iOS 上，最好在使用者互動中呼叫 resume() 以喚醒 AudioContext
+          // ※ iOS 上需在使用者互動中喚醒 AudioContext
           this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
           this.recorder = null;
         }
@@ -280,7 +280,7 @@
         this.totalLoops = parseInt(this.loopInput.value) || 1;
         this.currentLoop = 1;
         this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-        // 將播放進度歸零（移除 load() 呼叫以避免 iOS 問題）
+        // 將播放進度歸零（不呼叫 load() 以避免 iOS 問題）
         this.audio.currentTime = 0;
         if (this.fallbackTimer) {
           clearTimeout(this.fallbackTimer);
@@ -381,3 +381,4 @@
   </script>
 </body>
 </html>
+
