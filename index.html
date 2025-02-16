@@ -30,7 +30,8 @@
   <h1>錄音網頁應用程式</h1>
   <p style="text-align:center; margin-bottom:1rem;">
     請使用支援麥克風存取權限的瀏覽器（Android 建議使用 Chrome, iOS 建議使用 Safari）<br>
-    ※ 本程式錄製後會輸出 M4A（使用 MediaRecorder）或 WAV（使用 Recorder.js 備援方案）
+    ※ 本程式錄製後會輸出 M4A（使用 MediaRecorder）或 WAV（使用 Recorder.js 備援方案），並自動下載錄音檔<br>
+    播放前請先選擇要撥放的音訊檔，循環播放次數依設定值進行
   </p>
   <div class="recorders">
     <!-- 錄音區 1 -->
@@ -47,6 +48,10 @@
         <button class="pause">暫停</button>
         <button class="rerecord">重新錄製</button>
       </div>
+      <!-- 新增「選擇音訊檔」輸入框 -->
+      <label style="display:block; margin-top:0.5rem;">
+        選擇音訊檔：<input type="file" class="audio-file-input" accept="audio/*">
+      </label>
       <p class="status">狀態：待命</p>
     </div>
     <!-- 錄音區 2 -->
@@ -63,6 +68,9 @@
         <button class="pause">暫停</button>
         <button class="rerecord">重新錄製</button>
       </div>
+      <label style="display:block; margin-top:0.5rem;">
+        選擇音訊檔：<input type="file" class="audio-file-input" accept="audio/*">
+      </label>
       <p class="status">狀態：待命</p>
     </div>
     <!-- 錄音區 3 -->
@@ -79,6 +87,9 @@
         <button class="pause">暫停</button>
         <button class="rerecord">重新錄製</button>
       </div>
+      <label style="display:block; margin-top:0.5rem;">
+        選擇音訊檔：<input type="file" class="audio-file-input" accept="audio/*">
+      </label>
       <p class="status">狀態：待命</p>
     </div>
   </div>
@@ -109,6 +120,7 @@
         this.pauseBtn = container.querySelector('.pause');
         this.rerecordBtn = container.querySelector('.rerecord');
         this.loopInput = container.querySelector('.loop-count');
+        this.fileInput = container.querySelector('.audio-file-input'); // 檔案輸入元素
         this.statusDisplay = container.querySelector('.status');
         this.fallbackTimer = null;
 
@@ -175,7 +187,6 @@
             this.audioBlob = new Blob(this.chunks, { type: 'audio/mp4' });
             this.audioURL = URL.createObjectURL(this.audioBlob);
             this.audio = new Audio();
-            // 為了在 iOS 上確保行內播放，加入 playsinline 屬性
             this.audio.setAttribute('playsinline', '');
             this.audio.setAttribute('webkit-playsinline', '');
             this.audio.preload = "auto";
@@ -185,6 +196,8 @@
             this.statusDisplay.textContent = "狀態：錄音完成";
             this.isRecording = false;
             console.log("錄音完成 (M4A)，Blob:", this.audioBlob);
+            // 自動下載錄音檔
+            this.downloadAudioFile("m4a");
           };
           this.mediaRecorder.start();
         } else {
@@ -230,16 +243,43 @@
               this.audio.onerror = (e) => { console.error("Audio error:", e); };
               this.recorder.clear();
               console.log("Recorder.js 錄音完成 (WAV)，Blob:", blob);
+              // 自動下載錄音檔
+              this.downloadAudioFile("wav");
             });
           }
         }
       }
 
+      // 新增自動下載錄音檔方法
+      downloadAudioFile(ext) {
+        const downloadLink = document.createElement("a");
+        downloadLink.href = this.audioURL;
+        downloadLink.download = `recording.${ext}`;
+        // 為確保不影響畫面，將連結隱藏並加入 DOM 後觸發點擊
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      }
+
       startPlayback() {
-        if (!this.audio) {
-          alert("請先錄製聲音再播放");
+        // 播放前檢查使用者是否已選擇音訊檔
+        const selectedFile = this.fileInput.files[0];
+        if (!selectedFile) {
+          alert("請先選擇音訊檔再進行播放！");
           return;
         }
+        // 以所選檔案建立 URL 並建立新的 Audio 物件
+        const fileURL = URL.createObjectURL(selectedFile);
+        this.audio = new Audio();
+        this.audio.setAttribute('playsinline', '');
+        this.audio.setAttribute('webkit-playsinline', '');
+        this.audio.preload = "auto";
+        this.audio.src = fileURL;
+        this.audio.onended = () => this.onPlaybackEnded();
+        this.audio.onerror = (e) => { console.error("Audio error:", e); };
+
+        // 循環播放邏輯
         this.totalLoops = parseInt(this.loopInput.value) || 1;
         this.currentLoop = 1;
         this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
@@ -248,7 +288,6 @@
           clearTimeout(this.fallbackTimer);
           this.fallbackTimer = null;
         }
-        this.audio.onended = () => this.onPlaybackEnded();
         this.audio.play().then(() => {
           if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
             this.fallbackTimer = setTimeout(() => {
