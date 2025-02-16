@@ -28,7 +28,10 @@
 </head>
 <body>
   <h1>錄音網頁應用程式</h1>
-  <p style="text-align:center; margin-bottom:1rem;">請使用支援麥克風存取權限的瀏覽器（Android 建議使用 Chrome）</p>
+  <p style="text-align:center; margin-bottom:1rem;">
+    請使用支援麥克風存取權限的瀏覽器（Android 建議使用 Chrome, iOS 建議使用 Safari）<br>
+    ※ 本程式錄製後會輸出 M4A（使用 MediaRecorder）或 WAV（使用 Recorder.js 備援方案）
+  </p>
   <div class="recorders">
     <!-- 錄音區 1 -->
     <div class="recorder" id="recorder-1">
@@ -109,12 +112,11 @@
         this.statusDisplay = container.querySelector('.status');
         this.fallbackTimer = null;
 
-        // 檢查瀏覽器是否支援 MediaRecorder 與 audio/webm
-        const canPlayWebm = document.createElement('audio').canPlayType('audio/webm; codecs=opus') !== "";
-        // 若符合條件，則使用 MediaRecorder（包括 mobile Chrome）
-        this.useMediaRecorder = ('MediaRecorder' in window) && canPlayWebm;
+        // 檢查瀏覽器是否支援 MediaRecorder 並支援 audio/mp4 (M4A)
+        // 若不支援，則使用 Recorder.js 備援方案 (WAV)
+        this.useMediaRecorder = ('MediaRecorder' in window) && MediaRecorder.isTypeSupported("audio/mp4");
         if (!this.useMediaRecorder) {
-          console.log("MediaRecorder 或 WebM 播放不支援，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
+          console.log("MediaRecorder 不支援 audio/mp4，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
         }
 
         this.isRecording = false;
@@ -123,7 +125,7 @@
         if (this.useMediaRecorder) {
           this.mediaRecorder = null;
         } else {
-          // 若使用 fallback，需初始化 AudioContext
+          // 初始化 AudioContext，供 Recorder.js 使用
           this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
           this.recorder = null;
         }
@@ -144,7 +146,8 @@
         if (this.useMediaRecorder) {
           let stream = await getAudioStream();
           if (!stream) return;
-          let options = { mimeType: 'audio/webm; codecs=opus' };
+          // 使用 audio/mp4 以錄製 M4A 檔案
+          let options = { mimeType: 'audio/mp4' };
           if (!MediaRecorder.isTypeSupported(options.mimeType)) {
             console.log("指定的 MIME 類型不支援，改用預設設定");
             options = {};
@@ -168,10 +171,11 @@
             console.log("開始錄音...");
           };
           this.mediaRecorder.onstop = () => {
-            this.audioBlob = new Blob(this.chunks, { type: 'audio/webm' });
+            // 產生 M4A 檔案
+            this.audioBlob = new Blob(this.chunks, { type: 'audio/mp4' });
             this.audioURL = URL.createObjectURL(this.audioBlob);
             this.audio = new Audio();
-            // 為了在 iOS 上確保行內播放，加入 playsinline 與 webkit-playsinline
+            // 為了在 iOS 上確保行內播放，加入 playsinline 屬性
             this.audio.setAttribute('playsinline', '');
             this.audio.setAttribute('webkit-playsinline', '');
             this.audio.preload = "auto";
@@ -180,10 +184,11 @@
             this.audio.onerror = (e) => { console.error("Audio error:", e); };
             this.statusDisplay.textContent = "狀態：錄音完成";
             this.isRecording = false;
-            console.log("錄音完成，Blob:", this.audioBlob);
+            console.log("錄音完成 (M4A)，Blob:", this.audioBlob);
           };
           this.mediaRecorder.start();
         } else {
+          // 使用 Recorder.js 備援方案錄製 WAV
           let stream = await getAudioStream();
           if (!stream) return;
           if (this.audioContext.state === 'suspended') {
@@ -193,8 +198,8 @@
           this.recorder = new Recorder(this.sourceNode, { numChannels: 1 });
           this.recorder.record();
           this.isRecording = true;
-          this.statusDisplay.textContent = "狀態：錄音中 (Fallback)...";
-          console.log("使用 Recorder.js 開始錄音");
+          this.statusDisplay.textContent = "狀態：錄音中 (Fallback, WAV)...";
+          console.log("使用 Recorder.js 開始錄音 (WAV)");
         }
       }
 
@@ -208,9 +213,9 @@
           if (this.recorder && this.isRecording) {
             this.recorder.stop();
             this.isRecording = false;
-            this.statusDisplay.textContent = "狀態：錄音完成 (Fallback)";
+            this.statusDisplay.textContent = "狀態：錄音完成 (Fallback, WAV)";
             this.recorder.exportWAV((blob) => {
-              // 若 blob 的 MIME type 不正確，則強制設定為 "audio/wav"
+              // 確保 MIME type 為 audio/wav
               if (!blob.type || blob.type !== "audio/wav") {
                 blob = new Blob([blob], { type: "audio/wav" });
               }
@@ -224,7 +229,7 @@
               this.audio.onended = () => this.onPlaybackEnded();
               this.audio.onerror = (e) => { console.error("Audio error:", e); };
               this.recorder.clear();
-              console.log("Recorder.js 錄音完成，Blob:", blob);
+              console.log("Recorder.js 錄音完成 (WAV)，Blob:", blob);
             });
           }
         }
