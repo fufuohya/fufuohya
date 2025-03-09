@@ -28,10 +28,10 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
-      border: 2px solid black; /* 整體表格外框 */
+      border: 2px solid black;
     }
     th, td {
-      border: 1px solid black; 
+      border: 1px solid black;
       padding: 12px;
       word-wrap: break-word;
       vertical-align: middle;
@@ -40,15 +40,15 @@
       background-color: #f2f2f2;
       text-align: center;
     }
-    /* 將輸入框與下拉選單改為較彈性的寬度 */
+    /* 輸入框與下拉選單設為彈性寬度，並設定最小寬度 */
     td input, select {
       width: auto;
-      min-width: 100px;  /* 可依需求調整 */
+      min-width: 100px;
       padding: 5px;
       margin: auto;
       font-size: 14px;
     }
-    /* 僅針對公克 / 毫升下拉選單調整更小寬度 */
+    /* 針對公克/毫升下拉選單縮小寬度 */
     #unitSelector {
       width: 60px !important;
       min-width: 60px !important;
@@ -72,6 +72,7 @@
       margin-top: 15px;
       text-align: left;
       font-weight: bold;
+      white-space: pre-wrap;
     }
     .validation-result {
       margin: 2px 0;
@@ -99,7 +100,7 @@
     .nutrient-name {
       font-weight: bold;
     }
-    /* 刪除按鈕的樣式 */
+    /* 刪除按鈕 */
     .deleteButton {
       margin-left: 10px;
       padding: 5px;
@@ -113,7 +114,7 @@
     .deleteButton:hover {
       background-color: #c82333;
     }
-    /* 新增營養素按鈕的樣式 */
+    /* 新增營養素按鈕 */
     #addNutrientButton {
       width: auto;
       padding: 10px 20px;
@@ -136,10 +137,8 @@
       <tr>
         <th colspan="3">營養標示</th>
       </tr>
-      <!-- 同一儲存格，使用 <br> 換行，無分隔線 -->
       <tr>
         <td colspan="3" style="text-align: left;">
-          <!-- 每一份量 -->
           每一份量 
           <input type="number" id="servingSize" placeholder="公克或毫升" step="0.1" oninput="syncUnit()">
           <select id="unitSelector" onchange="syncUnit()">
@@ -147,7 +146,6 @@
             <option value="毫升">毫升</option>
           </select>
           <br>
-          <!-- 本包裝含 -->
           本包裝含 
           <input type="number" id="packageContain" placeholder="份數">
         </td>
@@ -157,7 +155,7 @@
         <th style="width: 40%;" class="align-right">每份</th>
         <th style="width: 40%;" class="align-right">每100<span id="unitDisplay">公克</span></th>
       </tr>
-      <!-- 固定營養素列 -->
+      <!-- 固定營養素 -->
       <tr>
         <td class="align-left"><span class="nutrient-name">熱量</span></td>
         <td class="align-right"><input type="number" id="perServing_1" step="0.1"> 大卡</td>
@@ -198,93 +196,105 @@
         <td class="align-right"><input type="number" id="perServing_8" step="0.1"> 毫克</td>
         <td class="align-right"><input type="number" id="per100g_8" step="0.1"> 毫克</td>
       </tr>
-      <!-- 額外新增的營養素將會加入在此 tbody 中 -->
+      <!-- 額外新增營養素 -->
       <tbody id="extraNutrients"></tbody>
     </table>
 
-    <!-- 新增營養素按鈕 -->
+    <!-- 新增營養素與驗證按鈕 -->
     <button type="button" id="addNutrientButton" onclick="addExtraNutrient()">新增營養素</button>
-    
-    <!-- 驗證按鈕 -->
     <button onclick="validateNutrientData()">驗證標示</button>
     <div id="result"></div>
   </div>
 
   <script>
-    // 同步「每100公克/毫升」標題單位
-    function syncUnit() {
-      let unit = document.getElementById("unitSelector").value;
-      document.getElementById("unitDisplay").innerText = unit;
-    }
-    
-    // 額外營養素列表
+    // 定義固定營養素、單位與額外營養素清單
+    const nutrientNames = ["熱量", "蛋白質", "脂肪", "飽和脂肪", "反式脂肪", "碳水化合物", "糖", "鈉"];
+    const fixedNutrientsUnit = {
+      "熱量": "大卡",
+      "蛋白質": "公克",
+      "脂肪": "公克",
+      "飽和脂肪": "公克",
+      "反式脂肪": "公克",
+      "碳水化合物": "公克",
+      "糖": "公克",
+      "鈉": "毫克"
+    };
     const extraNutrientsList = {
-      "膽固醇": "毫克",
       "膳食纖維": "公克",
-      "維生素A": "微克 RE",
-      "維生素B1": "毫克",
-      "維生素B2": "毫克",
-      "維生素B6": "毫克",
-      "維生素B12": "微克",
-      "維生素C": "毫克",
-      "維生素D": "微克",
-      "維生素E": "毫克 a-TE",
-      "維生素K": "微克",
-      "菸鹼素": "毫克 NE",
-      "葉酸": "微克",
-      "泛酸": "毫克",
-      "生物素": "微克",
-      "膽素": "毫克",
-      "鈣": "毫克",
-      "磷": "毫克",
-      "鐵": "毫克",
-      "碘": "微克",
-      "鎂": "毫克",
-      "鋅": "毫克",
-      "氟": "毫克",
-      "硒": "微克",
       "赤藻糖醇": "公克",
       "糖醇": "公克",
       "有機酸": "公克",
       "酒精": "公克"
     };
 
-    // 新增營養素
+    // 同步「每100公克/毫升」標題單位
+    function syncUnit() {
+      let unit = document.getElementById("unitSelector").value;
+      document.getElementById("unitDisplay").innerText = unit;
+    }
+
+    // 計算小數點位數
+    function countDecimalPlaces(valueStr) {
+      if (valueStr.indexOf('.') !== -1) {
+        return valueStr.split('.')[1].length;
+      }
+      return 0;
+    }
+
+    // 驗證數值格式，並依據營養素給予建議
+    function checkNutrientDecimal(valueStr, nutrientName) {
+      if (valueStr.trim() === "") return "";
+      let num = parseFloat(valueStr);
+      if (isNaN(num)) return "";
+      let suggestion = "";
+      const vitaminsAndMinerals = [
+        "維生素A", "維生素B1", "維生素B2", "維生素B6", "維生素B12",
+        "維生素C", "維生素D", "維生素E", "維生素K", "菸鹼素",
+        "葉酸", "泛酸", "生物素", "膽素",
+        "鈣", "磷", "鐵", "碘", "鎂", "鋅"
+      ];
+      if (vitaminsAndMinerals.includes(nutrientName)) {
+        let digits = valueStr.replace('.', '').replace(/^0+/, '');
+        if (digits.length > 3) {
+          suggestion = nutrientName + " 建議標示為有效位數3位";
+        }
+      } else {
+        let decimalCount = countDecimalPlaces(valueStr);
+        if (decimalCount > 2) {
+          suggestion = nutrientName + " 建議標示為整數或小數點後1位";
+        }
+      }
+      return suggestion;
+    }
+
+    // 新增額外營養素
     function addExtraNutrient() {
       let extraTbody = document.getElementById("extraNutrients");
       let newRow = document.createElement("tr");
       newRow.className = "extra-nutrient-row";
       
-      // 第一欄：下拉選單 + 刪除按鈕
       let cell1 = document.createElement("td");
       cell1.className = "align-left";
       let nutrientSelect = document.createElement("select");
       nutrientSelect.className = "extra-nutrient-select";
-      
-      // 預設選項
       let defaultOption = document.createElement("option");
       defaultOption.value = "";
       defaultOption.text = "請選擇營養素";
       nutrientSelect.appendChild(defaultOption);
-      
-      // 依 extraNutrientsList 生成選項
       for (let nutrient in extraNutrientsList) {
         let option = document.createElement("option");
         option.value = nutrient;
         option.text = nutrient;
         nutrientSelect.appendChild(option);
       }
-      
       let deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
       deleteBtn.innerText = "刪除";
       deleteBtn.className = "deleteButton";
       deleteBtn.onclick = function() { removeExtraNutrient(this); };
-      
       cell1.appendChild(nutrientSelect);
       cell1.appendChild(deleteBtn);
       
-      // 第二欄：每份數值 + 單位顯示
       let cell2 = document.createElement("td");
       cell2.className = "align-right";
       let servingInput = document.createElement("input");
@@ -297,7 +307,6 @@
       cell2.appendChild(document.createTextNode(" "));
       cell2.appendChild(servingUnitSpan);
       
-      // 第三欄：每100數值 + 單位顯示
       let cell3 = document.createElement("td");
       cell3.className = "align-right";
       let per100Input = document.createElement("input");
@@ -316,7 +325,6 @@
       
       extraTbody.appendChild(newRow);
       
-      // 當下拉選單改變時，自動更新對應單位
       nutrientSelect.addEventListener("change", function() {
         let selectedNutrient = nutrientSelect.value;
         if (selectedNutrient !== "") {
@@ -330,124 +338,307 @@
       });
     }
 
-    // 刪除額外營養素列
+    // 刪除額外營養素行
     function removeExtraNutrient(button) {
       let row = button.parentNode.parentNode;
       row.parentNode.removeChild(row);
     }
 
-    // 計算小數點位數（以字串方式計算）
-    function countDecimalPlaces(valueStr) {
-      if (valueStr.indexOf('.') !== -1) {
-        return valueStr.split('.')[1].length;
+    // 驗證熱量計算（格式與其他營養素驗證一致）
+    function validateCalorieSum() {
+      let servingSize = parseFloat(document.getElementById("servingSize").value);
+      let declaredCalorieServingStr = document.getElementById("perServing_1").value;
+      let declaredCalorie100Str = document.getElementById("per100g_1").value;
+      if (declaredCalorieServingStr.trim() === "" || declaredCalorie100Str.trim() === "" || isNaN(servingSize)) {
+        return;
       }
-      return 0;
-    }
+      let declaredCalorieServing = parseFloat(declaredCalorieServingStr);
+      let declaredCalorie100 = parseFloat(declaredCalorie100Str);
 
-    // 驗證數值格式：若數值小數位數或有效位數超出限制，則回傳建議訊息
-    function checkNutrientDecimal(valueStr, nutrientName) {
-      if (valueStr.trim() === "") return "";
-      let num = parseFloat(valueStr);
-      if (isNaN(num)) return "";
-      let suggestion = "";
-      // 維生素與礦物質列表
-      const vitaminsAndMinerals = [
-        "維生素A", "維生素B1", "維生素B2", "維生素B6", "維生素B12",
-        "維生素C", "維生素D", "維生素E", "維生素K", "菸鹼素",
-        "葉酸", "泛酸", "生物素", "膽素",
-        "鈣", "磷", "鐵", "碘", "鎂", "鋅"
-      ];
-      
-      if (vitaminsAndMinerals.includes(nutrientName)) {
-        // 移除小數點及前置0，計算有效數字長度
-        let digits = valueStr.replace('.', '').replace(/^0+/, '');
-        if (digits.length > 3) {
-          suggestion = nutrientName + "建議標示為有效位數3位";
-        }
+      let proteinServing = parseFloat(document.getElementById("perServing_2").value);
+      let fatServing = parseFloat(document.getElementById("perServing_3").value);
+      let carbServing = parseFloat(document.getElementById("perServing_6").value);
+      let protein100 = parseFloat(document.getElementById("per100g_2").value);
+      let fat100 = parseFloat(document.getElementById("per100g_3").value);
+      let carb100 = parseFloat(document.getElementById("per100g_6").value);
+
+      if (isNaN(proteinServing) || isNaN(fatServing) || isNaN(carbServing) ||
+          isNaN(protein100) || isNaN(fat100) || isNaN(carb100)) {
+        return;
+      }
+
+      let fiberServing = 0, alloseServing = 0, sugarAlcoholServing = 0, organicAcidServing = 0, alcoholServing = 0;
+      let fiber100 = 0, allose100 = 0, sugarAlcohol100 = 0, organicAcid100 = 0, alcohol100 = 0;
+      let extraRows = document.querySelectorAll(".extra-nutrient-row");
+      extraRows.forEach(function(row) {
+         let nutrientSelect = row.querySelector(".extra-nutrient-select");
+         if (!nutrientSelect) return;
+         let nutrientName = nutrientSelect.value;
+         let servingValueInput = row.querySelector(".extra-nutrient-serving");
+         let per100ValueInput = row.querySelector(".extra-nutrient-per100");
+         if (servingValueInput.value.trim() !== "") {
+            let val = parseFloat(servingValueInput.value);
+            if (!isNaN(val)) {
+               switch (nutrientName) {
+                 case "膳食纖維":
+                   fiberServing += val;
+                   break;
+                 case "赤藻糖醇":
+                   alloseServing += val;
+                   break;
+                 case "糖醇":
+                   sugarAlcoholServing += val;
+                   break;
+                 case "有機酸":
+                   organicAcidServing += val;
+                   break;
+                 case "酒精":
+                   alcoholServing += val;
+                   break;
+                 default:
+                   break;
+               }
+            }
+         }
+         if (per100ValueInput.value.trim() !== "") {
+            let val = parseFloat(per100ValueInput.value);
+            if (!isNaN(val)) {
+               switch (nutrientName) {
+                 case "膳食纖維":
+                   fiber100 += val;
+                   break;
+                 case "赤藻糖醇":
+                   allose100 += val;
+                   break;
+                 case "糖醇":
+                   sugarAlcohol100 += val;
+                   break;
+                 case "有機酸":
+                   organicAcid100 += val;
+                   break;
+                 case "酒精":
+                   alcohol100 += val;
+                   break;
+                 default:
+                   break;
+               }
+            }
+         }
+      });
+
+      let effectiveCarbServing = Math.max(0, carbServing - (fiberServing + alloseServing + sugarAlcoholServing + organicAcidServing + alcoholServing));
+      let effectiveCarb100 = Math.max(0, carb100 - (fiber100 + allose100 + sugarAlcohol100 + organicAcid100 + alcohol100));
+
+      let computedCalorieServing = proteinServing * 4 + fatServing * 9 + effectiveCarbServing * 4 +
+                                   (fiberServing * 2) + (alloseServing * 0) + (sugarAlcoholServing * 2.4) +
+                                   (organicAcidServing * 3) + (alcoholServing * 7);
+      let computedCalorie100 = protein100 * 4 + fat100 * 9 + effectiveCarb100 * 4 +
+                               (fiber100 * 2) + (allose100 * 0) + (sugarAlcohol100 * 2.4) +
+                               (organicAcid100 * 3) + (alcohol100 * 7);
+
+      let derivedServingFrom100 = computedCalorie100 / (100 / servingSize);
+      let decimals100 = declaredCalorie100Str.indexOf('.') !== -1 ? declaredCalorie100Str.split('.')[1].length : 0;
+      let decimalsServing = declaredCalorieServingStr.indexOf('.') !== -1 ? declaredCalorieServingStr.split('.')[1].length : 0;
+
+      function roundToPrecision(value, precision) {
+         return Number(value.toFixed(precision));
+      }
+      let roundedComputed100 = roundToPrecision(computedCalorie100, decimals100);
+      let roundedDeclared100 = roundToPrecision(declaredCalorie100, decimals100);
+      let roundedComputedServing = roundToPrecision(computedCalorieServing, decimalsServing);
+      let roundedDerivedServing = roundToPrecision(derivedServingFrom100, decimalsServing);
+      let roundedDeclaredServing = roundToPrecision(declaredCalorieServing, decimalsServing);
+
+      let resultDiv = document.getElementById("result");
+
+      // 驗證每100公克/毫升熱量
+      if (roundedComputed100 !== roundedDeclared100) {
+        let resultText = `❌ 每100公克/毫升熱量驗證不符合。建議每100公克/毫升熱量應為 ${roundedComputed100.toFixed(1)} 大卡。`;
+        let calorieResultElement = document.createElement("div");
+        calorieResultElement.className = "validation-result invalid";
+        calorieResultElement.innerHTML = resultText;
+        resultDiv.appendChild(calorieResultElement);
       } else {
-        // 一般營養素：若小數點位數超過2位，建議採整數或小數點後1位
-        let decimalCount = countDecimalPlaces(valueStr);
-        if (decimalCount > 2) {
-          suggestion = nutrientName + "建議標示為整數或小數點後1位";
-        }
+        let resultText = `✅ 每100公克/毫升熱量驗證皆符合 (${declaredCalorie100} 大卡)。`;
+        let calorieResultElement = document.createElement("div");
+        calorieResultElement.className = "validation-result valid";
+        calorieResultElement.innerHTML = resultText;
+        resultDiv.appendChild(calorieResultElement);
       }
-      return suggestion;
+
+      // 驗證每份熱量
+      if (roundedDeclaredServing === roundedComputedServing || roundedDeclaredServing === roundedDerivedServing) {
+        let resultText = `✅ 每份熱量驗證皆符合 (${declaredCalorieServing} 大卡)。`;
+        let calorieResultElement = document.createElement("div");
+        calorieResultElement.className = "validation-result valid";
+        calorieResultElement.innerHTML = resultText;
+        resultDiv.appendChild(calorieResultElement);
+      } else {
+        let resultText = `❌ 每份熱量驗證不符合。建議每份熱量應為 ${roundedDerivedServing.toFixed(1)} 大卡。`;
+        let calorieResultElement = document.createElement("div");
+        calorieResultElement.className = "validation-result invalid";
+        calorieResultElement.innerHTML = resultText;
+        resultDiv.appendChild(calorieResultElement);
+      }
     }
 
-    // 驗證邏輯：檢查固定營養素與額外營養素的數值格式
+    // 其他驗證公式（預留擴充）
+    function validateAdditionalFormulas() {
+      // TODO: 擴充其他驗證公式
+    }
+
+    // 主驗證函式：檢查固定營養素與額外營養素
     function validateNutrientData() {
+      let servingSize = parseFloat(document.getElementById("servingSize").value);
       let resultDiv = document.getElementById("result");
       resultDiv.innerHTML = "";
 
-      // 驗證「每一份量」
-      let servingSizeStr = document.getElementById("servingSize").value;
-      let servingSize = parseFloat(servingSizeStr);
-      if (servingSizeStr.trim() === "" || isNaN(servingSize) || servingSize <= 0) {
+      if (document.getElementById("servingSize").value.trim() === "" || isNaN(servingSize) || servingSize <= 0) {
         resultDiv.innerHTML = "<div class='validation-result invalid'>❌ 請輸入有效的每一份量</div>";
         return;
       }
 
-      // 固定營養素列表與對應欄位
-      let fixedNutrients = [
-        {name: "熱量", servingId: "perServing_1", per100Id: "per100g_1"},
-        {name: "蛋白質", servingId: "perServing_2", per100Id: "per100g_2"},
-        {name: "脂肪", servingId: "perServing_3", per100Id: "per100g_3"},
-        {name: "飽和脂肪", servingId: "perServing_4", per100Id: "per100g_4"},
-        {name: "反式脂肪", servingId: "perServing_5", per100Id: "per100g_5"},
-        {name: "碳水化合物", servingId: "perServing_6", per100Id: "per100g_6"},
-        {name: "糖", servingId: "perServing_7", per100Id: "per100g_7"},
-        {name: "鈉", servingId: "perServing_8", per100Id: "per100g_8"}
-      ];
+      let validCount = 0;
+      let warningCount = 0;
+      let invalidCount = 0;
 
-      fixedNutrients.forEach(function(nutrient) {
-        let servingValStr = document.getElementById(nutrient.servingId).value;
-        let per100ValStr = document.getElementById(nutrient.per100Id).value;
-        if (servingValStr.trim() !== "") {
-          let suggestion = checkNutrientDecimal(servingValStr, nutrient.name);
+      // 驗證固定營養素
+      for (let i = 1; i <= nutrientNames.length; i++) {
+        let servingValueInput = document.getElementById(`perServing_${i}`);
+        let per100ValueInput = document.getElementById(`per100g_${i}`);
+        if (servingValueInput.value.trim() !== "" && per100ValueInput.value.trim() !== "") {
+          let suggestion = checkNutrientDecimal(servingValueInput.value, nutrientNames[i-1]);
           if (suggestion !== "") {
             resultDiv.innerHTML += "<div class='validation-result warning'>⚠️ " + suggestion + "（每份）</div>";
           }
-        }
-        if (per100ValStr.trim() !== "") {
-          let suggestion = checkNutrientDecimal(per100ValStr, nutrient.name);
+          suggestion = checkNutrientDecimal(per100ValueInput.value, nutrientNames[i-1]);
           if (suggestion !== "") {
             resultDiv.innerHTML += "<div class='validation-result warning'>⚠️ " + suggestion + "（每100" + document.getElementById("unitDisplay").innerText + "）</div>";
           }
+          
+          let nutrientPerServing = parseFloat(servingValueInput.value);
+          let nutrientPer100 = parseFloat(per100ValueInput.value);
+          if (isNaN(nutrientPerServing) || isNaN(nutrientPer100)) {
+            let resultText = `❌ <b>${nutrientNames[i-1]}</b>: 輸入的數值錯誤`;
+            invalidCount++;
+            servingValueInput.style.border = "2px solid red";
+            let resultElement = document.createElement("div");
+            resultElement.className = "validation-result invalid";
+            resultElement.innerHTML = resultText;
+            resultDiv.appendChild(resultElement);
+          } else {
+            let precision = (servingValueInput.value.split(".")[1] || "").length;
+            let computedValue = nutrientPer100 / (100 / servingSize);
+            function roundToPrecision(value, precision) {
+              return Number(value.toFixed(precision));
+            }
+            let roundedComputed = roundToPrecision(computedValue, precision);
+            if (roundToPrecision(nutrientPerServing, precision) === roundedComputed) {
+              let resultText = `✅ <b>${nutrientNames[i-1]}</b>: 完全符合 (${nutrientPerServing})`;
+              validCount++;
+              servingValueInput.style.border = "1px solid green";
+              let resultElement = document.createElement("div");
+              resultElement.className = "validation-result valid";
+              resultElement.innerHTML = resultText;
+              resultDiv.appendChild(resultElement);
+            } else {
+              let suggestedValue = roundedComputed.toFixed(1);
+              let resultText = `❌ <b>${nutrientNames[i-1]}</b>: 不符合。建議每份${nutrientNames[i-1]}應為 ${suggestedValue} ${fixedNutrientsUnit[nutrientNames[i-1]]}`;
+              invalidCount++;
+              servingValueInput.style.border = "2px solid red";
+              let resultElement = document.createElement("div");
+              resultElement.className = "validation-result invalid";
+              resultElement.innerHTML = resultText;
+              resultDiv.appendChild(resultElement);
+            }
+          }
         }
-      });
+      }
 
-      // 驗證額外營養素
+      // 驗證額外新增營養素
       let extraRows = document.querySelectorAll(".extra-nutrient-row");
       extraRows.forEach(function(row) {
         let nutrientSelect = row.querySelector(".extra-nutrient-select");
+        if(nutrientSelect.value.trim() === "") return;
         let nutrientName = nutrientSelect.value;
-        if (nutrientName === "") {
-          return;
-        }
-        let servingInput = row.querySelector(".extra-nutrient-serving");
-        let per100Input = row.querySelector(".extra-nutrient-per100");
-        let servingValStr = servingInput.value;
-        let per100ValStr = per100Input.value;
-        if (servingValStr.trim() !== "") {
-          let suggestion = checkNutrientDecimal(servingValStr, nutrientName);
+        let servingValueInput = row.querySelector(".extra-nutrient-serving");
+        let per100ValueInput = row.querySelector(".extra-nutrient-per100");
+        if (servingValueInput.value.trim() !== "" && per100ValueInput.value.trim() !== "") {
+          let suggestion = checkNutrientDecimal(servingValueInput.value, nutrientName);
           if (suggestion !== "") {
             resultDiv.innerHTML += "<div class='validation-result warning'>⚠️ " + suggestion + "（" + nutrientName + " - 每份）</div>";
           }
-        }
-        if (per100ValStr.trim() !== "") {
-          let suggestion = checkNutrientDecimal(per100ValStr, nutrientName);
+          suggestion = checkNutrientDecimal(per100ValueInput.value, nutrientName);
           if (suggestion !== "") {
             resultDiv.innerHTML += "<div class='validation-result warning'>⚠️ " + suggestion + "（" + nutrientName + " - 每100" + document.getElementById("unitDisplay").innerText + "）</div>";
+          }
+          
+          let nutrientPerServing = parseFloat(servingValueInput.value);
+          let nutrientPer100 = parseFloat(per100ValueInput.value);
+          if (isNaN(nutrientPerServing) || isNaN(nutrientPer100)) {
+            let resultText = `❌ <b>${nutrientName}</b>: 輸入的數值錯誤`;
+            invalidCount++;
+            servingValueInput.style.border = "2px solid red";
+            let resultElement = document.createElement("div");
+            resultElement.className = "validation-result invalid";
+            resultElement.innerHTML = resultText;
+            resultDiv.appendChild(resultElement);
+          } else {
+            let precision = (servingValueInput.value.split(".")[1] || "").length;
+            let computedValue = nutrientPer100 / (100 / servingSize);
+            function roundToPrecision(value, precision) {
+              return Number(value.toFixed(precision));
+            }
+            let roundedComputed = roundToPrecision(computedValue, precision);
+            if (roundToPrecision(nutrientPerServing, precision) === roundedComputed) {
+              let resultText = `✅ <b>${nutrientName}</b>: 完全符合 (${nutrientPerServing})`;
+              validCount++;
+              servingValueInput.style.border = "1px solid green";
+              let resultElement = document.createElement("div");
+              resultElement.className = "validation-result valid";
+              resultElement.innerHTML = resultText;
+              resultDiv.appendChild(resultElement);
+            } else {
+              let suggestedValue = roundedComputed.toFixed(1);
+              let resultText = `❌ <b>${nutrientName}</b>: 不符合。建議每份${nutrientName}應為 ${suggestedValue} ${extraNutrientsList[nutrientName]}`;
+              invalidCount++;
+              servingValueInput.style.border = "2px solid red";
+              let resultElement = document.createElement("div");
+              resultElement.className = "validation-result invalid";
+              resultElement.innerHTML = resultText;
+              resultDiv.appendChild(resultElement);
+            }
           }
         }
       });
 
-      // 若無任何建議則顯示所有數值格式正確
-      if (resultDiv.innerHTML === "") {
-        resultDiv.innerHTML = "<div class='validation-result valid'>✅ 所有數值格式正確</div>";
+      let summaryElement = document.createElement("div");
+      summaryElement.style.marginTop = "10px";
+      summaryElement.style.fontWeight = "bold";
+      summaryElement.style.padding = "10px";
+      summaryElement.style.borderRadius = "5px";
+      if (invalidCount > 0) {
+        summaryElement.style.backgroundColor = "#f8d7da";
+        summaryElement.style.color = "#721c24";
+        summaryElement.innerText = `驗證結果：${validCount} 項符合，${warningCount} 項可能符合，${invalidCount} 項不符合`;
+      } else if (warningCount > 0) {
+        summaryElement.style.backgroundColor = "#fff3cd";
+        summaryElement.style.color = "#856404";
+        summaryElement.innerText = `驗證結果：${validCount} 項符合，${warningCount} 項可能符合`;
+      } else if (validCount > 0) {
+        summaryElement.style.backgroundColor = "#d4edda";
+        summaryElement.style.color = "#155724";
+        summaryElement.innerText = `驗證結果：所有 ${validCount} 項數值皆完全符合標準！`;
       } else {
-        resultDiv.innerHTML += "<div class='validation-result warning'>請根據建議調整數值格式</div>";
+        summaryElement.style.backgroundColor = "#f8d7da";
+        summaryElement.style.color = "#721c24";
+        summaryElement.innerText = "請輸入數值以進行驗證";
       }
+      resultDiv.appendChild(summaryElement);
+      
+      // 呼叫熱量驗證與其他公式驗證
+      validateCalorieSum();
+      validateAdditionalFormulas();
     }
   </script>
 </body>
