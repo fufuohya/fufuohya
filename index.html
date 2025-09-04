@@ -1,389 +1,406 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>錄音網頁應用程式</title>
-  <style>
-    /* 基本重置 */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; padding: 1rem; background-color: #f9f9f9; color: #333; }
-    h1 { text-align: center; margin-bottom: 1rem; }
-    .recorders { display: flex; flex-direction: column; gap: 1rem; }
-    .recorder { background-color: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .recorder h2 { margin-bottom: 0.5rem; }
-    .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .controls button, .controls input { padding: 0.5rem; font-size: 1rem; }
-    .status { font-weight: bold; margin-top: 0.5rem; }
-    @media (max-width: 600px) { .controls { flex-direction: column; } }
-  </style>
-  <!-- 載入 Recorder.js（用於不支援 MediaRecorder 的環境） -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/recorderjs/0.1.0/recorder.min.js"></script>
-  <script>
-    // 為確保麥克風權限，請透過 HTTPS、localhost 或 file:// 運行
-    if (location.protocol !== 'https:' && location.protocol !== 'file:' && location.hostname !== 'localhost') {
-      alert('為了獲取麥克風存取權限，請透過 HTTPS 或在 localhost 上運行本頁面。');
-    }
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的 HTML 工具箱 | 專業又搞笑的收藏</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 60px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .header h1::before {
+            content: "🛠️";
+            position: absolute;
+            left: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8em;
+            animation: bounce 2s infinite;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .subtitle {
+            font-style: italic;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .search-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .search-container input {
+            padding: 12px 20px;
+            width: 100%;
+            max-width: 500px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1em;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-container input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-container input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: block;
+        }
+
+        .tool-card.hidden {
+            display: none;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+            transition: left 0.5s ease;
+        }
+
+        .tool-card:hover::before {
+            left: 0;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tool-icon {
+            font-size: 2.5em;
+            margin-right: 15px;
+        }
+
+        .tool-icon.python {
+            color: #306998; /* Python 藍 */
+        }
+
+        .tool-icon.vba {
+            color: #4CAF50; /* VBA 綠 */
+        }
+
+        .tool-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .tool-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .tool-link {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tool-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        details {
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        details summary {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.05);
+            transition: background 0.3s ease;
+        }
+
+        details summary:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .code-example {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            color: white;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(-50%) translateX(0); }
+            40% { transform: translateY(-50%) translateX(-10px) rotate(-10deg); }
+            60% { transform: translateY(-50%) translateX(-5px) rotate(5deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .header h1::before {
+                display: none;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>錄音網頁應用程式</h1>
-  <p style="text-align:center; margin-bottom:1rem;">
-    請使用支援麥克風存取權限的瀏覽器（Android 建議使用 Chrome, iOS 建議使用 Safari）<br>
-    ※ 本程式錄製後會嘗試輸出 MP4 格式（使用 MediaRecorder），若不支援則使用 WAV（Recorder.js 備援方案）<br>
-    錄製完成後會自動下載錄音檔，播放前請先選擇要播放的音訊檔，循環播放次數依設定值進行
-  </p>
-  <div class="recorders">
-    <!-- 錄音區 1 -->
-    <div class="recorder" id="recorder-1">
-      <h2>錄音區 1</h2>
-      <div class="controls">
-        <button class="start">開始錄音</button>
-        <button class="stop">停止錄音</button>
-        <label>
-          循環次數：
-          <input type="number" class="loop-count" value="1" min="1">
-        </label>
-        <button class="play">播放</button>
-        <button class="pause">暫停</button>
-        <button class="rerecord">重新錄製</button>
-      </div>
-      <!-- 新增「選擇音訊檔」輸入框 -->
-      <label style="display:block; margin-top:0.5rem;">
-        選擇音訊檔：<input type="file" class="audio-file-input" accept="audio/*">
-      </label>
-      <p class="status">狀態：待命</p>
+    <div class="container">
+        <header class="header">
+            <h1>我的 HTML 工具箱</h1>
+            <p>蒐集我精心打造的 HTML、Python 和 VBA 小工具，專業又不失幽默！</p>
+            <p class="subtitle">每個工具都像咖啡一樣提神，卻不會讓你睡不著 😜</p>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="搜尋工具（例如：Python、VBA、計算器、笑話）..." />
+        </div>
+
+        <div class="tools-grid" id="toolsGrid">
+            <!-- Python 工具卡片 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <i class="fab fa-python tool-icon python"></i>
+                    <h3 class="tool-title">Python 數據清理神器</h3>
+                </div>
+                <p class="tool-description">
+                    用 Pandas 秒殺 Excel 大數據，清理亂七八糟的資料就像喝咖啡一樣輕鬆！
+                </p>
+                <a href="./tools/python-data-cleaner.html" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 開始清理
+                </a>
+                <details>
+                    <summary>想偷看這工具的魔法？點這裡！</summary>
+                    <div class="code-example">
+                        <pre>
+import pandas as pd
+
+# 讀取 Excel 檔案
+df = pd.read_excel('data.xlsx')
+
+# 移除重複行並填補缺失值
+df = df.drop_duplicates().fillna(0)
+
+# 儲存清理後的資料
+df.to_excel('cleaned_data.xlsx', index=False)
+                        </pre>
+                    </div>
+                </details>
+            </div>
+
+            <!-- VBA 工具卡片 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <i class="fas fa-file-excel tool-icon vba"></i>
+                    <h3 class="tool-title">VBA 報表自動化</h3>
+                </div>
+                <p class="tool-description">
+                    讓 Excel 聽你話，自動生成報表，省下喝咖啡的時間來摸魚！
+                </p>
+                <a href="./tools/vba-report-automation.xlsm" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 自動化報表
+                </a>
+                <details>
+                    <summary>想知道 VBA 怎麼搞定？點這裡！</summary>
+                    <div class="code-example">
+                        <pre>
+Sub AutoReport()
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    
+    ' 設定報表標題
+    ws.Range("A1").Value = "自動化報表"
+    ws.Range("A1").Font.Bold = True
+    
+    ' 格式化數據
+    ws.Range("A2:B10").Borders.LineStyle = xlContinuous
+End Sub
+                        </pre>
+                    </div>
+                </details>
+            </div>
+
+            <!-- 原有工具卡片 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <i class="fas fa-calculator tool-icon"></i>
+                    <h3 class="tool-title">神奇計算器</h3>
+                </div>
+                <p class="tool-description">
+                    不只會加減乘除，還能幫你算出「人生意義」...好吧，至少能算得很準！
+                </p>
+                <a href="./tools/calculator.html" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 試試看
+                </a>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-header">
+                    <i class="fas fa-laugh tool-icon"></i>
+                    <h3 class="tool-title">隨機笑話產生器</h3>
+                </div>
+                <p class="tool-description">
+                    當生活太嚴肅時，來點冷笑話解壓！保證讓你會心一笑（或翻白眼）。
+                </p>
+                <a href="./tools/joke-generator.html" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 來點笑料
+                </a>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-header">
+                    <i class="fas fa-qrcode tool-icon"></i>
+                    <h3 class="tool-title">QR Code 生成器</h3>
+                </div>
+                <p class="tool-description">
+                    將網址、文字或秘密訊息變成 QR Code，掃一掃就能分享你的神秘計畫！
+                </p>
+                <a href="./tools/qr-generator.html" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 生成 QR
+                </a>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p style="margin-top: 20px; opacity: 0.7;">
+                Made with 😎 by 你的名字 | 若有 bug，請笑一笑再修
+            </p>
+        </footer>
     </div>
-    <!-- 錄音區 2 -->
-    <div class="recorder" id="recorder-2">
-      <h2>錄音區 2</h2>
-      <div class="controls">
-        <button class="start">開始錄音</button>
-        <button class="stop">停止錄音</button>
-        <label>
-          循環次數：
-          <input type="number" class="loop-count" value="1" min="1">
-        </label>
-        <button class="play">播放</button>
-        <button class="pause">暫停</button>
-        <button class="rerecord">重新錄製</button>
-      </div>
-      <label style="display:block; margin-top:0.5rem;">
-        選擇音訊檔：<input type="file" class="audio-file-input" accept="audio/*">
-      </label>
-      <p class="status">狀態：待命</p>
-    </div>
-    <!-- 錄音區 3 -->
-    <div class="recorder" id="recorder-3">
-      <h2>錄音區 3</h2>
-      <div class="controls">
-        <button class="start">開始錄音</button>
-        <button class="stop">停止錄音</button>
-        <label>
-          循環次數：
-          <input type="number" class="loop-count" value="1" min="1">
-        </label>
-        <button class="play">播放</button>
-        <button class="pause">暫停</button>
-        <button class="rerecord">重新錄製</button>
-      </div>
-      <label style="display:block; margin-top:0.5rem;">
-        選擇音訊檔：<input type="file" class="audio-file-input" accept="audio/*">
-      </label>
-      <p class="status">狀態：待命</p>
-    </div>
-  </div>
 
-  <script>
-    // 共用麥克風串流，避免重複請求
-    let globalStream = null;
-    async function getAudioStream() {
-      if (!globalStream) {
-        try {
-          globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          console.log("取得麥克風串流", globalStream);
-        } catch (err) {
-          alert("無法取得麥克風權限：" + err);
-          console.error(err);
-        }
-      }
-      return globalStream;
-    }
+    <script>
+        // 搜尋功能
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const toolCards = document.querySelectorAll('.tool-card');
 
-    // 自訂錄音類別
-    class CustomRecorder {
-      constructor(container) {
-        this.container = container;
-        this.startBtn = container.querySelector('.start');
-        this.stopBtn = container.querySelector('.stop');
-        this.playBtn = container.querySelector('.play');
-        this.pauseBtn = container.querySelector('.pause');
-        this.rerecordBtn = container.querySelector('.rerecord');
-        this.loopInput = container.querySelector('.loop-count');
-        this.fileInput = container.querySelector('.audio-file-input'); // 檔案輸入元素
-        this.statusDisplay = container.querySelector('.status');
-        this.fallbackTimer = null;
-
-        // 檢查瀏覽器是否支援 MediaRecorder 並支援 MP4 格式
-        // 嘗試先用 "audio/mp4"，若不支援則改用 "video/mp4"
-        let mimeType = "audio/mp4";
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = "video/mp4";
-          if (!MediaRecorder.isTypeSupported(mimeType)) {
-            console.log("MediaRecorder 不支援 MP4 格式，將使用 Recorder.js 備援方案（輸出 WAV 格式）");
-            this.useMediaRecorder = false;
-          } else {
-            this.useMediaRecorder = true;
-          }
-        } else {
-          this.useMediaRecorder = true;
-        }
-
-        this.mimeType = mimeType; // 儲存使用的 MIME type
-
-        this.isRecording = false;
-        this.currentLoop = 0;
-        this.totalLoops = 1;
-        if (this.useMediaRecorder) {
-          this.mediaRecorder = null;
-        } else {
-          // 初始化 AudioContext，供 Recorder.js 使用
-          this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          this.recorder = null;
-        }
-        this.audioBlob = null;
-        this.audioURL = null;
-        this.audio = null;
-
-        // 綁定按鈕事件
-        this.startBtn.addEventListener('click', () => this.startRecording());
-        this.stopBtn.addEventListener('click', () => this.stopRecording());
-        this.playBtn.addEventListener('click', () => this.startPlayback());
-        this.pauseBtn.addEventListener('click', () => this.pausePlayback());
-        this.rerecordBtn.addEventListener('click', () => this.resetRecording());
-      }
-
-      async startRecording() {
-        if (this.isRecording) return;
-        if (this.useMediaRecorder) {
-          let stream = await getAudioStream();
-          if (!stream) return;
-          let options = { mimeType: this.mimeType };
-          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            console.log("指定的 MIME 類型不支援，改用預設設定");
-            options = {};
-          }
-          try {
-            this.mediaRecorder = new MediaRecorder(stream, options);
-          } catch (e) {
-            console.error("建立 MediaRecorder 失敗：", e);
-            alert("建立 MediaRecorder 失敗：" + e);
-            return;
-          }
-          this.chunks = [];
-          this.mediaRecorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) {
-              this.chunks.push(e.data);
-            }
-          };
-          this.mediaRecorder.onstart = () => {
-            this.statusDisplay.textContent = "狀態：錄音中...";
-            this.isRecording = true;
-            console.log("開始錄音...");
-          };
-          this.mediaRecorder.onstop = () => {
-            // 使用指定的 MIME type 產生 MP4 檔案
-            this.audioBlob = new Blob(this.chunks, { type: this.mimeType });
-            this.audioURL = URL.createObjectURL(this.audioBlob);
-            this.audio = new Audio();
-            this.audio.setAttribute('playsinline', '');
-            this.audio.setAttribute('webkit-playsinline', '');
-            this.audio.preload = "auto";
-            this.audio.src = this.audioURL;
-            this.audio.onended = () => this.onPlaybackEnded();
-            this.audio.onerror = (e) => { console.error("Audio error:", e); };
-            this.statusDisplay.textContent = "狀態：錄音完成";
-            this.isRecording = false;
-            console.log("錄音完成 (MP4)，Blob:", this.audioBlob);
-            // 自動下載錄音檔，副檔名改為 mp4
-            this.downloadAudioFile("mp4");
-          };
-          this.mediaRecorder.start();
-        } else {
-          // 使用 Recorder.js 備援方案錄製 WAV
-          let stream = await getAudioStream();
-          if (!stream) return;
-          if (this.audioContext.state === 'suspended') {
-            await this.audioContext.resume();
-          }
-          this.sourceNode = this.audioContext.createMediaStreamSource(stream);
-          this.recorder = new Recorder(this.sourceNode, { numChannels: 1 });
-          this.recorder.record();
-          this.isRecording = true;
-          this.statusDisplay.textContent = "狀態：錄音中 (Fallback, WAV)...";
-          console.log("使用 Recorder.js 開始錄音 (WAV)");
-        }
-      }
-
-      stopRecording() {
-        if (this.useMediaRecorder) {
-          if (this.mediaRecorder && this.isRecording) {
-            this.mediaRecorder.stop();
-            console.log("停止 MediaRecorder 錄音");
-          }
-        } else {
-          if (this.recorder && this.isRecording) {
-            this.recorder.stop();
-            this.isRecording = false;
-            this.statusDisplay.textContent = "狀態：錄音完成 (Fallback, WAV)";
-            this.recorder.exportWAV((blob) => {
-              // 確保 MIME type 為 audio/wav
-              if (!blob.type || blob.type !== "audio/wav") {
-                blob = new Blob([blob], { type: "audio/wav" });
-              }
-              this.audioBlob = blob;
-              this.audioURL = URL.createObjectURL(blob);
-              this.audio = new Audio();
-              this.audio.setAttribute('playsinline', '');
-              this.audio.setAttribute('webkit-playsinline', '');
-              this.audio.preload = "auto";
-              this.audio.src = this.audioURL;
-              this.audio.onended = () => this.onPlaybackEnded();
-              this.audio.onerror = (e) => { console.error("Audio error:", e); };
-              this.recorder.clear();
-              console.log("Recorder.js 錄音完成 (WAV)，Blob:", blob);
-              // 自動下載錄音檔
-              this.downloadAudioFile("wav");
+            toolCards.forEach(card => {
+                const title = card.querySelector('.tool-title').textContent.toLowerCase();
+                const description = card.querySelector('.tool-description').textContent.toLowerCase();
+                const isMatch = title.includes(searchTerm) || description.includes(searchTerm);
+                card.classList.toggle('hidden', !isMatch);
             });
-          }
-        }
-      }
-
-      // 自動下載錄音檔方法，根據參數設定副檔名
-      downloadAudioFile(ext) {
-        const downloadLink = document.createElement("a");
-        downloadLink.href = this.audioURL;
-        downloadLink.download = `recording.${ext}`;
-        downloadLink.style.display = "none";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-      }
-
-      startPlayback() {
-        // 播放前檢查使用者是否已選擇音訊檔
-        const selectedFile = this.fileInput.files[0];
-        if (!selectedFile) {
-          alert("請先選擇音訊檔再進行播放！");
-          return;
-        }
-        // 以所選檔案建立 URL 並建立新的 Audio 物件
-        const fileURL = URL.createObjectURL(selectedFile);
-        this.audio = new Audio();
-        this.audio.setAttribute('playsinline', '');
-        this.audio.setAttribute('webkit-playsinline', '');
-        this.audio.preload = "auto";
-        this.audio.src = fileURL;
-        this.audio.onended = () => this.onPlaybackEnded();
-        this.audio.onerror = (e) => { console.error("Audio error:", e); };
-
-        // 循環播放邏輯
-        this.totalLoops = parseInt(this.loopInput.value) || 1;
-        this.currentLoop = 1;
-        this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-        this.audio.currentTime = 0;
-        if (this.fallbackTimer) {
-          clearTimeout(this.fallbackTimer);
-          this.fallbackTimer = null;
-        }
-        this.audio.play().then(() => {
-          if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
-            this.fallbackTimer = setTimeout(() => {
-              if (!this.audio.paused) {
-                this.audio.pause();
-                this.onPlaybackEnded();
-              }
-            }, this.audio.duration * 1000 + 200);
-          }
-          console.log("開始播放，循環次數：", this.totalLoops);
-        }).catch(err => {
-          console.error("播放失敗:", err);
-          alert("播放失敗: " + err);
         });
-      }
 
-      pausePlayback() {
-        if (this.audio && !this.audio.paused) {
-          this.audio.pause();
-          if (this.fallbackTimer) {
-            clearTimeout(this.fallbackTimer);
-            this.fallbackTimer = null;
-          }
-          this.statusDisplay.textContent = "狀態：播放暫停";
-          console.log("播放暫停");
-        }
-      }
-
-      onPlaybackEnded() {
-        if (this.fallbackTimer) {
-          clearTimeout(this.fallbackTimer);
-          this.fallbackTimer = null;
-        }
-        if (this.currentLoop < this.totalLoops) {
-          this.currentLoop++;
-          this.statusDisplay.textContent = `狀態：播放中，第 ${this.currentLoop} 次循環`;
-          this.audio.currentTime = 0;
-          this.audio.play().then(() => {
-            if (this.audio.duration && !isNaN(this.audio.duration) && this.audio.duration > 0) {
-              this.fallbackTimer = setTimeout(() => {
-                if (!this.audio.paused) {
-                  this.audio.pause();
-                  this.onPlaybackEnded();
-                }
-              }, this.audio.duration * 1000 + 200);
-            }
-          }).catch(err => {
-            console.error("播放失敗:", err);
-          });
-          console.log("重播中，循環次數：", this.currentLoop);
-        } else {
-          this.statusDisplay.textContent = "狀態：播放結束";
-          console.log("播放結束");
-        }
-      }
-
-      resetRecording() {
-        if (this.audio && !this.audio.paused) {
-          this.audio.pause();
-        }
-        if (this.fallbackTimer) {
-          clearTimeout(this.fallbackTimer);
-          this.fallbackTimer = null;
-        }
-        if (this.audioURL) {
-          URL.revokeObjectURL(this.audioURL);
-        }
-        this.audioBlob = null;
-        this.audioURL = null;
-        this.audio = null;
-        if (this.useMediaRecorder) {
-          this.chunks = [];
-          this.mediaRecorder = null;
-        } else {
-          if (this.recorder) {
-            this.recorder.clear();
-          }
-        }
-        this.statusDisplay.textContent = "狀態：待命";
-        console.log("重置錄音狀態");
-      }
-    }
-
-    // 為每個錄音區初始化 CustomRecorder 實例
-    document.querySelectorAll('.recorder').forEach(container => {
-      new CustomRecorder(container);
-    });
-  </script>
+        // 動態載入效果
+        window.addEventListener('load', function() {
+            const cards = document.querySelectorAll('.tool-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(30px)';
+                    card.style.transition = 'all 0.6s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 150);
+            });
+        });
+    </script>
 </body>
 </html>
 
