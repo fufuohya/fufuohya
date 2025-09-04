@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>食品標籤批次分析工具（優化版）</title>
+
+  <!-- 解析 PDF / DOCX 所需外掛（CDN） -->
+  <script defer src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script defer>
+    // 指定 PDF.js worker（必要）
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+      }
+    });
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+
+<style>
+  /* 基礎樣式 */
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+  .container{max-width:1200px;margin:0 auto;background:rgba(255,255,255,.95);border-radius:20px;padding:30px;box-shadow:0 20px 40px rgba(0,0,0,.1);backdrop-filter:blur(10px)}
+  h1{text-align:center;color:#333;margin-bottom:30px;font-size:2.5em;text-shadow:2px 2px 4px rgba(0,0,0,.1)}
+  .config-section{background:#f8f9fa;padding:20px;border-radius:15px;margin-bottom:20px;border:2px solid #e9ecef}
+  .config-section h3{margin-bottom:15px;color:#495057;display:flex;align-items:center}
+  .config-section h3::before{content:"⚙️";margin-right:10px}
+  .form-group{margin-bottom:20px}
+  label{display:block;margin-bottom:8px;font-weight:600;color:#495057}
+  input[type="text"],input[type="file"]{width:100%;padding:12px;border:2px solid #ddd;border-radius:10px;font-size:16px;transition:all .3s ease}
+  input[type="text"]:focus,input[type="file"]:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.1)}
+  .upload-area{border:3px dashed #667eea;border-radius:15px;padding:40px;text-align:center;background:#f8f9ff;transition:all .3s ease;cursor:pointer;margin-bottom:20px}
+  .upload-area:hover{background:#f0f4ff;transform:translateY(-2px)}
+  .upload-area.dragover{background:#e6f0ff;border-color:#4dabf7}
+  .btn{background:linear-gradient(45deg,#667eea,#764ba2);color:#fff;padding:12px 30px;border:none;border-radius:25px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s ease;margin-right:10px}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,126,234,.3)}
+  .btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .progress-section{margin-top:30px;padding:20px;background:#e8f5e8;border-radius:15px;display:none}
+  .progress-bar{width:100%;height:20px;background:#ddd;border-radius:10px;overflow:hidden;margin-bottom:15px}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#28a745,#34ce57);width:0%;transition:width .3s ease;border-radius:10px}
+  .current-file{font-weight:600;color:#155724;margin-bottom:10px}
+  .status{color:#666;font-style:italic}
+  .results{margin-top:30px;display:none}
+  .results-table-container{background:#fff;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,.1);overflow:hidden;margin-top:20px}
+
+  /* 表格：固定欄寬＋換行 */
+  .results-table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
+  .results-table th{background:linear-gradient(45deg,#667eea,#764ba2);color:#fff;padding:15px 8px;text-align:center;font-weight:600;position:sticky;top:0;z-index:10;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
+  .results-table td{padding:12px 8px;border-bottom:1px solid #e9ecef;vertical-align:top;position:relative;max-width:none;overflow:visible;text-overflow:clip;white-space:normal;word-break:break-word;overflow-wrap:anywhere}
+
+  /* 第一欄 sticky 與寬度 */
+  .results-table th:first-child,.results-table td:first-child{background:#f8f9fa;font-weight:600;position:sticky;left:0;z-index:11;border-right:2px solid #dee2e6;min-width:100px;max-width:1000px}
+
+  /* ➤ 每一欄「預設寬度」 */
+  .results-table th:nth-child(2), .results-table td:nth-child(2){ width:180px; max-width:180px }
+  .results-table th:nth-child(3), .results-table td:nth-child(3){ width:360px; max-width:360px }
+  .results-table th:nth-child(4), .results-table td:nth-child(4){ width:120px; max-width:120px }
+  .results-table th:nth-child(5), .results-table td:nth-child(5){ width:380px; max-width:380px }
+  .results-table th:nth-child(6), .results-table td:nth-child(6){ width:240px; max-width:240px }
+  .results-table th:nth-child(7), .results-table td:nth-child(7){ width:160px; max-width:160px }
+  .results-table th:nth-child(8), .results-table td:nth-child(8){ width:300px; max-width:300px }
+  .results-table th:nth-child(9), .results-table td:nth-child(9){ width:160px; max-width:160px }
+  .results-table th:nth-child(10), .results-table td:nth-child(10){ width:170px; max-width:170px }
+  .results-table th:nth-child(11), .results-table td:nth-child(11){ width:110px; max-width:110px }
+
+  .results-table tbody tr:hover{background:#f8f9ff}
+  .results-table tbody tr.processing{background:#fff3cd}
+  .results-table tbody tr.error{background:#f8d7da}
+
+  /* 儲存格內層容器 */
+  .cell-content{max-height:200px;overflow-y:auto;font-size:12px;line-height:1.4}
+  .cell-content.json-content{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:#f8f9fa;padding:5px;border-radius:4px}
+
+  .status-badge{display:inline-block;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:600;text-transform:uppercase}
+  .status-badge.success{background:#d4edda;color:#155724}
+  .status-badge.processing{background:#fff3cd;color:#856404}
+  .status-badge.error{background:#f8d7da;color:#721c24}
+
+  .table-scroll{max-height:600px;overflow:auto}
+
+  .error{color:#dc3545;background:#f8d7da;border:1px solid #f5c6cb;padding:10px;border-radius:5px;margin-top:10px}
+  .export-section{margin-top:20px;text-align:center}
+  .file-list{margin-top:15px;max-height:200px;overflow-y:auto}
+  .file-item{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff;margin-bottom:5px;border-radius:8px;border:1px solid #e9ecef}
+  .file-item.processing{background:#fff3cd;border-color:#ffeaa7}
+  .file-item.completed{background:#d4edda;border-color:#c3e6cb}
+  .file-item.error{background:#f8d7da;border-color:#f5c6cb}
+  .countdown{font-weight:bold;color:#fd7e14}
+
+  /* 可選：窄螢幕調整 */
+  @media (max-width: 1024px){
+    .results-table th, .results-table td{ font-size:12px }
+    .results-table th:nth-child(3), .results-table td:nth-child(3){ width:300px; max-width:300px }
+    .results-table th:nth-child(5), .results-table td:nth-child(5){ width:320px; max-width:320px }
+    .results-table th:first-child, .results-table td:first-child{ min-width:200px; max-width:200px }
+  }
+  .visually-hidden-file {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    width: 0;
+    height: 0;
+    opacity: 0;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1 aria-live="polite">🍱 食品標籤批次分析工具</h1>
+
+    <div class="config-section">
+      <h3>API 設定</h3>
+      <div class="form-group">
+        <label for="apiKey">Gemini API Key:</label>
+        <input type="text" id="apiKey" placeholder="請輸入您的 Gemini API Key" autocomplete="off"/>
+        <small style="color:#666;display:block;margin-top:5px;">⚠️ 金鑰僅在本頁運行期間存在記憶體，不會被儲存。</small>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3>檔案上傳</h3>
+      <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="點擊或拖放檔案到此處">
+        <div style="font-size:3em;margin-bottom:10px;" aria-hidden="true">📁</div>
+        <p>點擊選擇檔案或拖拽到此處</p>
+        <p style="color:#666;margin-top:10px;">支援：JPG/PNG/WEBP/GIF（自動轉PNG）、PDF、DOCX、TXT</p>
+      </div>
+      <input type="file" id="fileInput" multiple
+       accept=".pdf,.docx,.txt,image/*"
+       class="visually-hidden-file"/>
+      <div class="file-list" id="fileList" aria-live="polite"></div>
+    </div>
+
+    <div style="text-align:center;margin:20px 0;">
+      <button class="btn" id="startBtn">🚀 開始分析</button>
+      <button class="btn" id="stopBtn" style="background:#dc3545;display:none;">⏹️ 停止分析</button>
+    </div>
+
+    <div class="progress-section" id="progressSection" aria-live="polite">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="current-file" id="currentFile"></div>
+      <div class="status" id="status"></div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+
+    <div class="results" id="results">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3>📊 分析結果</h3>
+        <div class="export-section">
+          <button class="btn" id="exportJsonBtn">💾 匯出 JSON</button>
+          <button class="btn" id="exportCsvBtn">📄 匯出 CSV</button>
+          <button class="btn" id="clearBtn" style="background:#dc3545;">🗑️ 清除所有記錄</button>
+        </div>
+      </div>
+      <div class="results-table-container">
+        <div class="table-scroll">
+          <table class="results-table" id="resultsTable">
+            <colgroup>
+              <col style="width:100px">  <!-- 檔案名稱 -->
+              <col style="width:200px">  <!-- 品名 -->
+              <col style="width:280px">  <!-- 內容物及成分 -->
+              <col style="width:110px">  <!-- 淨重 -->
+              <col style="width:320px">  <!-- 營養標示 -->
+              <col style="width:220px">  <!-- 過敏原資訊 -->
+              <col style="width:160px">  <!-- 有效日期 -->
+              <col style="width:260px">  <!-- 廠商資訊 -->
+              <col style="width:140px">  <!-- 原產地 -->
+              <col style="width:160px">  <!-- 分析時間 -->
+              <col style="width:100px">  <!-- 狀態 -->
+            </colgroup>
+            <thead>
+              <tr>
+                <th>檔案名稱</th>
+                <th>品名</th>
+                <th>內容物及成分</th>
+                <th>淨重</th>
+                <th>營養標示</th>
+                <th>過敏原資訊</th>
+                <th>有效日期</th>
+                <th>廠商資訊</th>
+                <th>原產地</th>
+                <th>分析時間</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** —— 基本狀態 —— */
+const MODEL = "gemini-2.5-flash";           // 快速多模態模型
+const DELAY_SECONDS = 10;                    // 每組完成後等待秒數
+const TEXT_LIMIT = 30000;                    // 文字檔最大送出長度
+
+let files = [];
+let isAnalyzing = false;
+let currentIndex = 0;
+let analysisTimeout;
+const allResults = [];                       // 跨批次累積結果（用於匯出）
+
+// 空值判斷 & 顯示規則：沒內容就顯示 N/A
+const isBlank = (v) => v === null || v === undefined || (typeof v === "string" && v.trim() === "");
+const show = (v) => (isBlank(v) ? "N/A" : String(v));
+
+/** —— DOM —— */
+const els = {
+  uploadArea: document.getElementById("uploadArea"),
+  fileInput: document.getElementById("fileInput"),
+  fileList: document.getElementById("fileList"),
+  startBtn: document.getElementById("startBtn"),
+  stopBtn: document.getElementById("stopBtn"),
+  progressSection: document.getElementById("progressSection"),
+  progressFill: document.getElementById("progressFill"),
+  currentFile: document.getElementById("currentFile"),
+  status: document.getElementById("status"),
+  countdown: document.getElementById("countdown"),
+  results: document.getElementById("results"),
+  resultsBody: document.getElementById("resultsTableBody"),
+  apiKey: document.getElementById("apiKey"),
+  exportJsonBtn: document.getElementById("exportJsonBtn"),
+  exportCsvBtn: document.getElementById("exportCsvBtn"),
+  clearBtn: document.getElementById("clearBtn"),
+};
+
+// Gemini 支援的影像 MIME（GIF 會轉 PNG）。註：多數瀏覽器不支援 HEIC/HEIF。
+const GEMINI_SUPPORTED_IMG = new Set([
+  "image/png", "image/jpeg", "image/webp"
+]);
+
+/** —— 檔名分組工具 —— */
+function extractGroupKey(filename = "") {
+  const name = String(filename).trim();
+  const m = name.match(/^\s*(\d{1,6})\s*(?:\(\d+\))?/);
+  return m ? m[1] : name;
+}
+function groupFilesByLeadingNumber(fileList = []) {
+  const map = new Map();
+  for (const f of fileList) {
+    const key = extractGroupKey(f.name || "");
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(f);
+  }
+  return map;
+}
+
+/** —— 檔案工具 —— */
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ""));
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+function dataURLToPngBase64(dataURL) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth || img.width;
+      c.height = img.naturalHeight || img.height;
+      const ctx = c.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const pngDataURL = c.toDataURL("image/png");
+      resolve(pngDataURL.split(",")[1]);
+    };
+    img.onerror = reject;
+    img.src = dataURL;
+  });
+}
+async function getFileData(file) {
+  const type = file.type || "";
+  const nameLower = (file.name || "").toLowerCase();
+
+  // 影像
+  if (type.startsWith("image/")) {
+    const dataURL = await fileToDataURL(file);
+    if (type === "image/gif" || !GEMINI_SUPPORTED_IMG.has(type)) {
+      // GIF 或瀏覽器不支援格式 → 轉 PNG
+      const base64 = await dataURLToPngBase64(dataURL);
+      return { mode: "image", mimeType: "image/png", base64, filename: file.name };
+    }
+    return { mode: "image", mimeType: type, base64: dataURL.split(",")[1], filename: file.name };
+  }
+  // 純文字
+  if (type === "text/plain" || nameLower.endsWith(".txt")) {
+    const text = await file.text();
+    return { mode: "text", text, filename: file.name };
+  }
+  // PDF
+  if (type === "application/pdf" || nameLower.endsWith(".pdf")) {
+    const text = await extractPdfText(file);
+    return { mode: "text", text, filename: file.name };
+  }
+  // DOCX
+  const isDocx = type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || nameLower.endsWith(".docx");
+  if (isDocx) {
+    const text = await extractDocxText(file);
+    return { mode: "text", text, filename: file.name };
+  }
+  throw new Error(`不支援的檔案格式：${file.name}（${type || "unknown"}）`);
+}
+async function extractPdfText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = "";
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const strings = content.items.map(item => item.str).filter(Boolean);
+    fullText += strings.join(" ") + "\n";
+  }
+  return fullText;
+}
+async function extractDocxText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const { value } = await window.mammoth.extractRawText({ arrayBuffer });
+  return value || "";
+}
+
+/** —— 上傳區互動 —— */
+els.uploadArea.addEventListener("click", () => els.fileInput.click());
+els.uploadArea.addEventListener("keydown", (e) => { if (e.key === 'Enter' || e.key === ' ') els.fileInput.click(); });
+els.fileInput.addEventListener("change", (e) => addFiles(Array.from(e.target.files)));
+["dragover","dragleave","drop"].forEach(evt => {
+  els.uploadArea.addEventListener(evt, (e) => e.preventDefault());
+});
+els.uploadArea.addEventListener("dragover", () => els.uploadArea.classList.add("dragover"));
+els.uploadArea.addEventListener("dragleave", () => els.uploadArea.classList.remove("dragover"));
+els.uploadArea.addEventListener("drop", (e) => {
+  els.uploadArea.classList.remove("dragover");
+  const dropped = Array.from(e.dataTransfer.files);
+  addFiles(dropped);
+});
+function addFiles(newFiles){
+  files = [...files, ...newFiles];
+  renderFileList();
+}
+function renderFileList(){
+  if(!files.length){ els.fileList.innerHTML = ""; return;}
+  els.fileList.innerHTML = files.map((f, i) => `
+    <div class="file-item" id="file-${i}">
+      <span>${f.name} (${(f.size/1024/1024).toFixed(2)} MB)</span>
+      <button onclick="removeFile(${i})" style="background:#dc3545;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;">移除</button>
+    </div>`).join("");
+}
+window.removeFile = (i) => { files.splice(i,1); renderFileList(); };
+
+/** —— 操作按鈕 —— */
+els.startBtn.addEventListener("click", startAnalysis);
+els.stopBtn.addEventListener("click", stopAnalysis);
+els.exportJsonBtn.addEventListener("click", exportResultsJSON);
+els.exportCsvBtn.addEventListener("click", exportResultsCSV);
+els.clearBtn.addEventListener("click", clearAllRecords);
+
+async function startAnalysis(){
+  const apiKey = els.apiKey.value.trim();
+  if(!apiKey){ alert("請輸入 Gemini API Key"); return; }
+  if(!files.length){ alert("請選擇要分析的檔案"); return; }
+
+  // 依主標號分組
+  const groupMap = groupFilesByLeadingNumber(files);
+  const groups = Array.from(groupMap.entries()).map(([key, list]) => ({ groupKey: key, list }));
+
+  isAnalyzing = true;
+  currentIndex = 0;
+
+  // UI 狀態
+  els.progressSection.style.display = "block";
+  els.results.style.display = "block";
+  els.startBtn.style.display = "none";
+  els.stopBtn.style.display = "inline-block";
+  els.progressFill.style.width = "0%";
+  els.status.textContent = "準備開始分析…";
+  els.countdown.textContent = "";
+
+  // 預先插入「處理中」列
+  const rowsMeta = groups.map(g => {
+    const rowId = `row-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    const label = `標號 ${g.groupKey}（${g.list.length} 筆）`;
+    addTableRow({ rowId, label, sources: g.list.map(f => f.name), status: "processing" });
+    return { rowId, group: g };
+  });
+
+  // 逐組開始
+  for (const meta of rowsMeta){
+    if(!isAnalyzing) break;
+
+    const idx = currentIndex;
+    const g = meta.group;
+    els.currentFile.textContent = `正在分析：標號 ${g.groupKey}（第 ${idx+1}/${rowsMeta.length} 組；共 ${g.list.length} 檔）`;
+    els.status.textContent = "分析中…";
+
+    try{
+      const data = await analyzeGroupWithJSONMode(g.list, g.groupKey, apiKey);
+
+      // 累積結果
+      allResults.push({
+        groupKey: g.groupKey,
+        sources: g.list.map(f => f.name),
+        analyzedAt: new Date().toLocaleString("zh-TW"),
+        success: true,
+        data
+      });
+
+      // 更新表格
+      updateTableRow(meta.rowId, data, "success", "", {
+        label: `標號 ${g.groupKey}（合併 ${g.list.length} 筆）`,
+        sources: g.list.map(f => f.name)
+      });
+
+    }catch(err){
+      allResults.push({
+        groupKey: g.groupKey,
+        sources: g.list.map(f => f.name),
+        analyzedAt: new Date().toLocaleString("zh-TW"),
+        success: false,
+        error: String(err?.message || err)
+      });
+      updateTableRow(meta.rowId, { }, "error", String(err?.message || err), {
+        label: `標號 ${g.groupKey}（合併 ${g.list.length} 筆）`,
+        sources: g.list.map(f => f.name)
+      });
+    }
+
+    currentIndex++;
+    els.progressFill.style.width = `${Math.round((currentIndex/rowsMeta.length)*100)}%`;
+
+    // 倒數與等待
+    if(isAnalyzing && currentIndex < rowsMeta.length){
+      els.status.textContent = "等待下一組檔案…";
+      let left = DELAY_SECONDS;
+      els.countdown.textContent = `${left} 秒後處理下一組`;
+      await new Promise((resolve)=>{
+        const iv = setInterval(()=>{
+          left -= 1;
+          if(left > 0){
+            els.countdown.textContent = `${left} 秒後處理下一組`;
+          } else {
+            clearInterval(iv);
+            els.countdown.textContent = "";
+            resolve();
+          }
+        }, 1000);
+      });
+    }
+  }
+
+  completeAnalysis();
+}
+
+function stopAnalysis(){
+  isAnalyzing = false;
+  if(analysisTimeout) clearTimeout(analysisTimeout);
+  els.startBtn.style.display = "inline-block";
+  els.stopBtn.style.display = "none";
+  els.status.textContent = "分析已停止";
+  els.countdown.textContent = "";
+}
+
+function completeAnalysis(){
+  isAnalyzing = false;
+  els.startBtn.style.display = "inline-block";
+  els.stopBtn.style.display = "none";
+  els.progressFill.style.width = "100%";
+  els.status.textContent = `分析完成！本批共處理 ${currentIndex} 組`;
+  els.countdown.textContent = "";
+}
+
+/** —— 呼叫 Gemini（JSON Mode，支援「同標號多檔合併」） —— */
+async function analyzeGroupWithJSONMode(fileList, groupKey, apiKey) {
+  const parts = [];
+
+  // 🔧 修正：去除重複宣告與衝突 schema，統一要求「扁平鍵／值物件」
+  const prompt = `你是專門閱讀「臺灣包裝食品標示」的助理。你會一次收到「同一產品/同一標號（標號：${groupKey}）」的多張食品標示圖片，或由 PDF/DOCX/TXT 轉出的多段純文字。請只根據提供的內容（看得到的文字）作答，不要臆測、不要上網查。若不同來源有衝突，請以「一致出現或較清晰完整」者為準，並做出單一整合結果。
+
+【輸出規格（VBA 相容版）】
+1) 只輸出「單一 JSON 物件」，不要加入任何解釋文字、Markdown 或程式碼圍欄。
+2) **所有欄位的值一律為字串**（包括布林請輸出字串 "true"/"false"），不要輸出 null、數字、布林、陣列或物件（營養素除外，見下）。
+3) 若看不到或不確定，請輸出空字串 ""（或省略該鍵）。
+4) 數值請保留單位與記號（例如 "240大卡"、"1.1毫克"、"<0.01公克"、"約5份"）。
+5) 鍵名與單位請使用半形空格與下列固定寫法，以利程式正確匹配。
+
+請輸出且僅包含以下欄位（可省略不確定者；值一律為字串）：
+{
+  "productName": string,
+  "ingredients": string,
+  "netWeight": string,
+
+  "每一份量": string,
+  "每份量": string,
+  "每1份量": string,
+  "本包裝含": string,
+
+  "熱量 每份": string,
+  "熱量 每100公克": string,
+  "熱量 每100毫升": string,
+  "蛋白質 每份": string,
+  "蛋白質 每100公克": string,
+  "蛋白質 每100毫升": string,
+  "脂肪 每份": string,
+  "脂肪 每100公克": string,
+  "脂肪 每100毫升": string,
+  "飽和脂肪 每份": string,
+  "飽和脂肪 每100公克": string,
+  "飽和脂肪 每100毫升": string,
+  "反式脂肪 每份": string,
+  "反式脂肪 每100公克": string,
+  "反式脂肪 每100毫升": string,
+  "碳水化合物 每份": string,
+  "碳水化合物 每100公克": string,
+  "碳水化合物 每100毫升": string,
+  "糖 每份": string,
+  "糖 每100公克": string,
+  "糖 每100毫升": string,
+  "鈉 每份": string,
+  "鈉 每100公克": string,
+  "鈉 每100毫升": string,
+
+  // 其他營養素請依相同鍵名規則新增（例如下列兩個示例鍵）：
+  // "膳食纖維 每份": string,
+  // "膳食纖維 每100公克": string,
+
+  "allergens": string,
+  "hasExpiryDate": string,        // "true" / "false"
+  "expiryDateText": string,
+  "hasManufacturerInfo": string,  // "true" / "false"
+  "manufacturerText": string,
+  "hasCountryOfOrigin": string,   // "true" / "false"
+  "originText": string
+}
+
+【特別注意營養標示格式】
+1) 營養素鍵名格式固定為：「<營養成分名稱><半形空格><每份|每100公克|每100毫升>」。
+2) 八大主要營養成分名稱統一為：熱量、蛋白質、脂肪、飽和脂肪、反式脂肪、碳水化合物、糖、鈉。
+3) 若原標示用詞有差異（如「能量」「鹽」等），請正規化為上述名稱。
+4) 每份量資訊請填入「每一份量」或「每份量」或「每1份量」其中之一，值保留單位（例："4.4公克"、"250毫升"）。
+5) 包裝含量請填入「本包裝含」，例："約5份"。
+6) 只使用可見文字；任何缺漏或模糊請輸出空字串 ""。`;
+
+  parts.push({ text: prompt });
+
+  // 蒐集來源：影像 → inline_data；文字 → 附於同一對話中
+  for (const f of fileList) {
+    const d = await getFileData(f);
+    if (d.mode === "image") {
+      parts.push({ inline_data: { mime_type: d.mimeType, data: d.base64 } });
+      parts.push({ text: `【影像來源】${d.filename}` });
+    } else {
+      const truncated = String(d.text || "").slice(0, TEXT_LIMIT);
+      parts.push({ text: `【文字來源】${d.filename}\n${truncated}` });
+    }
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+  async function fetchWithRetry(body, tries = 3, baseDelay = 300) {
+    for (let i = 0; i < tries; i++) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) return res;
+      const txt = await res.text();
+      if (res.status < 500 || res.status >= 600 || i === tries - 1) {
+        throw new Error(`API 錯誤：HTTP ${res.status} — ${txt}`);
+      }
+      await new Promise(r => setTimeout(r, baseDelay * Math.pow(2, i)));
+    }
+  }
+
+  const body = {
+    contents: [{ parts }],
+    generationConfig: {
+      temperature: 0,
+      responseMimeType: "application/json"
+      // 🔧 去除 responseSchema，避免與「扁平鍵」規格衝突
+    }
+  };
+
+  const res = await fetchWithRetry(body);
+  const json = await res.json();
+  const out = json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  if (!out) throw new Error("API 返回為空或格式異常。");
+  let parsed;
+  try { parsed = JSON.parse(out); }
+  catch (e) { throw new Error("模型未回傳有效 JSON。"); }
+  return parsed;
+}
+
+/** —— 呈現工具 —— */
+function renderNutrition(nl) {
+  if (!nl) return "N/A";
+
+  // 兼容陣列/物件/字串輸入
+  let obj = {};
+  if (Array.isArray(nl)) {
+    obj = Object.fromEntries(
+      nl.filter(x => x && typeof x.key === "string").map(x => [x.key, x.value ?? ""])
+    );
+  } else if (typeof nl === "object") {
+    obj = { ...nl };
+  } else {
+    return String(nl || "N/A");
+  }
+
+  // 先顯示：每一份量/每份量/每1份量 → 本包裝含 → 淨重，再顯示其他營養素
+  const orderKeys = ["每一份量", "每份量", "每1份量", "本包裝含", "淨重"];
+  const lines = [];
+  for (const k of orderKeys) {
+    if (!isBlank(obj[k])) {
+      lines.push(`${k}: ${obj[k]}`);
+      delete obj[k];
+    }
+  }
+
+  const rest = Object.entries(obj).map(([k, v]) => `${k}: ${v ?? ""}`);
+  const out = [...lines, ...rest];
+  return out.length ? out.join("\n") : "N/A";
+}
+
+
+/** —— 表格渲染 —— */
+function addTableRow({rowId, label, sources = [], status}){
+  const tr = document.createElement("tr");
+  tr.id = rowId;
+  tr.className = status; // processing / success / error
+  tr.innerHTML = `
+    <td>
+      <div><strong>${escapeHtml(label)}</strong></div>
+      <div style="font-size:12px;color:#666;margin-top:4px;">來源：${sources.map(escapeHtml).join(", ") || "—"}</div>
+    </td>
+    <td><div class="cell-content">...</div></td>
+    <td><div class="cell-content">...</div></td>
+    <td><div class="cell-content">...</div></td>
+    <td><div class="cell-content json-content">...</div></td>
+    <td><div class="cell-content">...</div></td>
+    <td><div class="cell-content">...</div></td>
+    <td><div class="cell-content">...</div></td>
+    <td><div class="cell-content">...</div></td>
+    <td><div class="cell-content">${new Date().toLocaleString("zh-TW")}</div></td>
+    <td><span class="status-badge processing">分析中…</span></td>
+  `;
+  els.resultsBody.appendChild(tr);
+}
+
+function updateTableRow(rowId, data, status, errMsg = "", meta = {label:"N/A", sources:[]}) {
+  const tr = document.getElementById(rowId);
+  if (!tr) return;
+
+  // 兼容英/中鍵名
+  const value = (en, zh) => (data?.[en] !== undefined ? data?.[en] : data?.[zh]);
+
+  // 🔧 新增：若沒有 nutritionLabel，從扁平鍵自動蒐集營養素鍵值
+  // 先取出模型可能產出的 nutritionLabel；否則從扁平鍵蒐集
+  let nutrition = value("nutritionLabel", "營養標示");
+  if (Array.isArray(nutrition)) {
+    nutrition = Object.fromEntries(
+      nutrition.filter(x => x && typeof x.key === "string").map(x => [x.key, x.value ?? ""])
+    );
+  }
+  if (!nutrition || typeof nutrition !== "object") {
+    nutrition = Object.fromEntries(
+      Object.entries(data || {}).filter(([k]) => / (每份|每100公克|每100毫升)$/.test(k))
+    );
+  }
+
+  // 🔗 合併：每一份量/每份量/每1份量、本包裝含、淨重 → 一起放進營養標示
+  const servingKey = ["每一份量","每份量","每1份量"].find(k => !isBlank(data?.[k]));
+  if (servingKey) nutrition[servingKey] = data[servingKey];
+
+  if (!isBlank(data?.["本包裝含"])) {
+    nutrition["本包裝含"] = data["本包裝含"];
+  }
+
+  const netW = value("netWeight", "淨重");
+  if (!isBlank(netW)) {
+    nutrition["淨重"] = netW;  // 統一顯示為中文鍵
+  }
+
+
+  const analyzedAt = new Date().toLocaleString("zh-TW");
+
+  const firstCell = `
+    <div><strong>${escapeHtml(show(meta.label))}</strong></div>
+    <div style="font-size:12px;color:#666;margin-top:4px;">來源：${(meta.sources||[]).map(escapeHtml).join(", ") || "—"}</div>
+  `;
+
+  if (status === "success") {
+    tr.className = "";
+    tr.innerHTML = `
+      <td>${firstCell}</td>
+      <td><div class="cell-content">${escapeHtml(show(value("productName", "品名")))}</div></td>
+      <td><div class="cell-content">${escapeHtml(show(value("ingredients", "內容物及食品添加物成分")))}</div></td>
+      <td><div class="cell-content">${escapeHtml(show(value("netWeight", "淨重")))}</div></td>
+      <td><div class="cell-content json-content">${escapeHtml(renderNutrition(nutrition))}</div></td>
+      <td><div class="cell-content">${escapeHtml(show(value("allergens", "過敏原資訊")))}</div></td>
+      <td><div class="cell-content">${escapeHtml(show(value("expiryDateText", "有效日期")))}</div></td>
+      <td><div class="cell-content">${escapeHtml(show(value("manufacturerText", "廠商資訊")))}</div></td>
+      <td><div class="cell-content">${escapeHtml(show(value("originText", "原產地")))}</div></td>
+      <td><div class="cell-content">${analyzedAt}</div></td>
+      <td><span class="status-badge success">完成</span></td>
+    `;
+  } else {
+    tr.className = "error";
+    tr.innerHTML = `
+      <td>${firstCell}</td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">N/A</div></td>
+      <td><div class="cell-content">${analyzedAt}</div></td>
+      <td><span class="status-badge error">${escapeHtml(errMsg || "失敗")}</span></td>
+    `;
+  }
+}
+
+function escapeHtml(s=""){
+  return String(s)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+/** —— 匯出 / 清除 —— */
+function exportResultsJSON(){
+  if(!allResults.length){ alert("沒有可匯出的結果"); return; }
+  const blob = new Blob([JSON.stringify(allResults, null, 2)], { type:"application/json" });
+  downloadBlob(blob, `食品標籤分析結果_${new Date().toISOString().split("T")[0]}.json`);
+}
+
+// 更穩健的下載器：處理 Safari/Edge/IE、過早 revoke、DOM 安全點擊
+function downloadBlob(blob, filename){
+  // IE/Edge(舊版) 專用
+  // eslint-disable-next-line no-undef
+  if (window.navigator && window.navigator.msSaveOrOpenBlob){
+    // eslint-disable-next-line no-undef
+    window.navigator.msSaveOrOpenBlob(blob, filename);
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  // 部分瀏覽器需將節點加入 DOM 才能觸發下載
+  const supportsDownload = 'download' in a;
+  if (!supportsDownload){
+    // 極少數瀏覽器不支援 download 屬性，退回開新分頁
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    a.remove();
+    return;
+  }
+  a.click();
+  // 避免點擊尚未處理完成就 revoke，延後清理
+  setTimeout(() => {
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
+function exportResultsCSV() {
+  if (!allResults.length) {
+    alert("沒有可匯出的結果");
+    return;
+  }
+
+  const headers = [
+    "標號","來源檔名","分析時間","品名","成分","淨重",
+    "營養標示","過敏原","有效日期","廠商資訊","原產地","狀態"
+  ];
+  const rows = [headers.join(",")];
+
+  const esc = (v) => {
+    const s = isBlank(v) ? "N/A" : (typeof v === "object" ? JSON.stringify(v) : String(v));
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  const normalizeNutrition = (d) => {
+    const base = {};
+
+    // 1) 先吃掉模型可能回傳的 nutritionLabel（相容舊格式）
+    const nl = d?.nutritionLabel;
+    if (Array.isArray(nl)) {
+      for (const x of nl) {
+        if (x && typeof x.key === "string") base[x.key] = x.value ?? "";
+      }
+    } else if (nl && typeof nl === "object") {
+      Object.assign(base, nl);
+    }
+
+    // 2) 再從扁平鍵蒐集所有營養素（每份/每100公克/每100毫升）
+    for (const [k, v] of Object.entries(d || {})) {
+      if (/ (每份|每100公克|每100毫升)$/.test(k)) base[k] = v ?? "";
+    }
+
+    // 3) 併入：每一份量/每份量/每1份量、本包裝含、淨重
+    const servingKey = ["每一份量","每份量","每1份量"].find(k => !isBlank(d?.[k]));
+    if (servingKey) base[servingKey] = d[servingKey];
+
+    if (!isBlank(d?.["本包裝含"])) base["本包裝含"] = d["本包裝含"];
+
+    const netW = d?.["淨重"] || d?.["netWeight"];
+    if (!isBlank(netW)) base["淨重"] = netW;
+
+    return Object.keys(base).length ? base : "N/A";
+  };
+
+
+  for (const item of allResults) {
+    if (item.success) {
+      const d = item.data || {};
+      rows.push([
+        esc(item.groupKey || ""),
+        esc((item.sources||[]).join("; ")),
+        esc(item.analyzedAt),
+        esc(d.productName),
+        esc(d.ingredients),
+        esc(d.netWeight),
+        esc(normalizeNutrition(d)),
+        esc(d.allergens),
+        esc(d.expiryDateText),
+        esc(d.manufacturerText),
+        esc(d.originText),
+        "成功"
+      ].join(","));
+    } else {
+      rows.push([
+        esc(item.groupKey || ""),
+        esc((item.sources||[]).join("; ")),
+        esc(item.analyzedAt),
+        "N/A","N/A","N/A","N/A","N/A","N/A","N/A","N/A",
+        `錯誤：${item.error || ""}`
+      ].join(","));
+    }
+  }
+
+  // Windows/Excel 友善：UTF-8 BOM + CRLF
+  const csvText = rows.join("\r\n");
+  const blob = new Blob(["\uFEFF" + csvText], { type: "text/csv;charset=utf-8" });
+  downloadBlob(blob, `食品標籤分析結果_${new Date().toISOString().split("T")[0]}.csv`);
+}
+
+function clearAllRecords(){
+  if(!confirm("確定要清除所有分析記錄嗎？此動作無法復原。")) return;
+  allResults.length = 0;
+  els.resultsBody.innerHTML = "";
+  els.results.style.display = "none";
+  files = [];
+  renderFileList();
+  els.progressSection.style.display = "none";
+  els.status.textContent = "";
+  els.countdown.textContent = "";
+  alert("所有記錄已清除");
+}
+</script>
+</body>
+</html>
