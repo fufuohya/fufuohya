@@ -225,6 +225,17 @@
             color: white;
         }
 
+        .footer a {
+            color: #4ecdc4;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: #ff6b6b;
+        }
+
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% { transform: translateY(-50%) translateX(0); }
             40% { transform: translateY(-50%) translateX(-10px) rotate(-10deg); }
@@ -255,36 +266,67 @@
         </header>
 
         <div class="search-container">
-            <input type="text" id="searchInput" placeholder="搜尋工具（例如：Python、VBA、計算器、笑話）..." />
+            <input type="text" id="searchInput" placeholder="搜尋工具（例如：時間、銷售、發票）..." />
         </div>
 
         <div class="tools-grid" id="toolsGrid">
+            <!-- HTML 工具卡片 -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <i class="fas fa-clock tool-icon"></i>
+                    <h3 class="tool-title">一般營養標示計算器</h3>
+                </div>
+                <p class="tool-description">
+                    計算看看營養標示有沒有計算錯誤！
+                </p>
+                <a href="./tools/NutritionCheck-1.html" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 法規確認
+                </a>
+                <details>
+                    <summary>想偷看這工具的魔法？點這裡！</summary>
+                    <div class="code-example">
+                        <pre>
+&lt;input type="date" id="startDate"&gt;
+&lt;input type="date" id="endDate"&gt;
+&lt;button onclick="calculate()"&gt;計算天數&lt;/button&gt;
+&lt;p&gt;結果: &lt;span id="days"&gt;&lt;/span&gt; 天&lt;/p&gt;
+&lt;script&gt;
+function calculate() {
+    let start = new Date(document.getElementById('startDate').value);
+    let end = new Date(document.getElementById('endDate').value);
+    let diff = (end - start) / (1000 * 60 * 60 * 24);
+    document.getElementById('days').textContent = Math.abs(diff).toFixed(0);
+}
+&lt;/script&gt;
+                        </pre>
+                    </div>
+                </details>
+            </div>
+
             <!-- Python 工具卡片 -->
             <div class="tool-card">
                 <div class="tool-header">
                     <i class="fab fa-python tool-icon python"></i>
-                    <h3 class="tool-title">Python 數據清理神器</h3>
+                    <h3 class="tool-title">錄音重複撥放器</h3>
                 </div>
                 <p class="tool-description">
-                    用 Pandas 秒殺 Excel 大數據，清理亂七八糟的資料就像喝咖啡一樣輕鬆！
+                    用來給媽媽們！重複播放自己的聲音給小孩聽，來保養偶們的喉嚨~
                 </p>
-                <a href="./tools/python-data-cleaner.html" class="tool-link" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> 開始清理
+                <a href="./tools/sales-predictor.html" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 聲音重播
                 </a>
                 <details>
                     <summary>想偷看這工具的魔法？點這裡！</summary>
                     <div class="code-example">
                         <pre>
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 
-# 讀取 Excel 檔案
-df = pd.read_excel('data.xlsx')
-
-# 移除重複行並填補缺失值
-df = df.drop_duplicates().fillna(0)
-
-# 儲存清理後的資料
-df.to_excel('cleaned_data.xlsx', index=False)
+df = pd.read_csv('sales.csv')
+X = df[['month']]
+y = df['sales']
+model = LinearRegression().fit(X, y)
+print(f"預測下個月銷售: {model.predict([[13]])[0]:.2f}")
                         </pre>
                     </div>
                 </details>
@@ -294,78 +336,34 @@ df.to_excel('cleaned_data.xlsx', index=False)
             <div class="tool-card">
                 <div class="tool-header">
                     <i class="fas fa-file-excel tool-icon vba"></i>
-                    <h3 class="tool-title">VBA 報表自動化</h3>
+                    <h3 class="tool-title">發票整理器</h3>
                 </div>
                 <p class="tool-description">
-                    讓 Excel 聽你話，自動生成報表，省下喝咖啡的時間來摸魚！
+                    自動整理發票數據，按日期排序，省下你翻表格的時間！
                 </p>
-                <a href="./tools/vba-report-automation.xlsm" class="tool-link" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> 自動化報表
+                <a href="./tools/invoice-organizer.xlsm" class="tool-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> 整理發票
                 </a>
                 <details>
                     <summary>想知道 VBA 怎麼搞定？點這裡！</summary>
                     <div class="code-example">
                         <pre>
-Sub AutoReport()
+Sub OrganizeInvoices()
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Sheet1")
-    
-    ' 設定報表標題
-    ws.Range("A1").Value = "自動化報表"
-    ws.Range("A1").Font.Bold = True
-    
-    ' 格式化數據
-    ws.Range("A2:B10").Borders.LineStyle = xlContinuous
+    ws.Range("A1:A100").Sort Key1:=ws.Range("A1"), Order1:=xlAscending
 End Sub
                         </pre>
                     </div>
                 </details>
             </div>
-
-            <!-- 原有工具卡片 -->
-            <div class="tool-card">
-                <div class="tool-header">
-                    <i class="fas fa-calculator tool-icon"></i>
-                    <h3 class="tool-title">神奇計算器</h3>
-                </div>
-                <p class="tool-description">
-                    不只會加減乘除，還能幫你算出「人生意義」...好吧，至少能算得很準！
-                </p>
-                <a href="./tools/calculator.html" class="tool-link" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> 試試看
-                </a>
-            </div>
-
-            <div class="tool-card">
-                <div class="tool-header">
-                    <i class="fas fa-laugh tool-icon"></i>
-                    <h3 class="tool-title">隨機笑話產生器</h3>
-                </div>
-                <p class="tool-description">
-                    當生活太嚴肅時，來點冷笑話解壓！保證讓你會心一笑（或翻白眼）。
-                </p>
-                <a href="./tools/joke-generator.html" class="tool-link" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> 來點笑料
-                </a>
-            </div>
-
-            <div class="tool-card">
-                <div class="tool-header">
-                    <i class="fas fa-qrcode tool-icon"></i>
-                    <h3 class="tool-title">QR Code 生成器</h3>
-                </div>
-                <p class="tool-description">
-                    將網址、文字或秘密訊息變成 QR Code，掃一掃就能分享你的神秘計畫！
-                </p>
-                <a href="./tools/qr-generator.html" class="tool-link" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> 生成 QR
-                </a>
-            </div>
         </div>
 
         <footer class="footer">
             <p style="margin-top: 20px; opacity: 0.7;">
-                Made with 😎 by 你的名字 | 若有 bug，請笑一笑再修
+                Made with 😎 by 張三 | 
+                <a href="https://github.com/your-username" target="_blank">我的 GitHub</a> | 
+                若有 bug，請笑一笑再修
             </p>
         </footer>
     </div>
