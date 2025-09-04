@@ -282,25 +282,6 @@
                 <a href="./tools/NutritionCheck-1.html" class="tool-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> 法規確認
                 </a>
-                <details>
-                    <summary>想偷看這工具的魔法？點這裡！</summary>
-                    <div class="code-example">
-                        <pre>
-&lt;input type="date" id="startDate"&gt;
-&lt;input type="date" id="endDate"&gt;
-&lt;button onclick="calculate()"&gt;計算天數&lt;/button&gt;
-&lt;p&gt;結果: &lt;span id="days"&gt;&lt;/span&gt; 天&lt;/p&gt;
-&lt;script&gt;
-function calculate() {
-    let start = new Date(document.getElementById('startDate').value);
-    let end = new Date(document.getElementById('endDate').value);
-    let diff = (end - start) / (1000 * 60 * 60 * 24);
-    document.getElementById('days').textContent = Math.abs(diff).toFixed(0);
-}
-&lt;/script&gt;
-                        </pre>
-                    </div>
-                </details>
             </div>
 
             <!-- Python 工具卡片 -->
@@ -315,44 +296,25 @@ function calculate() {
                 <a href="./tools/recordvoice.html" class="tool-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> 聲音重播
                 </a>
-                <details>
-                    <summary>想偷看這工具的魔法？點這裡！</summary>
-                    <div class="code-example">
-                        <pre>
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-
-df = pd.read_csv('sales.csv')
-X = df[['month']]
-y = df['sales']
-model = LinearRegression().fit(X, y)
-print(f"預測下個月銷售: {model.predict([[13]])[0]:.2f}")
-                        </pre>
-                    </div>
-                </details>
             </div>
 
             <!-- VBA 工具卡片 -->
             <div class="tool-card">
                 <div class="tool-header">
                     <i class="fas fa-file-excel tool-icon vba"></i>
-                    <h3 class="tool-title">發票整理器</h3>
+                    <h3 class="tool-title">未完待續</h3>
                 </div>
                 <p class="tool-description">
-                    自動整理發票數據，按日期排序，省下你翻表格的時間！
+                    努力寫程式中！
                 </p>
                 <a href="./tools/invoice-organizer.xlsm" class="tool-link" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> 整理發票
+                    <i class="fas fa-external-link-alt"></i> 還沒有
                 </a>
                 <details>
                     <summary>想知道 VBA 怎麼搞定？點這裡！</summary>
                     <div class="code-example">
                         <pre>
-Sub OrganizeInvoices()
-    Dim ws As Worksheet
-    Set ws = ThisWorkbook.Sheets("Sheet1")
-    ws.Range("A1:A100").Sort Key1:=ws.Range("A1"), Order1:=xlAscending
-End Sub
+還沒有寫好啦
                         </pre>
                     </div>
                 </details>
@@ -401,6 +363,7 @@ End Sub
     </script>
 </body>
 </html>
+
 
 
 
