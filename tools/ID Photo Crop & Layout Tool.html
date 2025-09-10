@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-wid<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ID Photo Crop & Layout Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family:'Microsoft JhengHei','微軟正黑體',sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height: 100vh; padding: 20px; user-select: none; }
+    .container { max-width: 980px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,.1); overflow: hidden; }
+    .header { background: linear-gradient(135deg,#4facfe 0%,#00f2fe 100%); color:#fff; padding: 30px; text-align: center; }
+    .header h1 { font-size: 1.9rem; margin-bottom: 10px; }
+    .content { padding: 24px 28px 40px; }
+
+    .specs { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 16px; margin-bottom: 14px; }
+    .spec-card { background:#f8faff; padding:14px; border-radius:10px; text-align:center; border:1px solid #e0e8ff; }
+    .spec-card h3{ color:#4facfe; margin-bottom:8px; font-size:1rem; }
+
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .row .spacer { flex:1; }
+    .select, .control-block { display:flex; gap:8px; align-items:center; background:#f8faff; border:1px solid #e0e8ff; border-radius:10px; padding:8px 12px; }
+    .select label, .control-block label{ color:#456; font-weight:600; }
+    .control-block input[type="number"], .control-block select, .select select{ border:1px solid #dbe5ff; border-radius:8px; padding:8px 10px; font-size: .95rem; background:#fff; }
+
+    .upload-area { border: 3px dashed #4facfe; border-radius: 15px; padding: 32px 18px; text-align: center; background: #f8faff; transition: all .2s ease; cursor: pointer; position: relative; margin-bottom: 14px; }
+    .upload-area:hover { border-color:#00f2fe; background:#f0f8ff; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(79,172,254,0.2); }
+    .upload-area.dragover { border-color:#00f2fe; background:#e6f3ff; transform: scale(1.02); box-shadow: 0 12px 30px rgba(79,172,254,0.3); }
+    .upload-icon{ font-size: 3rem; color:#4facfe; margin-bottom: 8px; }
+    .upload-text{ font-size:1.05rem; color:#555; margin-bottom: 4px; }
+    .upload-hint{ color:#888; font-size:.9rem; }
+    #fileInput{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+
+    .btn { background: linear-gradient(135deg,#4facfe 0%,#00f2fe 100%); color:#fff; border:none; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; box-shadow: 0 6px 16px rgba(79,172,254,.35); transition: all .2s ease; font-size: .95rem; }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; box-shadow:none; transform:none!important; }
+    .btn:hover:not([disabled]){ transform: translateY(-2px); box-shadow: 0 8px 22px rgba(79,172,254,.5); }
+    .btn.secondary{ background:#f2f5ff; color:#345; border:1px solid #dbe5ff; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .btn.warn{ background:#ffe9e9; color:#9c1b1b; border:1px solid #ffc8c8; }
+    .btn.ghost{ background:#fff; color:#345; border:1px dashed #dbe5ff; }
+
+    .loading{ display:none; color:#4facfe; font-weight:600; margin: 10px 0; text-align: center; }
+    .error, .success{ padding: 10px 12px; border-radius: 10px; margin: 8px 0; animation: slideIn .3s ease; font-size:.95rem; }
+    .error{ background:#ffe6e6; color:#d63031; border:1px solid #fab1a0; }
+    .success{ background:#e8f5e8; color:#00b894; border:1px solid #00b894; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px);} to { opacity: 1; transform: translateY(0);} }
+
+    /* 裁切器 */
+    .hint { color:#567; font-size:.92rem; margin-bottom:8px; padding: 8px 12px; background:#f0f8ff; border-radius:8px; border-left:4px solid #4facfe; }
+    .cropper-wrap { display:none; margin:12px 0 8px; border:2px solid #4facfe; border-radius:12px; overflow:hidden; background:#0b1020; position:relative; box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+    .cropper-toolbar { display:none; gap:8px; margin:10px 0 8px; flex-wrap:wrap; align-items:center; }
+    .cropper-toolbar .group{ display:flex; gap:8px; align-items:center; }
+    #cropCanvas { width:100%; max-height:70vh; display:block; background:#0b1020; cursor: grab; }
+    #cropCanvas:active { cursor: grabbing; }
+    .crop-stats { background: rgba(255,255,255,0.1); color: white; padding: 6px 10px; border-radius: 6px; font-size: .8rem; position: absolute; top:10px; right:10px; font-family: monospace; backdrop-filter: blur(5px); }
+    .ratio-badge{ position:absolute; left:10px; top:10px; background: rgba(79,172,254,.9); color:#fff; padding:4px 8px; border-radius:8px; font-size:.85rem; }
+
+    /* 預覽卡片 */
+    #preview { margin-top:16px; text-align:center; }
+    .preview-container{ background:#fff; border-radius: 15px; padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.08); margin-bottom: 12px; position: relative; text-align:left; }
+    .preview-image { max-width: 100%; height:auto; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,.15); margin: 10px 0; }
+    .preview-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+    .preview-title{ font-weight:800; color:#2a3b55; font-size:1rem; }
+    .preview-actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .info{ font-size:.9rem; color:#444; }
+
+    /* 收合段落（查詢表 / KIOSK） */
+    .ref-section { margin-top: 20px; border:1px solid #e0e8ff; border-radius:12px; overflow:hidden; }
+    .ref-section summary{ list-style:none; cursor:pointer; background: linear-gradient(135deg,#f5f9ff 0%,#eef5ff 100%); padding:12px 14px; display:flex; align-items:center; gap:10px; font-weight:700; color:#2d4c7c; user-select:none; }
+    .ref-section summary::-webkit-details-marker { display:none; }
+    .chev{ transition: transform .2s ease; }
+    details[open] .chev{ transform: rotate(90deg); }
+    .ref-inner{ padding:12px 14px; border-top:1px solid #e0e8ff; background:#fff; }
+
+    .ref-controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+    .ref-controls input[type="text"], .ref-controls select{ padding:8px 10px; border:1px solid #dbe5ff; border-radius:8px; background:#fff; }
+    .ref-source{ font-size:.85rem; color:#666; margin:6px 0 8px; }
+    .table-wrap{ overflow:auto; border:1px solid #e6ecff; border-radius:12px; }
+    table { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; }
+    thead th { position: sticky; top: 0; background:#f1f6ff; color:#345; font-weight:700; border-bottom:1px solid #e0e8ff; padding:10px; text-align:left; }
+    tbody td { border-bottom:1px solid #f0f2f8; padding:10px; vertical-align: top; }
+    tbody tr:nth-child(odd){ background:#fcfdff; }
+    .badge{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; }
+    .badge.O{ background:#e6f8ee; color:#1b8a4b; border:1px solid #bfe9cf; }
+    .badge.X{ background:#ffecec; color:#c0392b; border:1px solid #ffc8c8; }
+    .badge.mid{ background:#fff7e6; color:#b9770e; border:1px solid #ffe3b3; }
+    .sizechip{ background:#eef4ff; color:#2b4ea1; border:1px solid #d5e2ff; padding:2px 8px; border-radius:8px; font-size:12px; }
+    .muted{ color:#777; font-size:12px; }
+    .nowrap{ white-space:nowrap; }
+
+    .guide-list{ padding-left: 1.2em; } .guide-list li{ margin: 6px 0; }
+    .hint-box{ background:#fffdf5; border:1px solid #ffe3b3; color:#7a4f00; padding:10px 12px; border-radius:10px; margin-top:10px; }
+
+    @media (max-width:680px){
+      .content{ padding:20px; } 
+      .cropper-toolbar { justify-content:center; }
+      .btn { padding: 9px 12px; font-size: .9rem; }
+      thead th, tbody td{ padding:8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📸 證件照裁切與排版工具 ID Photo Crop & Layout Tool</h1>
+      <p>上傳 → 半透明框裁切 → 產出單一裁切圖（可下載/刪除/自選外出血&欄數&列數）→ 再排版 6×4</p>
+    </div>
+
+    <div class="content">
+      <!-- 規格概覽 -->
+      <div class="specs">
+        <div class="spec-card"><h3>🖼️ 檔案</h3><p>JPG/PNG（≤30MB）</p></div>
+        <div class="spec-card"><h3>🖨️ 輸出</h3><p>6×4 吋（300 DPI）</p></div>
+        <div class="spec-card"><h3>✂️ 裁切輔助</h3><p>允許留白（黑/白底）</p></div>
+        
+      </div>
+
+      <!-- 尺寸 + 全清除 + 全域「內間距」 -->
+      <div class="row" style="margin-bottom:10px;">
+        <div class="select">
+          <label for="sizeSelect">尺寸：</label>
+          <select id="sizeSelect">
+            <option value="3.5x4.5" selected>3.5 × 4.5 cm</option>
+            <option value="4.7x4.2">4.7 × 4.2 cm</option>
+            <option value="3.5x2.8">3.5 × 2.8 cm</option>
+            <option value="5.0x5.0">5.0 × 5.0 cm</option>
+          </select>
+        </div>
+
+        <div class="control-block" title="這是全域設定，所有排版共用；外出血/欄數/列數在各張卡片上調整">
+          <label for="innerGutter">內間距(mm)</label>
+          <input id="innerGutter" type="number" min="0" max="5" step="0.5" value="2">
+        </div>
+
+        <div class="spacer"></div>
+        <button class="btn warn" id="btnClearAll" type="button">🧹 全清除</button>
+      </div>
+
+      <!-- 上傳 -->
+      <div class="upload-area" id="uploadArea" role="button" aria-label="上傳照片">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">點擊選擇照片或拖曳到此</div>
+        <div class="upload-hint">裁切框比例依你選的尺寸</div>
+        <input type="file" id="fileInput" accept="image/jpeg,image/png,image/jpg" />
+      </div>
+
+      <div class="loading" id="loading" aria-live="polite">正在處理照片…</div>
+
+      <!-- 裁切區 -->
+      <div class="hint" id="cropHint" style="display:none">
+        🧭 <strong>裁切操作：</strong> 滾輪縮放、拖曳移動、雙擊重置。可開啟「允許留白」並選黑/白底。
+      </div>
+      <div class="cropper-wrap" id="cropperWrap">
+        <div class="ratio-badge" id="ratioBadge">比例</div>
+        <canvas id="cropCanvas" width="1200" height="800" aria-label="裁切畫布"></canvas>
+        <div class="crop-stats" id="cropStats">縮放: 100% | 位置: (0, 0)</div>
+      </div>
+      <div class="cropper-toolbar row" id="cropToolbar">
+        <div class="group">
+          <button class="btn secondary" id="btnResetView" type="button">🔄 重置視圖</button>
+          <button class="btn secondary" id="btnFitFace" type="button">🎯 置中對齊</button>
+        </div>
+        <div class="group">
+          <label for="allowLetterbox">允許留白</label>
+          <input type="checkbox" id="allowLetterbox" />
+          <label for="bgColor">底色</label>
+          <select id="bgColor">
+            <option value="#ffffff" selected>白</option>
+            <option value="#000000">黑</option>
+          </select>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn" id="btnConfirmCrop" type="button">✅ 確認裁切（產出單張）</button>
+      </div>
+
+      <div id="preview" role="region" aria-live="polite"></div>
+
+      <!-- 查詢表（整段收合） -->
+      <details id="refPanel" class="ref-section">
+        <summary><span class="chev">▶</span><span>🔎 尺寸 / 用途查詢表（點我展開 / 收合）</span></summary>
+        <div class="ref-inner">
+          <div class="ref-controls">
+            <input type="text" id="q" placeholder="搜尋：項目 / 備註 / 像素 / 關鍵字…" />
+            <select id="cat">
+              <option value="">全部類別</option>
+              <option>尺寸規格</option>
+              <option>常用證件</option>
+              <option>各類考試</option>
+              <option>各類執照/證書</option>
+              <option>各國簽證</option>
+            </select>
+            <select id="sizeFilter">
+              <option value="">全部尺寸</option>
+              <option value="3.5x4.5">3.5×4.5</option>
+              <option value="4.7x4.2">4.7×4.2</option>
+              <option value="3.5x2.8">3.5×2.8</option>
+              <option value="5.0x5.0">5.0×5.0</option>
+            </select>
+            <button class="btn secondary" id="btnClearFilter" type="button">🧼 清除條件</button>
+          </div>
+          <div class="ref-source">
+            資料整理自：<a href="https://www.seiwainc.com.tw/size-category#anchor2" target="_blank" rel="noopener">誠和「證件照尺寸種類」頁面</a>（請回原站核對最新規格）。
+          </div>
+          <div class="table-wrap">
+            <table id="refTable" aria-label="證件照尺寸/用途查詢表">
+              <thead>
+                <tr>
+                  <th class="nowrap">類別</th><th>項目</th><th>推薦尺寸</th><th class="nowrap">尺寸 (cm)</th><th class="nowrap">像素 (px)</th><th class="nowrap">紙本</th><th class="nowrap">網路</th><th>備註</th>
+                </tr>
+              </thead>
+              <tbody id="refBody"></tbody>
+            </table>
+          </div>
+          <p class="ref-source" style="margin-top:8px;">⚠️ 以上資訊僅供參考，規格可能隨時更新，<strong>請務必回到原網站或主管機關最新公告核對</strong>。</p>
+        </div>
+      </details>
+
+      <!-- KIOSK 列印資訊 -->
+      <details id="kioskPanel" class="ref-section" style="margin-top:12px;">
+        <summary><span class="chev">▶</span><span>🖨️ KIOSK 在台灣哪裡能列印？常見步驟（點我展開 / 收合）</span></summary>
+        <div class="ref-inner">
+          <h3 style="margin-bottom:6px;">可列印地點（概略）</h3>
+          <ul class="guide-list">
+            <li><strong>相館</strong>（FUJIFILM / KODAK 類相片機）</li>
+            <li><strong>3C / 量販店</strong>（各店配置不一）</li>
+            <li><strong>便利商店</strong>（門市是否有相紙/4×6 依現場）</li>
+          </ul>
+          <h3 style="margin:10px 0 6px;">建議步驟</h3>
+          <ol class="guide-list">
+            <li>準備 <strong>1800×1200</strong>px JPG（6×4 吋，300DPI）。</li>
+            <li>機台選 <strong>4×6 相片</strong>；有「<strong>無邊界</strong>」則開。</li>
+            <li>關閉「自動修正/自動裁切/自動增艷」。</li>
+            <li>預覽對位無誤再印，回家用淡灰切線裁切。</li>
+          </ol>
+          <div class="hint-box">📌 設備選單依品牌/門市不同；本文僅供參考，請以現場與官方公告為準。</div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    /* ===== 常數 / 尺寸建議 ===== */
+    const DPI = 300, PPCM = DPI / 2.54;
+    const OUT_W = 6 * DPI, OUT_H = 4 * DPI; // 1800×1200
+    const PRESETS = {
+      "3.5x4.5": { wcm: 3.5, hcm: 4.5, suggest: { bleedMM: 3, cols: 4, rows: 2, gutterMM: 2 }, label: "3.5×4.5 cm" },
+      "4.7x4.2": { wcm: 4.7, hcm: 4.2, suggest: { bleedMM: 3, cols: 3, rows: 2, gutterMM: 2 }, label: "4.7×4.2 cm" },
+      "3.5x2.8": { wcm: 3.5, hcm: 2.8, suggest: { bleedMM: 3, cols: 4, rows: 3, gutterMM: 2 }, label: "3.5×2.8 cm" },
+      "5.0x5.0": { wcm: 5.0, hcm: 5.0, suggest: { bleedMM: 3, cols: 2, rows: 2, gutterMM: 2 }, label: "5.0×5.0 cm" }
+    };
+
+    /* ===== DOM ===== */
+    const sizeSelect = document.getElementById('sizeSelect');
+    const innerGutterInput = document.getElementById('innerGutter'); // 全域只保留內間距
+    const btnClearAll = document.getElementById('btnClearAll');
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const loading = document.getElementById('loading');
+    const preview = document.getElementById('preview');
+
+    const cropperWrap = document.getElementById('cropperWrap');
+    const cropCanvas = document.getElementById('cropCanvas');
+    const cropHint = document.getElementById('cropHint');
+    const cropToolbar = document.getElementById('cropToolbar');
+    const cropStats = document.getElementById('cropStats');
+    const ratioBadge = document.getElementById('ratioBadge');
+    const ctxCrop = cropCanvas.getContext('2d', { alpha: false });
+
+    const btnConfirmCrop = document.getElementById('btnConfirmCrop');
+    const btnResetView = document.getElementById('btnResetView');
+    const btnFitFace = document.getElementById('btnFitFace');
+    const allowLetterboxChk = document.getElementById('allowLetterbox');
+    const bgColorSel = document.getElementById('bgColor');
+
+    // 查詢表
+    const $q=document.getElementById('q'), $cat=document.getElementById('cat'), $sizeF=document.getElementById('sizeFilter'), $tbody=document.getElementById('refBody'), $btnClearFilter=document.getElementById('btnClearFilter');
+
+    /* ===== 狀態 / 工具 ===== */
+    let imgOriginal=null;
+    let view={scale:1, tx:0, ty:0};
+    let isPanning=false, lastX=0, lastY=0;
+
+    function getPreset(){ return PRESETS[sizeSelect.value]; }
+    function targetRatio(){ const p=getPreset(); return p.wcm/p.hcm; }
+    function pxFromMM(mm){ return Math.round(mm * (DPI/25.4)); }
+    function getGlobalGutter(){ return Math.max(0, Math.min(5, parseFloat(innerGutterInput.value)||0)); }
+    function showError(msg){ const d=document.createElement('div'); d.className='error'; d.textContent='❌ '+msg; preview.prepend(d); setTimeout(()=>d.remove(),6000); }
+    function showSuccess(msg){ const d=document.createElement('div'); d.className='success'; d.textContent='✅ '+msg; preview.prepend(d); setTimeout(()=>d.remove(),4000); }
+
+    /* ===== 事件 ===== */
+    function initEvents(){
+      sizeSelect.addEventListener('change', ()=>{ ratioBadge.textContent=`比例：${getPreset().wcm}:${getPreset().hcm}`; if(imgOriginal) redrawCropper(); });
+      btnClearAll.addEventListener('click', ()=>{ preview.innerHTML=''; showSuccess('已清除所有卡片。'); });
+
+      uploadArea.addEventListener('dragover', e=>{e.preventDefault(); uploadArea.classList.add('dragover');});
+      uploadArea.addEventListener('dragleave', ()=> uploadArea.classList.remove('dragover'));
+      uploadArea.addEventListener('drop', e=>{ e.preventDefault(); uploadArea.classList.remove('dragover'); if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+      fileInput.addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+      cropCanvas.addEventListener('mousedown', onPointerDown);
+      cropCanvas.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', ()=> isPanning=false);
+      cropCanvas.addEventListener('touchstart', e=>{ const t=e.touches[0]; onPointerDown({clientX:t.clientX, clientY:t.clientY}); }, {passive:false});
+      cropCanvas.addEventListener('touchmove', e=>{ const t=e.touches[0]; onPointerMove({clientX:t.clientX, clientY:t.clientY}); e.preventDefault(); }, {passive:false});
+      window.addEventListener('touchend', ()=> isPanning=false);
+      cropCanvas.addEventListener('wheel', onWheel, {passive:false});
+      cropCanvas.addEventListener('dblclick', resetView);
+
+      btnConfirmCrop.addEventListener('click', confirmCropToSingle);
+      btnResetView.addEventListener('click', resetView);
+      btnFitFace.addEventListener('click', fitContainCenter);
+
+      window.addEventListener('resize', redrawCropper);
+
+      // 查詢表
+      $q.addEventListener('input', filterData);
+      $cat.addEventListener('change', filterData);
+      $sizeF.addEventListener('change', filterData);
+      $btnClearFilter.addEventListener('click', ()=>{ $q.value=''; $cat.value=''; $sizeF.value=''; filterData(); });
+    }
+
+    /* ===== 檔案處理 ===== */
+    async function handleFile(file){
+      if(!file.type.match(/^image\/(jpeg|png|jpg)$/)){ showError('請選 JPG/PNG'); return; }
+      if(file.size>30*1024*1024){ showError('檔案過大（>30MB）'); return; }
+      try{
+        loading.style.display='block';
+        const img=await loadImage(file);
+        const optimized=await optimizeImage(img, file.size);
+        imgOriginal=optimized;
+        openCropper();
+        showSuccess('照片已載入，請調整裁切範圍後按「確認裁切（產出單張）」。');
+      }catch(err){ showError('處理照片時發生錯誤：'+err.message); }
+      finally{ loading.style.display='none'; fileInput.value=''; }
+    }
+    function loadImage(file){ return new Promise((res,rej)=>{ const img=new Image(); img.onload=()=>res(img); img.onerror=()=>rej(new Error('無法載入圖片')); img.src=URL.createObjectURL(file); }); }
+    async function optimizeImage(img, size){
+      const total=img.width*img.height, maxPixels=4000*4000, maxDim=3000;
+      if(size<=5*1024*1024 && total<=maxPixels && Math.max(img.width,img.height)<=maxDim) return img;
+      let scale=1; if(size>20*1024*1024) scale=.5; else if(size>10*1024*1024) scale=.7; else if(size>5*1024*1024) scale=.8;
+      if(Math.max(img.width,img.height)>maxDim) scale=Math.min(scale, maxDim/Math.max(img.width,img.height));
+      const nw=Math.max(Math.round(img.width*scale),600), nh=Math.max(Math.round(img.height*scale),600);
+      const c=document.createElement('canvas'); c.width=nw; c.height=nh;
+      const g=c.getContext('2d',{alpha:false}); g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high'; g.drawImage(img,0,0,nw,nh);
+      return canvasToImage(c,.92);
+    }
+    function canvasToImage(canvas, quality){ return new Promise(r=>{ canvas.toBlob(b=>{ const img=new Image(); img.onload=()=>{ URL.revokeObjectURL(img.src); r(img); }; img.src=URL.createObjectURL(b); }, 'image/jpeg', quality); }); }
+
+    /* ===== 裁切器 ===== */
+    function openCropper(){
+      cropHint.style.display='block'; cropperWrap.style.display='block'; cropToolbar.style.display='flex';
+      const rect=cropperWrap.getBoundingClientRect();
+      cropCanvas.width=Math.min(1280, Math.max(800, Math.floor(rect.width-4)));
+      cropCanvas.height=Math.round(cropCanvas.width/(3/2));
+      ratioBadge.textContent=`比例：${getPreset().wcm}:${getPreset().hcm}`;
+      fitContainCenter(); redrawCropper();
+    }
+    function fitContainCenter(){
+      if(!imgOriginal) return;
+      const box=getCropBox(), cw=cropCanvas.width, ch=cropCanvas.height;
+      const s1=box.w/imgOriginal.width, s2=box.h/imgOriginal.height;
+      view.scale=Math.max(s1,s2)*1.1;
+      view.tx=(cw - imgOriginal.width*view.scale)/2;
+      view.ty=(ch - imgOriginal.height*view.scale)/2;
+      if(!allowLetterboxChk.checked) constrainImageToCrop();
+      updateStats(); redrawCropper();
+    }
+    function resetView(){ fitContainCenter(); }
+    function updateStats(){ cropStats.textContent=`縮放: ${Math.round(view.scale*100)}% | 位置: (${Math.round(view.tx)}, ${Math.round(view.ty)})`; }
+    function onPointerDown(e){ isPanning=true; const r=cropCanvas.getBoundingClientRect(); lastX=e.clientX-r.left; lastY=e.clientY-r.top; }
+    function onPointerMove(e){ if(!isPanning) return; const r=cropCanvas.getBoundingClientRect(); const x=e.clientX-r.left, y=e.clientY-r.top; const dx=x-lastX, dy=y-lastY; lastX=x; lastY=y; view.tx+=dx; view.ty+=dy; if(!allowLetterboxChk.checked) constrainImageToCrop(); updateStats(); redrawCropper(); }
+    function onWheel(e){ e.preventDefault(); const f=1 - Math.sign(e.deltaY)*0.1; const r=cropCanvas.getBoundingClientRect(); const cx=e.clientX-r.left, cy=e.clientY-r.top; const ix=(cx-view.tx)/view.scale, iy=(cy-view.ty)/view.scale; view.scale=Math.max(.1, Math.min(10, view.scale*f)); view.tx=cx - ix*view.scale; view.ty=cy - iy*view.scale; if(!allowLetterboxChk.checked) constrainImageToCrop(); updateStats(); redrawCropper(); }
+
+    function getCropBox(){
+      const ratio=targetRatio(), cw=cropCanvas.width, ch=cropCanvas.height, pad=.09;
+      let maxW=cw*(1-pad*2), maxH=ch*(1-pad*2);
+      let w=maxW, h=w/ratio; if(h>maxH){ h=maxH; w=h*ratio; }
+      const x=Math.round((cw-w)/2), y=Math.round((ch-h)/2);
+      return {x,y,w,h};
+    }
+    function constrainImageToCrop(){
+      const b=getCropBox(); const left=b.x, top=b.y, right=b.x+b.w, bottom=b.y+b.h;
+      const imgL=view.tx, imgT=view.ty, imgR=view.tx+imgOriginal.width*view.scale, imgB=view.ty+imgOriginal.height*view.scale;
+      const needW=(imgR-imgL)<b.w, needH=(imgB-imgT)<b.h;
+      if(needW||needH){
+        const sX=b.w/(imgR-imgL), sY=b.h/(imgB-imgT), factor=Math.max(sX,sY)*1.001;
+        const cx=b.x+b.w/2, cy=b.y+b.h/2; const ix=(cx-view.tx)/view.scale, iy=(cy-view.ty)/view.scale;
+        view.scale*=factor; view.tx=cx-ix*view.scale; view.ty=cy-iy*view.scale;
+      }
+      const newR=view.tx+imgOriginal.width*view.scale, newB=view.ty+imgOriginal.height*view.scale;
+      if(view.tx>left) view.tx=left; if(view.ty>top) view.ty=top; if(newR<right) view.tx+=right-newR; if(newB<bottom) view.ty+=bottom-newB;
+    }
+    function redrawCropper(){
+      if(!imgOriginal) return; const cw=cropCanvas.width, ch=cropCanvas.height, ctx=ctxCrop;
+      ctx.clearRect(0,0,cw,ch); ctx.fillStyle='#0b1020'; ctx.fillRect(0,0,cw,ch);
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+      ctx.save(); ctx.setTransform(view.scale,0,0,view.scale,view.tx,view.ty); ctx.drawImage(imgOriginal,0,0); ctx.restore();
+      const b=getCropBox(); ctx.save(); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.beginPath(); ctx.rect(0,0,cw,ch); ctx.rect(b.x,b.y,b.w,b.h); ctx.fill('evenodd');
+      ctx.strokeStyle='#4facfe'; ctx.lineWidth=3; ctx.strokeRect(b.x,b.y,b.w,b.h);
+      ctx.strokeStyle='rgba(255,255,255,0.8)'; ctx.lineWidth=1; ctx.strokeRect(b.x+2,b.y+2,b.w-4,b.h-4);
+      ctx.strokeStyle='rgba(255,255,255,.4)'; ctx.setLineDash([8,8]); ctx.beginPath();
+      ctx.moveTo(b.x+b.w/3,b.y); ctx.lineTo(b.x+b.w/3,b.y+b.h);
+      ctx.moveTo(b.x+b.w*2/3,b.y); ctx.lineTo(b.x+b.w*2/3,b.y+b.h);
+      ctx.moveTo(b.x,b.y+b.h/3); ctx.lineTo(b.x+b.w,b.y+b.h/3);
+      ctx.moveTo(b.x,b.y+b.h*2/3); ctx.lineTo(b.x+b.w,b.y+b.h*2/3); ctx.stroke(); ctx.restore();
+    }
+
+    /* ===== 產出單一裁切圖（Canvas 以確保預覽穩定） ===== */
+    async function confirmCropToSingle(){
+      if(!imgOriginal) return;
+      btnConfirmCrop.disabled=true; btnConfirmCrop.textContent='⏳ 產生中...';
+      try{
+        const box=getCropBox();
+        const inv=1/view.scale;
+        const cropX=Math.round((box.x - view.tx)*inv);
+        const cropY=Math.round((box.y - view.ty)*inv);
+        const cropW=Math.round(box.w*inv);
+        const cropH=Math.round(box.h*inv);
+
+        let singleCanvas;
+        if(allowLetterboxChk.checked){
+          singleCanvas = rasterizeSingleLetterbox(box);
+        }else{
+          const sx=Math.max(0,cropX), sy=Math.max(0,cropY);
+          const sW=Math.min(imgOriginal.width - sx, cropW);
+          const sH=Math.min(imgOriginal.height - sy, cropH);
+          if(sW<=0 || sH<=0) throw new Error('裁切區域超出圖片，請調整或開啟「允許留白」。');
+          singleCanvas = rasterizeSingleStrict(sx,sy,sW,sH);
+        }
+
+        createSingleCard(singleCanvas);
+        cropHint.style.display='none'; cropperWrap.style.display='none'; cropToolbar.style.display='none';
+        showSuccess('✅ 已產生單一裁切圖（卡片可下載、可選外出血/欄數/列數再排版）。');
+      }catch(e){ showError('裁切失敗：'+e.message); }
+      finally{ btnConfirmCrop.disabled=false; btnConfirmCrop.textContent='✅ 確認裁切（產出單張）'; }
+    }
+
+    function rasterizeSingleStrict(sx,sy,sW,sH){
+      const p=getPreset();
+      const tw=Math.round(p.wcm*PPCM), th=Math.round(p.hcm*PPCM);
+      const c=document.createElement('canvas'); c.width=tw; c.height=th;
+      const g=c.getContext('2d',{alpha:false}); g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
+      g.fillStyle='#ffffff'; g.fillRect(0,0,tw,th);
+      g.drawImage(imgOriginal, sx,sy,sW,sH, 0,0, tw,th);
+      return c;
+    }
+    function rasterizeSingleLetterbox(box){
+      const p=getPreset();
+      const tw=Math.round(p.wcm*PPCM), th=Math.round(p.hcm*PPCM);
+      const c=document.createElement('canvas'); c.width=tw; c.height=th;
+      const g=c.getContext('2d',{alpha:false}); g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
+      g.fillStyle=bgColorSel.value; g.fillRect(0,0,tw,th);
+      const S=tw/box.w;
+      g.setTransform(view.scale*S,0,0,view.scale*S,(view.tx - box.x)*S,(view.ty - box.y)*S);
+      g.drawImage(imgOriginal,0,0);
+      g.setTransform(1,0,0,1,0,0);
+      return c;
+    }
+
+    /* ===== 卡片：單張（外出血/欄數/列數 + 建議提示 + 下載/排版/刪除） ===== */
+    function createSingleCard(singleCanvas){
+      const p=getPreset();
+      const suggest=p.suggest;
+      const card=document.createElement('div'); card.className='preview-container';
+
+      // header + 刪除
+      const head=document.createElement('div'); head.className='preview-head';
+      const title=document.createElement('div'); title.className='preview-title'; title.textContent=`✂️ 裁切單張：${p.label}`;
+      const headActions=document.createElement('div'); headActions.className='preview-actions';
+      const btnDel=document.createElement('button'); btnDel.className='btn secondary'; btnDel.textContent='🗑️ 刪除這張'; btnDel.onclick=()=>card.remove();
+      headActions.appendChild(btnDel); head.appendChild(title); head.appendChild(headActions);
+
+      // 圖片預覽（Canvas → dataURL）
+      const imgEl=new Image(); imgEl.src=singleCanvas.toDataURL('image/jpeg', .95); imgEl.className='preview-image'; imgEl.alt='裁切單張預覽';
+
+      // 卡片內控制：外出血/欄數/列數
+      const ctl=document.createElement('div'); ctl.className='control-block'; ctl.style.margin='6px 0';
+      ctl.innerHTML=`
+        <label>外出血(mm)</label>
+        <input type="number" class="bleedMM" min="0" max="5" step="0.5" value="${suggest.bleedMM}">
+        <label>欄數</label>
+        <input type="number" class="colsNum" min="1" max="6" value="${suggest.cols}">
+        <label>列數</label>
+        <input type="number" class="rowsNum" min="1" max="6" value="${suggest.rows}">
+        <span class="muted" style="margin-left:8px;">建議：外出血 <strong>${suggest.bleedMM}</strong> mm，欄數 <strong>${suggest.cols}</strong>，列數 <strong>${suggest.rows}</strong></span>
+      `;
+
+      // 尺寸資訊
+      const info=document.createElement('div'); info.className='info';
+      info.textContent=`尺寸：${singleCanvas.width}×${singleCanvas.height}px（${p.label}）`;
+
+      // 動作：下載單張、排版
+      const actions=document.createElement('div'); actions.className='preview-actions';
+      const btnDL=document.createElement('button'); btnDL.className='btn'; btnDL.textContent='📥 下載單一裁切圖（JPG）';
+      btnDL.onclick=()=> singleCanvas.toBlob(b=>downloadBlob(b, `裁切單張_${sizeSelect.value}_${ts()}.jpg`), 'image/jpeg', .95);
+
+      const btnLayout=document.createElement('button'); btnLayout.className='btn ghost'; btnLayout.textContent='🧩 排版到 6×4';
+      btnLayout.onclick=()=>{
+        const bleedMM=parseFloat(ctl.querySelector('.bleedMM').value)||suggest.bleedMM;
+        const cols=parseInt(ctl.querySelector('.colsNum').value)||suggest.cols;
+        const rows=parseInt(ctl.querySelector('.rowsNum').value)||suggest.rows;
+        try{
+          const layout=createLayoutFromCanvas(singleCanvas, {bleedMM, cols, rows});
+          createLayoutCard(layout, p.label, {bleedMM, cols, rows});
+          showSuccess('✅ 已依卡片參數完成 6×4 排版！');
+        }catch(e){ showError(e.message || '排版失敗'); }
+      };
+
+      actions.appendChild(btnDL); actions.appendChild(btnLayout);
+
+      // 組裝
+      card.appendChild(head);
+      card.appendChild(imgEl);
+      card.appendChild(ctl);
+      card.appendChild(info);
+      card.appendChild(actions);
+      preview.appendChild(card);
+      setTimeout(()=>card.scrollIntoView({behavior:'smooth'}),80);
+    }
+
+    /* ===== 6×4 排版（用卡片參數 + 全域內間距） ===== */
+    function createLayoutFromCanvas(singleCanvas, {bleedMM, cols, rows}){
+      const p=getPreset();
+      const OUTER_BLEED=pxFromMM(Math.max(0, Math.min(5, bleedMM)));
+      const GUTTER=pxFromMM(getGlobalGutter());
+
+      const photoW=Math.round(p.wcm*PPCM), photoH=Math.round(p.hcm*PPCM);
+      const usableX0=OUTER_BLEED, usableY0=OUTER_BLEED;
+      const usableW=OUT_W - OUTER_BLEED*2, usableH=OUT_H - OUTER_BLEED*2;
+
+      const gridW=cols*photoW + (cols-1)*GUTTER;
+      const gridH=rows*photoH + (rows-1)*GUTTER;
+      if(gridW>usableW || gridH>usableH){
+        throw new Error('欄數/列數 + 間距 + 外出血超出 6×4 可用範圍，請調小參數或減少欄/列。');
+      }
+
+      const canvas=document.createElement('canvas'); canvas.width=OUT_W; canvas.height=OUT_H;
+      const ctx=canvas.getContext('2d',{alpha:false}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+      ctx.fillStyle='#fff'; ctx.fillRect(0,0,OUT_W,OUT_H);
+
+      const startX=Math.round(usableX0 + (usableW - gridW)/2);
+      const startY=Math.round(usableY0 + (usableH - gridH)/2);
+
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const x=startX + c*(photoW+GUTTER);
+          const y=startY + r*(photoH+GUTTER);
+          ctx.fillStyle='#fff'; ctx.fillRect(x,y,photoW,photoH);
+          ctx.drawImage(singleCanvas, x,y,photoW,photoH);
+          ctx.strokeStyle='#ddd'; ctx.lineWidth=0.6; ctx.strokeRect(x,y,photoW,photoH);
+        }
+      }
+      // 外出血內緣參考線
+      ctx.strokeStyle='#eee'; ctx.lineWidth=1; ctx.strokeRect(OUTER_BLEED,OUTER_BLEED, OUT_W-OUTER_BLEED*2, OUT_H-OUTER_BLEED*2);
+      return canvas;
+    }
+
+    function createLayoutCard(canvas, labelText, {bleedMM, cols, rows}){
+      const card=document.createElement('div'); card.className='preview-container';
+      const head=document.createElement('div'); head.className='preview-head';
+      const title=document.createElement('div'); title.className='preview-title'; title.textContent=`📋 排版預覽：${labelText} → 6×4 吋`;
+      const headActions=document.createElement('div'); headActions.className='preview-actions';
+      const btnDel=document.createElement('button'); btnDel.className='btn secondary'; btnDel.textContent='🗑️ 刪除這張'; btnDel.onclick=()=>card.remove();
+      headActions.appendChild(btnDel); head.appendChild(title); head.appendChild(headActions);
+
+      const img=new Image(); img.src=canvas.toDataURL('image/jpeg', .95); img.className='preview-image'; img.alt='6×4 排版預覽';
+
+      const info=document.createElement('div'); info.className='info';
+      info.innerHTML=`成品：6×4（${OUT_W}×${OUT_H}px, 300DPI）｜外出血 <b>${bleedMM}</b>mm｜內間距 <b>${getGlobalGutter()}</b>mm｜欄×列 <b>${cols}</b>×<b>${rows}</b>`;
+
+      const actions=document.createElement('div'); actions.className='preview-actions';
+      const btnDL=document.createElement('button'); btnDL.className='btn'; btnDL.textContent='📥 下載 6×4 排版圖（JPG）';
+      btnDL.onclick=()=> canvas.toBlob(b=>downloadBlob(b, `證件照_${sizeSelect.value}_6x4_${ts()}.jpg`), 'image/jpeg', .95);
+
+      actions.appendChild(btnDL);
+
+      card.appendChild(head); card.appendChild(img); card.appendChild(info); card.appendChild(actions);
+      preview.appendChild(card);
+      setTimeout(()=>card.scrollIntoView({behavior:'smooth'}),80);
+    }
+
+    function ts(){ return new Date().toISOString().slice(0,19).replace(/[:.]/g,'-'); }
+    function downloadBlob(blob, filename){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+
+    /* ===== 查詢表資料（節錄） ===== */
+    const DATA=[
+      {cat:'尺寸規格', item:'2吋大頭照', sizeKey:'3.5x4.5', cm:'3.5×4.5', px:'1062×826', paper:'-', net:'-', note:'護照、身分證、台胞證、泰簽、外僑居留證、國考電子檔等'},
+      {cat:'尺寸規格', item:'2吋半身照', sizeKey:'4.7x4.2', cm:'4.7×4.2', px:'1110×992', paper:'-', net:'-', note:'健保卡、履歷、學生證、國際駕照、巴氏量表'},
+      {cat:'尺寸規格', item:'1吋證件照', sizeKey:'3.5x2.8', cm:'3.5×2.8', px:'827×661', paper:'-', net:'-', note:'駕照、身障手冊、各類執照/證書、體檢/兵役、公務人員體檢表'},
+      {cat:'尺寸規格', item:'5×5 特殊簽證照', sizeKey:'5.0x5.0', cm:'5.0×5.0', px:'1181×1181', paper:'-', net:'-', note:'美國簽證、印度簽證'},
+      {cat:'常用證件', item:'身分證', sizeKey:'3.5x4.5', cm:'3.5×4.5', px:'1062×826', paper:'O', net:'O', note:'電子檔≤5MB；高≥531px、寬≥413px'},
+      {cat:'常用證件', item:'護照', sizeKey:'3.5x4.5', cm:'3.5×4.5', px:'1062×826', paper:'O', net:'O', note:''},
+      {cat:'各類考試', item:'公務人員高等考', sizeKey:'3.5x4.5', cm:'3.5×4.5', px:'1062×826', paper:'X', net:'O', note:'臉部占 70–80%；檔案≤1MB'},
+      {cat:'各國簽證', item:'美國簽證（美簽照片）', sizeKey:'5.0x5.0', cm:'5.0×5.0', px:'600×600（建議）', paper:'—', net:'—', note:'電子檔 600×600；上限 1200×1200'},
+      {cat:'各國簽證', item:'印度簽證', sizeKey:'5.0x5.0', cm:'5.0×5.0', px:'1181×1181', paper:'O', net:'O', note:'JPEG；10KB–10MB'}
+    ];
+    function renderTable(rows){
+      $tbody.innerHTML='';
+      for(const r of rows){
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td class="nowrap">${r.cat}</td>
+          <td>${r.item}</td>
+          <td><span class="sizechip">${r.sizeKey.replace('x','×')}</span></td>
+          <td class="nowrap">${r.cm}</td>
+          <td class="nowrap">${r.px}</td>
+          <td class="nowrap">${badge(r.paper)}</td>
+          <td class="nowrap">${badge(r.net)}</td>
+          <td>${r.note||''}</td>`;
+        $tbody.appendChild(tr);
+      }
+    }
+    function badge(v){ if(v==='O') return `<span class="badge O">O</span>`; if(v==='X') return `<span class="badge X">X</span>`; if(v==='△') return `<span class="badge mid">△</span>`; return `<span class="muted">—</span>`; }
+    function filterData(){
+      const q=($q.value||'').toLowerCase(), cat=($cat.value||''), size=($sizeF.value||'');
+      let rows=DATA.slice();
+      if(cat) rows=rows.filter(r=>r.cat===cat);
+      if(size) rows=rows.filter(r=>r.sizeKey===size);
+      if(q) rows=rows.filter(r=>`${r.item} ${r.cat} ${r.cm} ${r.px} ${r.note} ${r.sizeKey}`.toLowerCase().includes(q));
+      renderTable(rows);
+    }
+
+    /* ===== 啟動 ===== */
+    function init(){
+      initEvents();
+      renderTable(DATA);
+      ratioBadge.textContent=`比例：${getPreset().wcm}:${getPreset().hcm}`;
+    }
+    init();
+  </script>
+</body>
+</html>
+
