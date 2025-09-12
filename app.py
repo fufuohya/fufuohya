@@ -3,6 +3,7 @@ import io
 import re
 import time
 import csv
+import difflib
 import pandas as pd
 import streamlit as st
 
@@ -25,11 +26,11 @@ try:
 except Exception:
     HAS_WDM = False
 
-APP_TITLE = "🔎 COSING 成分搜尋工具（Streamlit 雲端版）"
+APP_TITLE = "🔎 COSING 成分搜尋工具（Streamlit 雲端版 / 支援完全相符與近似比對）"
 
 st.set_page_config(page_title="COSING Helper", layout="wide")
 st.title(APP_TITLE)
-st.caption("把原本的 Selenium 腳本封裝到 Streamlit，支援上傳／貼上／網址／Google Sheet 等多種輸入，並可下載 CSV 結果。")
+st.caption("把 Selenium 腳本封裝到 Streamlit，支援上傳／貼上／網址／Google Sheet。新增：完全相符（exact）與近似比對（fuzzy）開關，並輸出比對型態與相似度。")
 
 with st.expander("⚠️ 使用前注意事項", expanded=False):
     st.markdown(
@@ -47,6 +48,7 @@ st.sidebar.header("設定")
 headless = st.sidebar.checkbox("Headless（背景執行瀏覽器）", value=True)
 delay = st.sidebar.slider("每筆查詢延遲（秒）", 0.5, 5.0, 1.0, 0.5)
 proxy = st.sidebar.text_input("HTTP(S) Proxy（選填）", value="")
+strict_exact = st.sidebar.checkbox("只接受 INCI 完全相符（找不到就標註）", value=False)
 st.sidebar.markdown("---")
 st.sidebar.caption("若遇元素抓不到 → 提高延遲 / 放慢操作。")
 
@@ -183,9 +185,13 @@ def build_driver(headless: bool = True, proxy_url: str = "", custom_path: Option
         raise RuntimeError(f"啟動 Chrome 失敗：{e}")
 
 # ---------------------------------
-# Scraper
+# Scraper（支援 exact / fuzzy）
 # ---------------------------------
-def scrape_one(driver, ingredient: str, wait_sec: int = 25):
+def scrape_one(driver, ingredient: str, wait_sec: int = 25, strict_exact: bool = False):
+    def norm(s: str) -> str:
+        # 標準化：去頭尾空白、合併多重空白為單一、英文小寫
+        return re.sub(r"\s+", " ", s or "").strip().casefold()
+
     wait = WebDriverWait(driver, wait_sec)
 
     # 等搜尋框出現並輸入
@@ -202,18 +208,69 @@ def scrape_one(driver, ingredient: str, wait_sec: int = 25):
     # 等表格渲染
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table")))
 
-    # 取第一列
+    # 解析所有列
     rows = driver.find_elements(By.CSS_SELECTOR, "table tr")
-    if len(rows) > 1:
-        cells = rows[1].find_elements(By.TAG_NAME, "td")
+    candidates = []
+    for r in rows[1:]:
+        cells = r.find_elements(By.TAG_NAME, "td")
         if len(cells) >= 5:
-            inci_name = cells[1].text.strip()
-            cas_number = cells[2].text.strip()
-            annex_ref = cells[4].text.strip()
-            return {"Ingredient": ingredient, "INCI Name": inci_name, "CAS Number": cas_number, "Annex / Ref": annex_ref}
+            inci = cells[1].text.strip()
+            cas = cells[2].text.strip()
+            annex = cells[4].text.strip()
+            candidates.append((inci, cas, annex))
 
-    # 無結果
-    return {"Ingredient": ingredient, "INCI Name": "No Results", "CAS Number": "No Results", "Annex / Ref": "No Results"}
+    if not candidates:
+        return {
+            "Ingredient": ingredient,
+            "INCI Name": "No Results",
+            "CAS Number": "No Results",
+            "Annex / Ref": "No Results",
+            "Match Type": "none",
+            "Similarity": ""
+        }
+
+    # 先嘗試完全相符（忽略大小寫與多重空白）
+    ing_norm = norm(ingredient)
+    for inci, cas, annex in candidates:
+        if norm(inci) == ing_norm:
+            return {
+                "Ingredient": ingredient,
+                "INCI Name": inci,
+                "CAS Number": cas,
+                "Annex / Ref": annex,
+                "Match Type": "exact",
+                "Similarity": 1.0
+            }
+
+    if strict_exact:
+        # 使用者要求只收完全相符 → 找不到就回報
+        return {
+            "Ingredient": ingredient,
+            "INCI Name": "No Exact Match",
+            "CAS Number": "",
+            "Annex / Ref": "",
+            "Match Type": "no_exact",
+            "Similarity": ""
+        }
+
+    # 否則進入近似匹配：回傳相似度最高的一筆
+    best = None
+    best_ratio = -1.0
+    for inci, cas, annex in candidates:
+        ratio = difflib.SequenceMatcher(None, ing_norm, norm(inci)).ratio()
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best = (inci, cas, annex)
+
+    inci, cas, annex = best
+    return {
+        "Ingredient": ingredient,
+        "INCI Name": inci,
+        "CAS Number": cas,
+        "Annex / Ref": annex,
+        "Match Type": "fuzzy",
+        "Similarity": round(best_ratio, 4)
+    }
 
 def try_close_cookie_banner(driver):
     # 嘗試關閉常見的同意彈窗
@@ -255,9 +312,16 @@ if start:
         for idx, ing in enumerate(ingredients, start=1):
             status.info(f"搜尋第 {idx}/{total} 個：**{ing}**")
             try:
-                data = scrape_one(driver, ing)
+                data = scrape_one(driver, ing, strict_exact=strict_exact)
             except Exception as e:
-                data = {"Ingredient": ing, "INCI Name": "Error", "CAS Number": "Error", "Annex / Ref": f"Error: {e}"}
+                data = {
+                    "Ingredient": ing,
+                    "INCI Name": "Error",
+                    "CAS Number": "Error",
+                    "Annex / Ref": f"Error: {e}",
+                    "Match Type": "error",
+                    "Similarity": ""
+                }
             collected.append(data)
 
             progress.progress(int(idx * 100 / total))
@@ -283,4 +347,4 @@ if start:
             pass
 
 st.markdown("---")
-st.markdown("© 2025 COSING Helper — Selenium + Streamlit（Community Cloud 相容版）")
+st.markdown("© 2025 COSING Helper — Selenium + Streamlit（Community Cloud 相容版，含 exact/fuzzy 比對）")
