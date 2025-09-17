@@ -1,0 +1,2 @@
+[server]
+maxUploadSize = 300  # 單檔上限（MB），視需求調整
