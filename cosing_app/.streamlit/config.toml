@@ -1,3 +1,8 @@
-# Streamlit runtime config
-server.maxUploadSize = 200
-browser.gatherUsageStats = false
+[server]
+maxUploadSize = 200
+enableCORS = false
+enableXsrfProtection = true
+
+[theme]
+base = "light"
+primaryColor = "#FF4B4B"
