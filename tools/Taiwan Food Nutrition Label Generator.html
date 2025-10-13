@@ -417,7 +417,7 @@ function buildVerticalTableHTML() {
       const isVM = isVitaminMineralName(n.name);
       const f = isVM ? fmtSig3 : fmt;
       rows.push(`<tr>
-        <td>${esc(n.name)}</td>
+        <td>${esc(getDisplayName(n))}</td>
         <td style="text-align:right">${esc(`${f(per)} ${getUnitText(n.unit)}`)}</td>
         <td style="text-align:right">${esc(res.text)}</td>
       </tr>`);
@@ -500,7 +500,7 @@ function buildHorizontalTableHTML() {
       const per = Number(n.value||0) * (formData.servingSize/100);
       const isVM = isVitaminMineralName(n.name);
       const f = isVM ? fmtSig3 : fmt;
-      add += `、${n.name}${f(per)}${getUnitText(n.unit)}（${f(n.value)}${getUnitText(n.unit)}）`;
+      add += `、${getDisplayName(n)}${f(per)}${getUnitText(n.unit)}（${f(n.value)}${getUnitText(n.unit)}）`;
     });
     lines.push(`每一份量${(formData.servingSize||0).toFixed(2)}${unit}；本包裝含${formData.servingsPerContainer}份。`);
     lines.push(
@@ -1660,7 +1660,7 @@ function generateFormat2() {
     const dvKey = nutrientNameToDVKey(n.name) || null;
     const dvVal = dvKey ? dailyRef[dvKey] : undefined;
     const percent = dvKey ? withDVPercent(perServing, n.unit, dvVal, dvKey) : { text:'*', starred:true };
-    rows.push({ name:n.name, perServing, unitShort:n.unit, dvKey, percentText:percent.text, starred:percent.starred });
+    rows.push({ name:getDisplayName(n), perServing, unitShort:n.unit, dvKey, percentText:percent.text, starred:percent.starred });
     if (dvKey && !percent.starred) presentDVKeys.push(dvKey);
   });
 
@@ -1741,7 +1741,7 @@ function generateFormat2Horizontal() {
     if (dvKey && !res.starred) presentDVKeys.push(dvKey);
     if (res.starred) anyStar = true;
     const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-    items.push(`${n.name}${f(perServing)}${getUnitText(n.unit)}（${res.text}）`);
+    items.push(`${getDisplayName(n)}${f(perServing)}${getUnitText(n.unit)}（${res.text}）`);
   });
 
   let dvText = '';
@@ -1821,7 +1821,7 @@ function generateFormat3() {
     const display = (n.unit === 'kcal')
       ? `${fmt(n.value)} 大卡`
       : `${f(n.value)} ${getUnitText(n.unit)}`;
-    rows.push({ name:n.name, displayValue:display, percentText:pct.text, starred:pct.starred, dvKey });
+    rows.push({ name:getDisplayName(n), displayValue:display, percentText:pct.text, starred:pct.starred, dvKey });
     if (dvKey && !pct.starred) presentDVKeys.push(dvKey);
   });
 
@@ -1904,7 +1904,7 @@ function generateFormat3Horizontal() {
 
   formData.vitamins.forEach(v => items.push(lineFor(v.name, v.value, v.unit, v.iu)));
   formData.minerals.forEach(m => items.push(lineFor(m.name, m.value, m.unit)));
-  formData.additionalNutrients.forEach(n => items.push(lineFor(n.name, n.value, n.unit)));
+  formData.additionalNutrients.forEach(n => items.push(lineFor(getDisplayName(n), n.value, n.unit)));
 
   let dvText = '';
   if (anyStar) dvText += '＊參考值未訂定\n';
@@ -1974,7 +1974,7 @@ function generateAdditionalNutrientsRows(){
     const isVM = isVitaminMineralName(n.name);
     const f = isVM ? fmtSig3 : fmt; // 規則 3/4：維生素礦物質採有效數字≤3；其他用 fmt()
     html += `<tr>
-      <td>${n.name}</td>
+      <td>${getDisplayName(n)}</td>
       <td class="text-right">${f(per)} ${getUnitText(n.unit)}</td>
       <td class="text-right">${f(n.value)} ${getUnitText(n.unit)}</td>
     </tr>`;
@@ -2176,7 +2176,7 @@ function downloadExcel(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
     if (formData.additionalNutrients.length>0){
       formData.additionalNutrients.forEach(n=>{
         const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-        data.push([n.name, `${f(n.value)} ${getUnitText(n.unit)}`, '＊']);
+        data.push([getDisplayName(n), `${f(n.value)} ${getUnitText(n.unit)}`, '＊']);
       });
     }
     data.push([]);
@@ -2196,7 +2196,7 @@ function downloadExcel(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
     formData.additionalNutrients.forEach(n=>{
       const per = (Number(n.value||0) * (formData.servingSize/100));
       const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-      data.push([n.name, `${f(per)} ${getUnitText(n.unit)}`, `${f(n.value)} ${getUnitText(n.unit)}`]);
+      data.push([getDisplayName(n), `${f(per)} ${getUnitText(n.unit)}`, `${f(n.value)} ${getUnitText(n.unit)}`]);
     });
 
   }else if (formData.selectedFormat==='format2'){
@@ -2218,7 +2218,7 @@ function downloadExcel(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
         pctText = ((perSameUnit/dv[key])*100).toFixed(1)+'%';
       }
       const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-      data.push([n.name, `${f(per)} ${getUnitText(n.unit)}`, pctText]);
+      data.push([getDisplayName(n), `${f(per)} ${getUnitText(n.unit)}`, pctText]);
     });
     data.push([]);
     data.push(['每日參考值', buildDVListText(dv,'format2')]);
@@ -2396,9 +2396,16 @@ function computeKcalFromAdditionalF3(){
   const netCarb = Math.max(0, carbG - fiberG - eryth);
   return proteinG*4 + fatG*9 + netCarb*4 + fiberG*2 + otherPolyols*2.4 + organicAcidsG*3 + ethanolG*7;
 }
-  
+  function getDisplayName(n){
+  if (n && n.isOrganicAcid) {
+    const custom = (n.organicAcidName || '').trim();
+    return custom || '有機酸'; // 若使用者沒填，退回「有機酸」
+  }
+  return n?.name || '';
+}
   </script>
 </body>
 </html>
+
 
 
