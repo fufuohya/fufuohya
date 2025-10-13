@@ -1093,49 +1093,56 @@ function addNutrient(){
 
       if (formData.specificType==='vitaminCapsule'){
         // 維生素
-        formData.vitamins=[];
-        let iuMissing = [];
-        document.querySelectorAll('#vitaminInputs .nutrient-item').forEach(box=>{
-          const nameSel = box.querySelector('[data-vitamin-name]');
-          if (!nameSel || !nameSel.value) return;
-          const id = box.id;
-          const mainValEl = box.querySelector(`[data-vitamin-main-value="${id}"]`);
-          const mainUnitEl = box.querySelector(`[data-vitamin-main-unit="${id}"]`);
-          const iuValEl   = box.querySelector(`[data-vitamin-iu-value="${id}"]`);
-          const item = {
-            name: nameSel.value,
-            value: parseFloat(mainValEl?.value)||0,
-            unit:  mainUnitEl?.value||'mg'
-          };
-          if (vitaminUnitMap[item.name]?.allowIU){
-            const val = parseFloat(iuValEl?.value);
-            if (!val){ iuMissing.push(item.name); }
-            item.iu = val||0; item.iuUnit='IU';
-          }
-          formData.vitamins.push(item);
-        });
-        if (formData.vitamins.length===0 && formData.minerals.length===0){
-          alert('請至少新增一項維生素或礦物質'); return;
-        }
-        if (iuMissing.length>0){
-          alert('格式3：維生素 A／D／E 的 IU 為必填，未填項目：'+iuMissing.join('、'));
-          return;
-        }
+        // 維生素
+formData.vitamins=[];
+let iuMissing = [];
+document.querySelectorAll('#vitaminInputs .nutrient-item').forEach(box=>{
+  const nameSel = box.querySelector('[data-vitamin-name]');
+  if (!nameSel || !nameSel.value) return;
+  const id = box.id;
+  const mainValEl = box.querySelector(`[data-vitamin-main-value="${id}"]`);
+  const mainUnitEl = box.querySelector(`[data-vitamin-main-unit="${id}"]`);
+  const iuValEl   = box.querySelector(`[data-vitamin-iu-value="${id}"]`);
+  const item = {
+    name: nameSel.value,
+    value: parseFloat(mainValEl?.value)||0,
+    unit:  mainUnitEl?.value||'mg'
+  };
+  if (vitaminUnitMap[item.name]?.allowIU){
+    const val = parseFloat(iuValEl?.value);
+    if (!val){ iuMissing.push(item.name); }
+    item.iu = val||0; item.iuUnit='IU';
+  }
+  formData.vitamins.push(item);
+});
 
-        // 礦物質
-        formData.minerals=[];
-        document.querySelectorAll('#mineralInputs .nutrient-item').forEach(box=>{
-          const nameSel = box.querySelector('[data-mineral-name]');
-          if (!nameSel || !nameSel.value) return;
-          const id = box.id;
-          const mainValEl = box.querySelector(`[data-mineral-main-value="${id}"]`);
-          const mainUnitEl = box.querySelector(`[data-mineral-main-unit="${id}"]`);
-          formData.minerals.push({
-            name: nameSel.value,
-            value: parseFloat(mainValEl?.value)||0,
-            unit:  mainUnitEl?.value||'mg'
-          });
-        });
+// 礦物質（搬到檢查前）
+formData.minerals=[];
+document.querySelectorAll('#mineralInputs .nutrient-item').forEach(box=>{
+  const nameSel = box.querySelector('[data-mineral-name]');
+  if (!nameSel || !nameSel.value) return;
+  const id = box.id;
+  const mainValEl = box.querySelector(`[data-mineral-main-value="${id}"]`);
+  const mainUnitEl = box.querySelector(`[data-mineral-main-unit="${id}"]`);
+  formData.minerals.push({
+    name: nameSel.value,
+    value: parseFloat(mainValEl?.value)||0,
+    unit:  mainUnitEl?.value||'mg'
+  });
+});
+
+// 先處理 IU 必填提醒（只針對 A/D/E）
+if (iuMissing.length>0){
+  alert('格式3：維生素 A／D／E 的 IU 為必填，未填項目：'+iuMissing.join('、'));
+  return;
+}
+
+// 再來做「至少要有維生素或礦物質」檢查
+if (formData.vitamins.length===0 && formData.minerals.length===0){
+  alert('請至少新增一項維生素或礦物質'); 
+  return;
+}
+
 
       }else{
         // 八大營養素
@@ -1697,8 +1704,6 @@ function generateFormat2() {
       <button class="btn-mini" onclick="downloadSinglePDF('format2Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format2Table','營養標示_直式.html')">🌐 下載直式 HTML</button>
 	  <button class="btn-mini" onclick="downloadSingleExcel('format2Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
-
-
     </div>
   `;
 }
@@ -1769,96 +1774,90 @@ function generateFormat2Horizontal() {
   `;
 }
 
-
-
-
-
 function generateFormat3() {
   const dailyRef = getDailyReference();
   const rows = [];
   const presentDVKeys = [];
 
-  // 🔶 格式3：處理八大營養素（使用者自己新增的）與熱量規則
-  // 使用者是否直接新增了「熱量」
-  const userEnergy = (formData.additionalNutrients || []).find(n => n.name === '熱量');
-
-  // 是否存在可計算熱量的構成（代表真的有新增會影響熱量的項目）
-  const hasEnergyContributors = (formData.additionalNutrients || []).some(n=>{
-    const nm = String(n.name || '');
-    return (nm==='蛋白質' || nm==='脂肪' || nm==='碳水化合物' ||
-            nm.includes('膳食纖維') || nm.includes('糖醇') ||
-            n.isOrganicAcid || nm.includes('酒精'));
-  });
-
-  // 維生素
-  formData.vitamins.forEach(v=>{
+  // 維生素（依 DV 計算百分比；A/D/E 額外顯示 IU）
+  formData.vitamins.forEach(v => {
     const dvKey = nutrientNameToDVKey(v.name);
     const dvVal = dvKey ? dailyRef[dvKey] : undefined;
     const pct = dvKey ? withDVPercent(v.value, v.unit, dvVal, dvKey) : { text:'*', starred:true };
+
     let displayValue = `${fmtSig3(v.value)} ${getUnitText(v.unit)}`;
-    if (['維生素A','維生素D','維生素E'].includes(v.name) && typeof v.iu === 'number' && !isNaN(v.iu)){
+    if (['維生素A','維生素D','維生素E'].includes(v.name) && typeof v.iu === 'number' && !isNaN(v.iu)) {
       displayValue += `（${v.iu} IU）`;
     }
+
     rows.push({ name:v.name, displayValue, percentText:pct.text, starred:pct.starred, dvKey });
     if (dvKey && !pct.starred) presentDVKeys.push(dvKey);
   });
 
-  // 礦物質
-  formData.minerals.forEach(m=>{
+  // 礦物質（依 DV 計算百分比）
+  formData.minerals.forEach(m => {
     const dvKey = nutrientNameToDVKey(m.name);
     const dvVal = dvKey ? dailyRef[dvKey] : undefined;
     const pct = dvKey ? withDVPercent(m.value, m.unit, dvVal, dvKey) : { text:'*', starred:true };
-    rows.push({ name:m.name, displayValue:`${fmtSig3(m.value)} ${getUnitText(m.unit)}`, percentText:pct.text, starred:pct.starred, dvKey });
+
+    rows.push({
+      name: m.name,
+      displayValue: `${fmtSig3(m.value)} ${getUnitText(m.unit)}`,
+      percentText: pct.text,
+      starred: pct.starred,
+      dvKey
+    });
     if (dvKey && !pct.starred) presentDVKeys.push(dvKey);
   });
 
-  // 其他營養素（包含你手動新增的八大營養素 & 熱量…等，順序以使用者新增順）
-  formData.additionalNutrients.forEach(n=>{
-    const dvKey = nutrientNameToDVKey(n.name);
-    const dvVal = dvKey ? dailyRef[dvKey] : undefined;
-    const pct = dvKey ? withDVPercent(n.value, n.unit, dvVal, dvKey) : { text:'*', starred:true };
+  // 其他營養素（⚠️「熱量」不計算 %DV、固定顯示「＊」）
+  formData.additionalNutrients.forEach(n => {
+    let dvKey = nutrientNameToDVKey(n.name);
+    let percentText = '*';
+    let starred = true; // 固定星號（特別是「熱量」）
+
+    if (n.name === '熱量') {
+      // 格式3規則：不算 %DV，僅顯示數值
+      dvKey = null;
+    } else if (dvKey) {
+      const dvVal = dailyRef[dvKey];
+      const res = withDVPercent(n.value, n.unit, dvVal, dvKey);
+      percentText = res.text;
+      starred = res.starred;
+    }
+
     const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
     const display = (n.unit === 'kcal')
       ? `${fmt(n.value)} 大卡`
       : `${f(n.value)} ${getUnitText(n.unit)}`;
-    rows.push({ name:getDisplayName(n), displayValue:display, percentText:pct.text, starred:pct.starred, dvKey });
-    if (dvKey && !pct.starred) presentDVKeys.push(dvKey);
+
+    rows.push({ name:n.name, displayValue:display, percentText, starred, dvKey });
+    if (dvKey && !starred) presentDVKeys.push(dvKey);
   });
 
-  // 🔶 自動補「熱量」：只有在「使用者沒有直接填熱量」且「存在可計算熱量的項目」時才補
-  if (!userEnergy && hasEnergyContributors) {
-    const kcal = computeKcalFromAdditionalF3();
-    const pct = withDVPercent(kcal, 'kcal', dailyRef.calories, 'calories');
-    rows.push({
-      name: '熱量',
-      displayValue: `${fmt(kcal)} 大卡`,
-      percentText: pct.text,
-      starred: pct.starred,
-      dvKey: 'calories'
-    });
-    if (!pct.starred) presentDVKeys.push('calories');
-  }
-
   // 註記行與 DV 行
-  const anyStar = rows.some(r=>r.starred);
+  const anyStar = rows.some(r => r.starred);
   let dvText = '';
   if (anyStar) dvText += '＊參考值未訂定\n';
   const line = buildDVLine(dailyRef, presentDVKeys);
   if (line) dvText += line;
 
-  const body = rows.map(r=>`
+  const body = rows.map(r => `
     <tr>
       <td>${r.name}</td>
       <td class="text-right">${r.displayValue}</td>
       <td class="text-right">${r.percentText}</td>
-    </tr>`).join('');
+    </tr>
+  `).join('');
 
   return `
     <div class="nutrition-table" id="format3Table">
       <table>
-        <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
+        <thead>
+          <tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr>
+        </thead>
         <tbody>
-          <tr><td colspan="2">每一份量</td><td>${renderCapsuleServingLine()}</td></tr>
+          <tr><td colspan="2">每一份量</td><td>${formData.servingSize} 顆（或錠、粒）</td></tr>
           <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
         </tbody>
       </table>
@@ -1878,10 +1877,6 @@ function generateFormat3() {
   `;
 }
 
-
-
-
-
 function generateFormat3Horizontal() {
   const dailyRef = getDailyReference();
   const items = [];
@@ -1889,25 +1884,40 @@ function generateFormat3Horizontal() {
   let anyStar = false;
 
   const lineFor = (name, value, unitShort, iuOpt) => {
+    // 🔒 規則：格式3「熱量」不計算 %DV，固定顯示「＊」
+    if (name === '熱量') {
+      const v = unitShort === 'kcal' ? `${fmt(value)}大卡` : `${fmt(value)}${getUnitText(unitShort)}`;
+      anyStar = true; // 出現「＊」
+      return `${name}${v}（＊）`;
+    }
+
+    // 其他項目依 DV 計算
     const dvKey = nutrientNameToDVKey(name);
     const dvVal = dvKey ? dailyRef[dvKey] : undefined;
     const res = dvKey ? withDVPercent(value, unitShort, dvVal, dvKey) : { text:'*', starred:true };
     const f = isVitaminMineralName(name) ? fmtSig3 : fmt;
-    let v = `${f(value)}${getUnitText(unitShort)}`;
+
+    let v = unitShort === 'kcal' ? `${f(value)}大卡` : `${f(value)}${getUnitText(unitShort)}`;
     if (['維生素A','維生素D','維生素E'].includes(name) && typeof iuOpt === 'number' && !isNaN(iuOpt)) {
       v += `（${iuOpt} IU）`;
     }
+
     if (dvKey && !res.starred) presentDVKeys.push(dvKey);
     if (res.starred) anyStar = true;
+
     return `${name}${v}（${res.text}）`;
   };
 
+  // 維生素
   formData.vitamins.forEach(v => items.push(lineFor(v.name, v.value, v.unit, v.iu)));
+  // 礦物質
   formData.minerals.forEach(m => items.push(lineFor(m.name, m.value, m.unit)));
-  formData.additionalNutrients.forEach(n => items.push(lineFor(getDisplayName(n), n.value, n.unit)));
+  // 其他營養素（含「熱量」：會固定顯示 ＊）
+  formData.additionalNutrients.forEach(n => items.push(lineFor(n.name, n.value, n.unit)));
 
   let dvText = '';
   if (anyStar) dvText += '＊參考值未訂定\n';
+
   const line = buildDVLine(dailyRef, presentDVKeys);
   if (line) dvText += line;
 
@@ -1916,17 +1926,14 @@ function generateFormat3Horizontal() {
       <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
       <p>每一份量${formData.servingSize}顆（或錠、粒），本包裝含${formData.servingsPerContainer}份。每份：${items.join('、')}。</p>
       ${dvText ? `<p class="dv-text" style="white-space:pre-line">${dvText}</p>` : ''}
-
     </div>
-	      <div class="note" data-nodownload="true" style="margin-top:10px;">
-        適用於總表面積小於100平方公分以下的產品。
-      </div>
+    <div class="note" data-nodownload="true" style="margin-top:10px;">
+      適用於總表面積小於100平方公分以下的產品。
+    </div>
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format3Horizontal','營養標示_橫式.pdf')">📄 下載橫式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format3Horizontal','營養標示_橫式.html')">🌐 下載橫式 HTML</button>
-	  <button class="btn-mini" onclick="downloadSingleExcel('format3Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
-
-
+      <button class="btn-mini" onclick="downloadSingleExcel('format3Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
     </div>
   `;
 }
@@ -2406,6 +2413,7 @@ function computeKcalFromAdditionalF3(){
   </script>
 </body>
 </html>
+
 
 
 
