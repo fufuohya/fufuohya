@@ -1642,7 +1642,7 @@ function generateFormat2Horizontal(){
 }
 
 
-function generateFormat3(){
+function generateFormat3() {
   const dailyRef = getDailyReference();
   const rows = [];
   const presentDVKeys = [];
@@ -1652,7 +1652,6 @@ function generateFormat3(){
     const dvKey = nutrientNameToDVKey(v.name);
     const dvVal = dvKey ? dailyRef[dvKey] : undefined;
     const pct = dvKey ? withDVPercent(v.value, v.unit, dvVal, dvKey) : { text:'*', starred:true };
-
     let displayValue = `${fmtSig3(v.value)} ${getUnitText(v.unit)}`;
     if (['維生素A','維生素D','維生素E'].includes(v.name) && typeof v.iu === 'number' && !isNaN(v.iu)){
       displayValue += `（${v.iu} IU）`;
@@ -1670,29 +1669,16 @@ function generateFormat3(){
     if (dvKey && !pct.starred) presentDVKeys.push(dvKey);
   });
 
-  // 其他營養素（⚠️ 熱量不算 %DV；有機酸顯示自訂名稱）
+  // 其他（含有機酸／熱量等自願標示；格式3 不計 %DV）
   formData.additionalNutrients.forEach(n=>{
-    let dvKey = nutrientNameToDVKey(n.name);
-    let percentText = '*';
-    let starred = true;
-
-    if (n.name !== '熱量' && dvKey) {
-      const dvVal = dailyRef[dvKey];
-      const res = withDVPercent(n.value, n.unit, dvVal, dvKey);
-      percentText = res.text;
-      starred = res.starred;
-    } else {
-      dvKey = null; // 熱量在格式3固定星號
-    }
-
+    const dvKey = nutrientNameToDVKey(n.name); // 可能為 null
     const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
+    const dispName = getDisplayedNutrientName ? getDisplayedNutrientName(n) : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
     const display = (n.unit === 'kcal') ? `${fmt(n.value)} 大卡` : `${f(n.value)} ${getUnitText(n.unit)}`;
-    const dispName = getDisplayedNutrientName(n);
-
-    rows.push({ name: dispName, displayValue: display, percentText, starred, dvKey });
-    if (dvKey && !starred) presentDVKeys.push(dvKey);
+    rows.push({ name:dispName, displayValue:display, percentText:'＊', starred:true, dvKey });
   });
 
+  // 註記行與 DV 行
   const anyStar = rows.some(r=>r.starred);
   let dvText = '';
   if (anyStar) dvText += '＊參考值未訂定\n';
@@ -1711,7 +1697,7 @@ function generateFormat3(){
       <table>
         <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
         <tbody>
-          <tr><td colspan="2">每一份量</td><td>${formData.servingSize} 顆（或錠、粒）</td></tr>
+          <tr><td colspan="2">每一份量</td><td>${getCapsuleServingContent()}</td></tr>
           <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
         </tbody>
       </table>
@@ -1726,45 +1712,44 @@ function generateFormat3(){
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format3Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format3Table','營養標示_直式.html')">🌐 下載直式 HTML</button>
-      <button class="btn-mini" onclick="downloadSingleExcel('format3Table','營養標示_直式.xlsx')">📊 下載直式 Excel</button>
+      <button class="btn-mini" onclick="downloadSingleExcel('format3Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
     </div>
   `;
 }
 
-function generateFormat3Horizontal(){
+
+function generateFormat3Horizontal() {
   const dailyRef = getDailyReference();
   const items = [];
   const presentDVKeys = [];
   let anyStar = false;
 
-  const lineFor = (name, value, unitShort, iuOpt, overrideName) => {
-    // 格式3規則：熱量固定「＊」
-    if (name === '熱量') {
-      const v = unitShort === 'kcal' ? `${fmt(value)}大卡` : `${fmt(value)}${getUnitText(unitShort)}`;
-      anyStar = true;
-      const label = overrideName || name;
-      return `${label}${v}（＊）`;
-    }
+  const lineFor = (name, value, unitShort, iuOpt) => {
     const dvKey = nutrientNameToDVKey(name);
     const dvVal = dvKey ? dailyRef[dvKey] : undefined;
     const res = dvKey ? withDVPercent(value, unitShort, dvVal, dvKey) : { text:'*', starred:true };
     const f = isVitaminMineralName(name) ? fmtSig3 : fmt;
-    let v = unitShort === 'kcal' ? `${f(value)}大卡` : `${f(value)}${getUnitText(unitShort)}`;
-    if (['維生素A','維生素D','維生素E'].includes(name) && typeof iuOpt === 'number' && !isNaN(iuOpt)){
+    let v = `${f(value)}${getUnitText(unitShort)}`;
+    if (['維生素A','維生素D','維生素E'].includes(name) && typeof iuOpt === 'number' && !isNaN(iuOpt)) {
       v += `（${iuOpt} IU）`;
     }
     if (dvKey && !res.starred) presentDVKeys.push(dvKey);
     if (res.starred) anyStar = true;
-    const label = overrideName || name;
-    return `${label}${v}（${res.text}）`;
+    return `${name}${v}（${res.text}）`;
   };
 
   formData.vitamins.forEach(v => items.push(lineFor(v.name, v.value, v.unit, v.iu)));
   formData.minerals.forEach(m => items.push(lineFor(m.name, m.value, m.unit)));
-
-  formData.additionalNutrients.forEach(n=>{
-    const dispName = getDisplayedNutrientName(n);
-    items.push(lineFor(n.name, n.value, n.unit, undefined, dispName));
+  formData.additionalNutrients.forEach(n => {
+    const dispName = getDisplayedNutrientName ? getDisplayedNutrientName(n) : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
+    const dvKey = nutrientNameToDVKey(n.name);
+    const dvVal = dvKey ? dailyRef[dvKey] : undefined;
+    const res = dvKey ? withDVPercent(n.value, n.unit, dvVal, dvKey) : { text:'*', starred:true };
+    if (dvKey && !res.starred) presentDVKeys.push(dvKey);
+    if (res.starred) anyStar = true;
+    const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
+    const valueTxt = (n.unit === 'kcal') ? `${fmt(n.value)}${getUnitText(n.unit)}` : `${f(n.value)}${getUnitText(n.unit)}`;
+    items.push(`${dispName}${valueTxt}（${res.text}）`);
   });
 
   let dvText = '';
@@ -1775,18 +1760,22 @@ function generateFormat3Horizontal(){
   return `
     <div class="horizontal-label" id="format3Horizontal">
       <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
-      <p>每一份量${formData.servingSize}顆（或錠、粒），本包裝含${formData.servingsPerContainer}份。每份：${items.join('、')}。</p>
+      <p>
+        每一份量${getCapsuleServingContent()}，本包裝含${formData.servingsPerContainer}份。
+        每份：${items.join('、')}。
+      </p>
       ${dvText ? `<p class="dv-text" style="white-space:pre-line">${dvText}</p>` : ''}
     </div>
-    <div class="note" data-nodownload="true" style="margin-top:10px;">適用於總表面積小於100平方公分以下的產品。</div>
+    <div class="note" data-nodownload="true" style="margin-top:10px;">
+      適用於總表面積小於100平方公分以下的產品。
+    </div>
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format3Horizontal','營養標示_橫式.pdf')">📄 下載橫式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format3Horizontal','營養標示_橫式.html')">🌐 下載橫式 HTML</button>
-      <button class="btn-mini" onclick="downloadSingleExcel('format3Horizontal','營養標示_橫式.xlsx')">📊 下載橫式 Excel</button>
+      <button class="btn-mini" onclick="downloadSingleExcel('format3Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
     </div>
   `;
 }
-
 
     function renderCapsuleServingLine(){
       const countEl=document.getElementById('capsuleCount');
@@ -2304,9 +2293,36 @@ function computeKcalFromAdditionalF3(){
   }
   return n?.name || '';
 }
+	  // 只回傳「每一份量」右側要顯示的內容
+function getCapsuleServingContent(){
+  const modeEl = document.querySelector('input[name="capsuleMode"]:checked');
+  const label = formData.capsuleUnitLabel || '顆';
+
+  // 顆數模式（每份 幾顆 × 每顆 重量）
+  if (modeEl && modeEl.value === 'count') {
+    const count = parseFloat(document.getElementById('capsuleCount')?.value) || 0;
+    const per   = parseFloat(document.getElementById('capsuleUnitWeight')?.value) || 0;
+    const perU  = document.getElementById('capsuleUnitWeightUnit')?.value === 'mg' ? '毫克' : '公克';
+    // 例：2 顆（每顆0.50 公克）
+    return `${count} ${label}（每${label}${per.toFixed(2)} ${perU}）`;
+  }
+
+  // 重量模式（直接顯示每份重量，單位固定公克/毫克）
+  if (modeEl && modeEl.value === 'weight') {
+    const w = parseFloat(document.getElementById('capsuleServingWeight')?.value) || 0;
+    const u = (document.getElementById('capsuleServingWeightUnit')?.value === 'mg') ? '毫克' : '公克';
+    // 例：0.80 公克
+    return `${w.toFixed(2)} ${u}`;
+  }
+
+  // 後備：若沒選模式，就用已算好的每份重量（公克）
+  return `${(Number(formData.servingSize)||0).toFixed(2)} 公克`;
+}
+
   </script>
 </body>
 </html>
+
 
 
 
