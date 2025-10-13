@@ -319,7 +319,8 @@
         <div class="preview-section">
   <div style="display:flex; align-items:center; justify-content:space-between;">
     <h3>營養標示預覽</h3>
-    <button class="btn btn-secondary" onclick="regeneratePreview()">🔁 重新評估</button>
+    <button class="btn btn-secondary" type="button" onclick="regeneratePreview()">🔁 重新評估</button>
+
   </div>
   <div class="preview-grid" id="previewArea"></div>
 </div>
@@ -338,25 +339,36 @@ function excelEscape(text=''){
 }
 
 function buildVerticalTableHTML() {
-  // formData.selectedFormat：format1 / format2 / format3
+  // 小工具：HTML escape（避免 Excel HTML 注入）
+  const esc = (s='') => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
   const unit = formData.unit;
+  const isFmt3 = formData.selectedFormat === 'format3';
+
+  // 表頭
   let headRows = `
     <tr><th colspan="3" style="font-size:14pt;">營養標示</th></tr>
-    <tr><td>每一份量</td><td colspan="2">${(formData.servingSize || 0).toFixed(2)} ${formData.selectedFormat==='format3' ? '顆/錠/粒' : unit}</td></tr>
+    <tr><td>每一份量</td><td colspan="2">${(formData.servingSize || 0).toFixed(2)} ${isFmt3 ? '顆/錠/粒' : unit}</td></tr>
     <tr><td>本包裝含</td><td colspan="2">${formData.servingsPerContainer} 份</td></tr>
-    <tr><td></td><td><b>每份</b></td><td>${formData.selectedFormat==='format1' ? `<b>每 100 ${unit}</b>` : `<b>每日參考值百分比</b>`}</td></tr>
+    <tr>
+      <td></td>
+      <td><b>每份</b></td>
+      <td>${formData.selectedFormat==='format1' ? `<b>每 100 ${unit}</b>` : `<b>每日參考值百分比</b>`}</td>
+    </tr>
   `;
 
   const rows = [];
   const pushRow = (name, perServing, per100OrPct, unitShort, isVM=false, isKcal=false) => {
     const f = isVM ? fmtSig3 : fmt;
-    const left = excelEscape(name);
-    let middle = isKcal ? `${f(perServing)} 大卡` : `${f(perServing)} ${getUnitText(unitShort)}`;
-    let right = per100OrPct;
-    rows.push(`<tr><td>${left}</td><td style="text-align:right">${excelEscape(middle)}</td><td style="text-align:right">${excelEscape(right)}</td></tr>`);
+    const left = esc(name);
+    const mid = isKcal ? `${f(perServing)} 大卡` : `${f(perServing)} ${getUnitText(unitShort)}`;
+    rows.push(
+      `<tr><td>${left}</td><td style="text-align:right">${esc(mid)}</td><td style="text-align:right">${esc(per100OrPct)}</td></tr>`
+    );
   };
 
-  if (formData.selectedFormat==='format1'){
+  if (formData.selectedFormat === 'format1') {
+    // 直式（格式1）
     pushRow('熱量', formData.perServing.calories, `${fmt(formData.nutrients.calories)} 大卡`, 'kcal', false, true);
     pushRow('蛋白質', formData.perServing.protein, `${fmt(formData.nutrients.protein||0)} 公克`, 'g');
     pushRow('脂肪', formData.perServing.fat, `${fmt(formData.nutrients.fat||0)} 公克`, 'g');
@@ -367,76 +379,98 @@ function buildVerticalTableHTML() {
     pushRow('鈉', formData.perServing.sodium, `${fmt(formData.nutrients.sodium||0)} 毫克`, 'mg');
 
     formData.additionalNutrients.forEach(n=>{
-      const per = (Number(n.value||0) * (formData.servingSize/100));
+      const per = Number(n.value||0) * (formData.servingSize/100);
       const isVM = isVitaminMineralName(n.name);
       const f = isVM ? fmtSig3 : fmt;
       rows.push(`<tr>
-        <td>${excelEscape(n.name)}</td>
-        <td style="text-align:right">${excelEscape(`${f(per)} ${getUnitText(n.unit)}`)}</td>
-        <td style="text-align:right">${excelEscape(`${f(n.value)} ${getUnitText(n.unit)}`)}</td>
+        <td>${esc(n.name)}</td>
+        <td style="text-align:right">${esc(`${f(per)} ${getUnitText(n.unit)}`)}</td>
+        <td style="text-align:right">${esc(`${f(n.value)} ${getUnitText(n.unit)}`)}</td>
       </tr>`);
     });
 
-  } else if (formData.selectedFormat==='format2'){
+  } else if (formData.selectedFormat === 'format2') {
+    // 直式（格式2）— 只列出實際有 %DV 的 DV 行
     const dv = getDailyReference();
-    const pct = (val, unitShort, dvKey) => withDVPercent(val, unitShort, dv[dvKey], dvKey).text;
+    const presentDVKeys = [];
+
+    const pct = (val, unitShort, dvKey) => {
+      const res = withDVPercent(val, unitShort, dv[dvKey], dvKey);
+      if (dvKey && !res.starred) presentDVKeys.push(dvKey);
+      return res.text;
+    };
+
     pushRow('熱量', formData.perServing.calories, pct(formData.perServing.calories,'kcal','calories'),'kcal', false, true);
     pushRow('蛋白質', formData.perServing.protein, pct(formData.perServing.protein,'g','protein'),'g');
-    pushRow('脂肪', formData.perServing.fat, dv.fat?pct(formData.perServing.fat,'g','fat'):'＊','g');
-    pushRow('飽和脂肪', formData.perServing.saturatedFat, dv.saturatedFat?pct(formData.perServing.saturatedFat,'g','saturatedFat'):'＊','g');
+    pushRow('脂肪', formData.perServing.fat, (dv.fat ? pct(formData.perServing.fat,'g','fat') : '＊'),'g');
+    pushRow('飽和脂肪', formData.perServing.saturatedFat, (dv.saturatedFat ? pct(formData.perServing.saturatedFat,'g','saturatedFat') : '＊'),'g');
     pushRow('反式脂肪', formData.perServing.transFat, '＊','g');
-    pushRow('碳水化合物', formData.perServing.carbs, dv.carbs?pct(formData.perServing.carbs,'g','carbs'):'＊','g');
+    pushRow('碳水化合物', formData.perServing.carbs, (dv.carbs ? pct(formData.perServing.carbs,'g','carbs') : '＊'),'g');
     pushRow('糖', formData.perServing.sugar, '＊','g');
     pushRow('鈉', formData.perServing.sodium, pct(formData.perServing.sodium,'mg','sodium'),'mg');
 
     formData.additionalNutrients.forEach(n=>{
-      const dvKey = nutrientNameToDVKey(n.name);
-      const per = (n.value*formData.servingSize/100);
+      const per = n.value * formData.servingSize / 100;
+      const dvKey = nutrientNameToDVKey(n.name) || null;
+      const res = dvKey ? withDVPercent(per, n.unit, dv[dvKey], dvKey) : { text:'＊', starred:true };
+      if (dvKey && !res.starred) presentDVKeys.push(dvKey);
       const isVM = isVitaminMineralName(n.name);
       const f = isVM ? fmtSig3 : fmt;
-      const pctText = dvKey ? withDVPercent(per, n.unit, dv[dvKey], dvKey).text : '＊';
       rows.push(`<tr>
-        <td>${excelEscape(n.name)}</td>
-        <td style="text-align:right">${excelEscape(`${f(per)} ${getUnitText(n.unit)}`)}</td>
-        <td style="text-align:right">${excelEscape(pctText)}</td>
+        <td>${esc(n.name)}</td>
+        <td style="text-align:right">${esc(`${f(per)} ${getUnitText(n.unit)}`)}</td>
+        <td style="text-align:right">${esc(res.text)}</td>
       </tr>`);
     });
 
-    // DV 行（一般文字）
-    let dvText = '';
-    const present = [];
-    rows.forEach(()=>{}); // 由於上面已計算，我們再組一次 keys 較繁，這裡直接用 buildDVListText
-    const line = buildDVLine(dv, dvOrderFormat2);
-    if (line) dvText = line;
+    // 組合「每日參考值：」— 只列 presentDVKeys（去重保序）
+    const seen = new Set();
+    const filtered = presentDVKeys.filter(k => !seen.has(k) && seen.add(k));
+    const dvText = buildDVLine(dv, filtered);
     if (dvText){
-      rows.push(`<tr><td colspan="3" style="white-space:pre-wrap">${excelEscape(dvText.replace(/^每日參考值：/,'每日參考值：'))}</td></tr>`);
+      rows.push(`<tr><td colspan="3" style="white-space:pre-wrap">${esc(dvText)}</td></tr>`);
     }
 
-  } else { // format3
+  } else {
+    // 直式（格式3）— 只列出實際有 %DV 的 DV 行
     const dv = getDailyReference();
+    const presentDVKeys = [];
+
     const addRow = (name, value, unitShort, iuOpt) => {
       const dvKey = nutrientNameToDVKey(name);
-      const pct = dvKey ? withDVPercent(value, unitShort, dv[dvKey], dvKey).text : '＊';
+      const res = dvKey ? withDVPercent(value, unitShort, dv[dvKey], dvKey) : { text:'＊', starred:true };
+      if (dvKey && !res.starred) presentDVKeys.push(dvKey);
+
       let disp = `${fmtSig3(value)} ${getUnitText(unitShort)}`;
-      if (['維生素A','維生素D','維生素E'].includes(name) && typeof iuOpt === 'number' && !isNaN(iuOpt)){
+      if (['維生素A','維生素D','維生素E'].includes(name) && typeof iuOpt === 'number' && !isNaN(iuOpt)) {
         disp += `（${iuOpt} IU）`;
       }
-      rows.push(`<tr><td>${excelEscape(name)}</td><td style="text-align:right">${excelEscape(disp)}</td><td style="text-align:right">${excelEscape(pct)}</td></tr>`);
+      rows.push(`<tr><td>${esc(name)}</td><td style="text-align:right">${esc(disp)}</td><td style="text-align:right">${esc(res.text)}</td></tr>`);
     };
+
     formData.vitamins.forEach(v=>addRow(v.name, v.value, v.unit, v.iu));
     formData.minerals.forEach(m=>addRow(m.name, m.value, m.unit));
     formData.additionalNutrients.forEach(n=>{
       const dvKey = nutrientNameToDVKey(n.name);
-      const pct = dvKey ? withDVPercent(n.value, n.unit, dv[dvKey], dvKey).text : '＊';
+      const res = dvKey ? withDVPercent(n.value, n.unit, dv[dvKey], dvKey) : { text:'＊', starred:true };
+      if (dvKey && !res.starred) presentDVKeys.push(dvKey);
       const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-      rows.push(`<tr><td>${excelEscape(n.name)}</td><td style="text-align:right">${excelEscape(`${f(n.value)} ${getUnitText(n.unit)}`)}</td><td style="text-align:right">${excelEscape(pct)}</td></tr>`);
+      rows.push(`<tr>
+        <td>${esc(n.name)}</td>
+        <td style="text-align:right">${esc(`${f(n.value)} ${getUnitText(n.unit)}`)}</td>
+        <td style="text-align:right">${esc(res.text)}</td>
+      </tr>`);
     });
-    const line = buildDVLine(dv, dvOrderFormat3);
-    if (line){
-      rows.push(`<tr><td colspan="3" style="white-space:pre-wrap">${excelEscape(line.replace(/^每日參考值：/,'每日參考值：'))}</td></tr>`);
+
+    const seen = new Set();
+    const filtered = presentDVKeys.filter(k => !seen.has(k) && seen.add(k));
+    const dvText = buildDVLine(dv, filtered);
+    if (dvText){
+      rows.push(`<tr><td colspan="3" style="white-space:pre-wrap">${esc(dvText)}</td></tr>`);
     }
   }
 
+  // 整張表（固定欄寬、框線、固定版面）
   return `
   <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse; table-layout:fixed; width:980px;">
     <colgroup>
@@ -451,11 +485,16 @@ function buildVerticalTableHTML() {
   </table>`;
 }
 
+
 function buildHorizontalTableHTML() {
+  const esc = (s='') => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
   const unit = formData.unit;
-  // 將橫式敘述整合成單欄多行，利於列印
-  let lines = [];
-  if (formData.selectedFormat==='format1'){
+  const isFmt3 = formData.selectedFormat === 'format3';
+  const lines = [];
+
+  if (formData.selectedFormat === 'format1') {
+    // 橫式（格式1）
     let add = '';
     formData.additionalNutrients.forEach(n=>{
       const per = Number(n.value||0) * (formData.servingSize/100);
@@ -464,53 +503,81 @@ function buildHorizontalTableHTML() {
       add += `、${n.name}${f(per)}${getUnitText(n.unit)}（${f(n.value)}${getUnitText(n.unit)}）`;
     });
     lines.push(`每一份量${(formData.servingSize||0).toFixed(2)}${unit}；本包裝含${formData.servingsPerContainer}份。`);
-    lines.push(`每份（每100${unit}）：熱量${fmt(formData.perServing.calories)}大卡（${fmt(formData.nutrients.calories)}大卡）、蛋白質${fmt(formData.perServing.protein)}公克（${fmt(formData.nutrients.protein||0)}公克）、脂肪${fmt(formData.perServing.fat)}公克（${fmt(formData.nutrients.fat||0)}公克）、飽和脂肪${fmt(formData.perServing.saturatedFat)}公克（${fmt(formData.nutrients.saturatedFat||0)}公克）、反式脂肪${fmt(formData.perServing.transFat)}公克（${fmt(formData.nutrients.transFat||0)}公克）、碳水化合物${fmt(formData.perServing.carbs)}公克（${fmt(formData.nutrients.carbs||0)}公克）、糖${fmt(formData.perServing.sugar)}公克（${fmt(formData.nutrients.sugar||0)}公克）、鈉${fmt(formData.perServing.sodium)}毫克（${fmt(formData.nutrients.sodium||0)}毫克）${add}。`);
+    lines.push(
+      `每份（每100${unit}）：` +
+      `熱量${fmt(formData.perServing.calories)}大卡（${fmt(formData.nutrients.calories)}大卡）、` +
+      `蛋白質${fmt(formData.perServing.protein)}公克（${fmt(formData.nutrients.protein||0)}公克）、` +
+      `脂肪${fmt(formData.perServing.fat)}公克（${fmt(formData.nutrients.fat||0)}公克）、` +
+      `飽和脂肪${fmt(formData.perServing.saturatedFat)}公克（${fmt(formData.nutrients.saturatedFat||0)}公克）、` +
+      `反式脂肪${fmt(formData.perServing.transFat)}公克（${fmt(formData.nutrients.transFat||0)}公克）、` +
+      `碳水化合物${fmt(formData.perServing.carbs)}公克（${fmt(formData.nutrients.carbs||0)}公克）、` +
+      `糖${fmt(formData.perServing.sugar)}公克（${fmt(formData.nutrients.sugar||0)}公克）、` +
+      `鈉${fmt(formData.perServing.sodium)}毫克（${fmt(formData.nutrients.sodium||0)}毫克)` +
+      `${add}。`
+    );
+
   } else {
-    // format2 / format3：把 %DV 也寫進去
+    // 橫式（格式2 / 格式3）
     const dv = getDailyReference();
     const buckets = [];
+    const presentDVKeys = [];
+
     const pushCell = (name, value, unitShort)=>{
       const dvKey = nutrientNameToDVKey(name);
       const dvVal = dvKey ? dv[dvKey] : undefined;
       const res = dvKey ? withDVPercent(value, unitShort, dvVal, dvKey) : { text:'*', starred:true };
+      if (dvKey && !res.starred) presentDVKeys.push(dvKey);
+
       const f = (dvKey && isVitaminMineralByKey(dvKey)) ? fmtSig3 : fmt;
       const valTxt = unitShort==='kcal' ? `${f(value)}大卡` : `${f(value)}${getUnitText(unitShort)}`;
       buckets.push(`${name}${valTxt}（${res.text}）`);
     };
-    lines.push(`每一份量${formData.selectedFormat==='format3' ? formData.servingSize + '顆/錠/粒' : formData.servingSize + unit}；本包裝含${formData.servingsPerContainer}份。`);
-    if (formData.selectedFormat==='format2'){
+
+    lines.push(`每一份量${isFmt3 ? (formData.servingSize + '顆/錠/粒') : (formData.servingSize + unit)}；本包裝含${formData.servingsPerContainer}份。`);
+
+    if (formData.selectedFormat === 'format2') {
       pushCell('熱量', formData.perServing.calories, 'kcal');
       pushCell('蛋白質', formData.perServing.protein, 'g');
       pushCell('脂肪', formData.perServing.fat, 'g');
       pushCell('飽和脂肪', formData.perServing.saturatedFat, 'g');
-      pushCell('反式脂肪', formData.perServing.transFat, 'g');
+      pushCell('反式脂肪', formData.perServing.transFat, 'g'); // ＊
       pushCell('碳水化合物', formData.perServing.carbs, 'g');
-      pushCell('糖', formData.perServing.sugar, 'g');
+      pushCell('糖', formData.perServing.sugar, 'g');          // ＊
       pushCell('鈉', formData.perServing.sodium, 'mg');
       formData.additionalNutrients.forEach(n=>pushCell(n.name, (n.value*formData.servingSize/100), n.unit));
+
+      lines.push(buckets.join('、') + '。');
+
+      // 只列出實際有 %DV 的 DV 行
+      const seen = new Set();
+      const filtered = presentDVKeys.filter(k => !seen.has(k) && seen.add(k));
+      const line = buildDVLine(dv, filtered);
+      if (line) lines.push(line);
+
     } else { // format3
       formData.vitamins.forEach(v=>pushCell(v.name, v.value, v.unit));
       formData.minerals.forEach(m=>pushCell(m.name, m.value, m.unit));
       formData.additionalNutrients.forEach(n=>pushCell(n.name, n.value, n.unit));
-    }
-    lines.push(buckets.join('、') + '。');
+      lines.push(buckets.join('、') + '。');
 
-    // DV 行（一般文字）
-    const line = formData.selectedFormat==='format2'
-      ? buildDVLine(dv, dvOrderFormat2)
-      : buildDVLine(dv, dvOrderFormat3);
-    if (line) lines.push(line);
+      const seen = new Set();
+      const filtered = presentDVKeys.filter(k => !seen.has(k) && seen.add(k));
+      const line = buildDVLine(dv, filtered);
+      if (line) lines.push(line);
+    }
   }
 
+  // 整張表（單欄、可換行、固定寬度）
   return `
   <table border="1" cellspacing="0" cellpadding="8" style="border-collapse:collapse; table-layout:fixed; width:980px;">
     <colgroup><col style="width:980px;"></colgroup>
     <tbody>
       <tr><th style="font-size:14pt;">營養標示（橫式）</th></tr>
-      ${lines.map(s=>`<tr><td style="white-space:pre-wrap; word-wrap:break-word;">${excelEscape(s)}</td></tr>`).join('')}
+      ${lines.map(s=>`<tr><td style="white-space:pre-wrap; word-wrap:break-word;">${esc(s)}</td></tr>`).join('')}
     </tbody>
   </table>`;
 }
+
 
 /** 匯出指定預覽塊為 .xls（依 nodeId 判斷直/橫式） */
 function downloadSingleExcel(nodeId, filename='營養標示.xls'){
@@ -2108,25 +2175,69 @@ function downloadExcel(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
         }
       });
     });
-	function regeneratePreview(){
-  // 若不是格式3，依現有 formData 重新計算每份
-  if (formData.specificType !== 'vitaminCapsule'){
-    calculatePerServing(); // 依 formData.nutrients + servingSize 重算
-  }
-  if (!formData.selectedFormat){
-    alert('尚未選擇標示格式'); return;
-  }
+	function detectCurrentFormatFromDOM(){
+  // 優先用 formData，如果沒有就從畫面上的預覽節點判斷
+  if (formData && formData.selectedFormat) return formData.selectedFormat;
+
   const area = document.getElementById('previewArea');
-  area.innerHTML = (formData.selectedFormat==='format1')
-    ? (generateFormat1() + generateFormat1Horizontal())
-    : (formData.selectedFormat==='format2')
-      ? (generateFormat2() + generateFormat2Horizontal())
-      : (generateFormat3() + generateFormat3Horizontal());
+  if (!area) return '';
+
+  if (area.querySelector('#format1Table') || area.querySelector('#format1Horizontal')) return 'format1';
+  if (area.querySelector('#format2Table') || area.querySelector('#format2Horizontal')) return 'format2';
+  if (area.querySelector('#format3Table') || area.querySelector('#format3Horizontal')) return 'format3';
+
+  // 再不行就看步驟3的選取（萬一使用者停留在步驟3）
+  const sel = document.querySelector('input[name="format"]:checked');
+  return sel ? sel.value : '';
 }
+
+function rerenderByFormat(fmt){
+  const area = document.getElementById('previewArea');
+  if (!area) { alert('找不到預覽區塊'); return; }
+
+  if (fmt === 'format1'){
+    area.innerHTML = generateFormat1() + generateFormat1Horizontal();
+  } else if (fmt === 'format2'){
+    area.innerHTML = generateFormat2() + generateFormat2Horizontal();
+  } else if (fmt === 'format3'){
+    area.innerHTML = generateFormat3() + generateFormat3Horizontal();
+  } else {
+    alert('尚未選擇標示格式'); 
+  }
+}
+
+function regeneratePreview(){
+  try{
+    // 1) 先判斷目前應該用哪個格式
+    const fmt = detectCurrentFormatFromDOM();
+    if (!fmt){
+      alert('尚未選擇標示格式'); 
+      return;
+    }
+
+    // 2) 補寫回 formData.selectedFormat（避免後續功能需要）
+    formData.selectedFormat = fmt;
+
+    // 3) 若不是格式3（膠囊維生素專用），重算每份數值
+    //    （不彈窗、不讀取輸入框，純粹用 formData 既有值重算）
+    if (formData.specificType !== 'vitaminCapsule'){
+      calculatePerServing();
+    }
+
+    // 4) 重新渲染該格式的直式＋橫式
+    rerenderByFormat(fmt);
+
+  }catch(err){
+    console.error('regeneratePreview error:', err);
+    alert('重新評估時發生錯誤，請開啟主控台（Console）查看細節');
+  }
+}
+
   
   </script>
 </body>
 </html>
+
 
 
 
