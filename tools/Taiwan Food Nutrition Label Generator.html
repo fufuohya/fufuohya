@@ -319,7 +319,7 @@
         <div class="preview-section">
   <div style="display:flex; align-items:center; justify-content:space-between;">
     <h3>營養標示預覽</h3>
-    <button id="btnRegen" class="btn btn-secondary" type="button" onclick="window.regeneratePreview()">🔁 重新評估</button>
+    <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
   </div>
   <div class="preview-grid" id="previewArea"></div>
 </div>
@@ -348,7 +348,7 @@ function buildVerticalTableHTML() {
   // 表頭
   let headRows = `
     <tr><th colspan="3" style="font-size:14pt;">營養標示</th></tr>
-    <tr><td>每一份量</td><td colspan="2">${(formData.servingSize || 0).toFixed(2)} ${isFmt3 ? '顆/錠/粒' : unit}</td></tr>
+    <tr><td>每一份量</td><td colspan="2">${isFmt3 ? renderCapsuleServingLine() : ((formData.servingSize || 0).toFixed(2) + ' ' + unit)}</td></tr>
     <tr><td>本包裝含</td><td colspan="2">${formData.servingsPerContainer} 份</td></tr>
     <tr>
       <td></td>
@@ -738,8 +738,8 @@ function downloadSingleHTML(nodeId, filename='營養標示.html'){
     if (unitChoice==='2') {
       formData.unit='毫升';
       formData.productType='liquid'; // 改為液體邏輯
-      document.getElementById('capsule').style.display='none'; 
-      document.getElementById('vitaminCapsule').style.display='none';
+      document.getElementById('capsule').closest('.radio-option').style.display='none'; 
+      document.getElementById('vitaminCapsule').closest('.radio-option').style.display='none';
     } else {
       formData.unit='公克';
       formData.productType='solid'; // 改為固體邏輯
@@ -1858,7 +1858,7 @@ function generateFormat3() {
       <table>
         <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
         <tbody>
-          <tr><td colspan="2">每一份量</td><td>${formData.servingSize} 顆（或錠、粒）</td></tr>
+          <tr><td colspan="2">每一份量</td><td>${renderCapsuleServingLine()}</td></tr>
           <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
         </tbody>
       </table>
@@ -1873,7 +1873,7 @@ function generateFormat3() {
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format3Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format3Table','營養標示_直式.html')">🌐 下載直式 HTML</button>
-      <button class="btn-mini" onclick="downloadSingleExcel('format1Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
+      <button class="btn-mini" onclick="downloadSingleExcel('format3Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
     </div>
   `;
 }
@@ -2368,11 +2368,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const b = document.getElementById('btnRegen');
   if (b) b.addEventListener('click', window.regeneratePreview);
 });
-document.addEventListener('click', (e) => {
-  if (e.target && e.target.id === 'btnRegen') {
-    window.regeneratePreview();
-  }
-});
+
 function toGram(val, unit){
   const u = String(unit).toLowerCase();
   if (u === 'g') return val;
@@ -2404,4 +2400,5 @@ function computeKcalFromAdditionalF3(){
   </script>
 </body>
 </html>
+
 
