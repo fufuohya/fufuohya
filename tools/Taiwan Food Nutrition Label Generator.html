@@ -315,16 +315,18 @@
         </div>
 
         <div class="download-section">
-          <h3>下載營養標示</h3>
-          <button class="download-btn" onclick="downloadPDF()">📄 列印/存成 PDF</button>
-          <button class="download-btn" onclick="downloadHTML()">🌐 下載 HTML</button>
-          <button class="download-btn" onclick="downloadExcel()">📊 下載 Excel</button>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn btn-secondary" onclick="backToFormatSelection()">← 返回格式選擇</button>
-          <button class="btn btn-primary" onclick="resetTool()">🔄 重新開始</button>
-        </div>
+		  <h3>下載營養標示</h3>
+		
+		  <div style="margin-bottom:6px;"><strong>直式：</strong></div>
+		  <button class="download-btn" onclick="downloadPDF('vertical')">📄 直式 PDF</button>
+		  <button class="download-btn" onclick="downloadHTML('vertical')">🌐 直式 HTML</button>
+		  <button class="download-btn" onclick="downloadExcel('vertical')">📊 直式 Excel</button>
+		
+		  <div style="margin:16px 0 6px;"><strong>橫式：</strong></div>
+		  <button class="download-btn" onclick="downloadPDF('horizontal')">📄 橫式 PDF</button>
+		  <button class="download-btn" onclick="downloadHTML('horizontal')">🌐 橫式 HTML</button>
+		  <button class="download-btn" onclick="downloadExcel('horizontal')">📊 橫式 Excel</button>
+		</div>
       </div>
     </div>
   </div>
@@ -1200,9 +1202,8 @@ const dvOrderFormat3 = [
   formData.additionalNutrients.forEach(n=>{
     const per = Number(n.value || 0) * (formData.servingSize / 100);
     const isVM = isVitaminMineralName(n.name);
-const f = isVM ? fmtSig3 : fmt;
-add += `、${n.name}${f(per)}${getUnitText(n.unit)}（${f(n.value)}${getUnitText(n.unit)}）`;
-
+    const f = isVM ? fmtSig3 : fmt;
+    add += `、${n.name}${f(per)}${getUnitText(n.unit)}（${f(n.value)}${getUnitText(n.unit)}）`;
   });
 
   return `
@@ -1221,8 +1222,12 @@ add += `、${n.name}${f(per)}${getUnitText(n.unit)}（${f(n.value)}${getUnitText
       鈉${fmt(formData.perServing.sodium)}毫克（${fmt(formData.nutrients.sodium || 0)}毫克）
       ${add}。
     </p>
+    <div class="note" data-nodownload="true" style="margin-top:10px;">
+      適用於總表面積小於100平方公分以下的產品。
+    </div>
   </div>`;
 }
+
 
 
 function generateFormat2() {
@@ -1329,9 +1334,9 @@ function generateFormat2Horizontal() {
     const res = dvKey ? withDVPercent(value, unitShort, dvVal, dvKey) : { text:'*', starred:true };
     const pct = res.text;
     const formatter = isVitaminMineralByKey(dvKey) ? fmtSig3 : fmt;
-const valTxt = unitShort==='kcal'
-  ? `${formatter(value)}大卡`
-  : `${formatter(value)}${getUnitText(unitShort)}`;
+    const valTxt = unitShort==='kcal'
+      ? `${formatter(value)}大卡`
+      : `${formatter(value)}${getUnitText(unitShort)}`;
 
     if (dvKey && !res.starred) presentDVKeys.push(dvKey);
     if (res.starred) anyStar = true;
@@ -1355,14 +1360,12 @@ const valTxt = unitShort==='kcal'
     if (dvKey && !res.starred) presentDVKeys.push(dvKey);
     if (res.starred) anyStar = true;
     const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-items.push(`${n.name}${f(perServing)}${getUnitText(n.unit)}（${res.text}）`);
-
+    items.push(`${n.name}${f(perServing)}${getUnitText(n.unit)}（${res.text}）`);
   });
 
-  // 底部附註
   let footerNote = '';
   footerNote += anyStar ? '＊參考值未訂定\n' : '';
-  const dvLine = buildDVLine(dailyRef, presentDVKeys);
+  const dvLine = buildDVLine(getDailyReference(), presentDVKeys);
   if (dvLine) footerNote += dvLine;
 
   return `
@@ -1370,9 +1373,13 @@ items.push(`${n.name}${f(perServing)}${getUnitText(n.unit)}（${res.text}）`);
       <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
       <p>每一份量${formData.servingSize}${unit}，本包裝含${formData.servingsPerContainer}份。每份：${items.join('、')}。</p>
       ${footerNote ? `<div class="note" style="white-space:pre-line">${footerNote}</div>` : ''}
+      <div class="note" data-nodownload="true" style="margin-top:10px;">
+        適用於總表面積小於100平方公分以下的產品。
+      </div>
     </div>
   `;
 }
+
 
 
 
@@ -1482,7 +1489,7 @@ function generateFormat3Horizontal() {
     const dvVal = dvKey ? dailyRef[dvKey] : undefined;
     const res = dvKey ? withDVPercent(value, unitShort, dvVal, dvKey) : { text:'*', starred:true };
     const f = isVitaminMineralName(name) ? fmtSig3 : fmt;
-let v = `${f(value)}${getUnitText(unitShort)}`;
+    let v = `${f(value)}${getUnitText(unitShort)}`;
 
     if (['維生素A','維生素D','維生素E'].includes(name) && typeof iuOpt === 'number' && !isNaN(iuOpt)) {
       v += `（${iuOpt} IU）`;
@@ -1504,7 +1511,7 @@ let v = `${f(value)}${getUnitText(unitShort)}`;
 
   let footerNote = '';
   footerNote += anyStar ? '＊參考值未訂定\n' : '';
-  const dvLine = buildDVLine(dailyRef, presentDVKeys);
+  const dvLine = buildDVLine(getDailyReference(), presentDVKeys);
   if (dvLine) footerNote += dvLine;
 
   return `
@@ -1512,9 +1519,13 @@ let v = `${f(value)}${getUnitText(unitShort)}`;
       <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
       <p>每一份量${formData.servingSize}顆（或錠、粒），本包裝含${formData.servingsPerContainer}份。每份：${items.join('、')}。</p>
       ${footerNote ? `<div class="note" style="white-space:pre-line">${footerNote}</div>` : ''}
+      <div class="note" data-nodownload="true" style="margin-top:10px;">
+        適用於總表面積小於100平方公分以下的產品。
+      </div>
     </div>
   `;
 }
+
 
 
 
@@ -1742,3 +1753,4 @@ function generateAdditionalNutrientsRows(){
   </script>
 </body>
 </html>
+
