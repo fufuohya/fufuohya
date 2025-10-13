@@ -319,7 +319,7 @@
         <div class="preview-section">
   <div style="display:flex; align-items:center; justify-content:space-between;">
     <h3>營養標示預覽</h3>
-    <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
+    <button id="btnRegen" class="btn btn-secondary" type="button" onclick="window.regeneratePreview()">🔁 重新評估</button>
   </div>
   <div class="preview-grid" id="previewArea"></div>
 </div>
@@ -1651,7 +1651,8 @@ function generateFormat2() {
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format2Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format2Table','營養標示_直式.html')">🌐 下載直式 HTML</button>
-	  <button class="btn-mini" onclick="downloadSingleExcel('format1Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
+	  <button class="btn-mini" onclick="downloadSingleExcel('format2Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
+
 
     </div>
   `;
@@ -1716,7 +1717,8 @@ function generateFormat2Horizontal() {
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format2Horizontal','營養標示_橫式.pdf')">📄 下載橫式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format2Horizontal','營養標示_橫式.html')">🌐 下載橫式 HTML</button>
-	  <button class="btn-mini" onclick="downloadSingleExcel('format1Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
+	  <button class="btn-mini" onclick="downloadSingleExcel('format2Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
+
 
     </div>
   `;
@@ -1793,7 +1795,7 @@ function generateFormat3() {
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format3Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format3Table','營養標示_直式.html')">🌐 下載直式 HTML</button>
-	  <button class="btn-mini" onclick="downloadSingleExcel('format1Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
+	  <button class="btn-mini" onclick="downloadSingleExcel('format3Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
 
     </div>
   `;
@@ -1844,7 +1846,8 @@ function generateFormat3Horizontal() {
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format3Horizontal','營養標示_橫式.pdf')">📄 下載橫式 PDF</button>
       <button class="btn-mini" onclick="downloadSingleHTML('format3Horizontal','營養標示_橫式.html')">🌐 下載橫式 HTML</button>
-	  <button class="btn-mini" onclick="downloadSingleExcel('format1Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
+	  <button class="btn-mini" onclick="downloadSingleExcel('format3Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
+
 
     </div>
   `;
@@ -2286,11 +2289,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const b = document.getElementById('btnRegen');
   if (b) b.addEventListener('click', window.regeneratePreview);
 });
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'btnRegen') {
+    window.regeneratePreview();
+  }
+});
 
   
   </script>
 </body>
 </html>
+
 
 
 
