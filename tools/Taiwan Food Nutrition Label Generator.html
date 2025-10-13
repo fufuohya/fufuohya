@@ -659,7 +659,7 @@ function downloadSingleHTML(nodeId, filename='營養標示.html'){
       carb:['乳糖','膳食纖維','水溶性膳食纖維','難消化糊精(膳食纖維)','β-葡聚醣(膳食纖維)','果寡糖(膳食纖維)','菊糖(膳食纖維)','赤藻糖醇','木糖醇','山梨糖醇','其他糖醇','其他'],
       vitamin:['維生素A','維生素B1','維生素B2','維生素B6','維生素B12','維生素C','維生素D','維生素E','維生素K','菸鹼素','泛酸','葉酸','生物素','膽素','肌醇','葉黃素','其他'],
       mineral:['鈣','磷','鈉','氯','鉀','硫','鎂','鐵','碘','氟','鋅','銅','鉻','硒','錳','鈷','鉬','硼','鎳','矽','錫','釩','其他'],
-      other:['酒精（乙醇）','有機酸類（需輸入名稱）','熱量']
+      other:['熱量','蛋白質','脂肪','飽和脂肪','反式脂肪','碳水化合物','糖','鈉','酒精（乙醇）','有機酸類（需輸入名稱）','熱量']
     };
 
     // 鎖定單位
@@ -862,102 +862,106 @@ document.getElementById('nutrientCategory').addEventListener('change', function(
     const aminoList=['支鏈胺基酸','天門冬胺酸','酥胺酸','絲胺酸','麩胺酸','麩醯胺酸','脯胺酸','甘胺酸','丙胺酸','胱胺酸','纈胺酸','甲硫胺酸','異白胺酸','白胺酸','酪胺酸','苯丙胺酸','離胺酸','組胺酸','精胺酸','色胺酸','牛磺酸'];
 
     function fixedUnitForName(category, name){
-      if (name.includes('膳食纖維')) return { unit:'g', label:'公克', lock:true };
-      if (name==='鈉' || name==='膽固醇' || aminoList.includes(name)) return { unit:'mg', label:'毫克', lock:true };
-	  if (name === '熱量') return { unit:'kcal', label:'大卡', lock:true };
-	  if (name.includes('酒精')) return { unit:'g', label:'公克', lock:true };
- 	  if (name.startsWith('有機酸類')) return { unit:'g', label:'公克', lock:true };
-      if (category==='protein' || category==='fat' || category==='carb'){
-        if (name==='糖' || name==='碳水化合物' || name==='脂肪' || name==='蛋白質') return { unit:'g', label:'公克', lock:true };
-      }
+  // 固定單位（名稱直覺優先）
+  if (name === '熱量') return { unit:'kcal', label:'大卡', lock:true };
+  if (name === '鈉' || name === '膽固醇' || aminoList.includes(name)) return { unit:'mg', label:'毫克', lock:true };
+  if (name.includes('膳食纖維')) return { unit:'g', label:'公克', lock:true };
+  if (name === '飽和脂肪' || name === '反式脂肪') return { unit:'g', label:'公克', lock:true };
 
-      if (category==='vitamin'){
-        const cfg = vitaminUnitMap[name];
-        if (cfg) return { unit: cfg.mainUnit, label: cfg.mainLabel, lock:true };
-      }
-      if (category==='mineral'){
-        const u = mineralUnitMap[name] || 'mg';
-        return { unit: u, label: (u==='mcg'?'微克':'毫克'), lock:true };
-      }
+  // 大宗三大營養素與常見欄位
+  if (category==='protein' || category==='fat' || category==='carb' || category==='other'){
+    if (['糖','碳水化合物','脂肪','蛋白質'].includes(name)) return { unit:'g', label:'公克', lock:true };
+  }
 
-      return { unit:'mcg', label:'微克', lock:false };
-    }
+  // 維生素/礦物質固定單位
+  if (category==='vitamin'){
+    const cfg = vitaminUnitMap[name];
+    if (cfg) return { unit: cfg.mainUnit, label: cfg.mainLabel, lock:true };
+  }
+  if (category==='mineral'){
+    const u = mineralUnitMap[name] || 'mg';
+    return { unit: u, label: (u==='mcg'?'微克':'毫克'), lock:true };
+  }
 
-    function renderLockedOrSelect(container, name, fixed){
-      if (fixed.lock){
-        container.innerHTML += `
-          <div>
-            <label>單位（固定）</label>
-            <div class="input-field" style="background:#fff">${fixed.label}</div>
-            <input type="hidden" data-unit="${name}" value="${fixed.unit}">
-          </div>
-        `;
-      }else{
-        container.innerHTML += `
-          <div>
-            <label>單位</label>
-            <select class="input-field" data-unit="${name}">
-              <option value="g">公克</option>
-              <option value="mg">毫克</option>
-              <option value="mcg" selected>微克</option>
-            </select>
-          </div>
-        `;
-      }
-    }
-
-    /* ===== 新增其他營養素：建立卡片 ===== */
-    function addNutrient(){
-      const category=document.getElementById('nutrientCategory').value;
-      const nutrient=document.getElementById('specificNutrient').value;
-      if(!category||!nutrient){ alert('請選擇營養素類別和名稱'); return; }
-
-      if (formData.specificType==='vitaminCapsule' && (category==='vitamin' || category==='mineral')){
-        alert('格式3已於上方填寫維生素與礦物質，請勿重複新增。'); return;
-      }
-
-      additionalNutrientCount++;
-      const id=`additional-${additionalNutrientCount}`;
-      const container=document.getElementById('additionalNutrients');
-      const card=document.createElement('div'); card.className='nutrient-item'; card.id=id;
-
-      const isFormat3 = (formData.specificType==='vitaminCapsule');
-  	  const valueLabel = isFormat3 ? '含量（每份）' : '含量（每100'+formData.unit+'）';
-	  card.innerHTML = `<label>${nutrient}</label><div class="input-grid" style="margin-top:6px;" id="${id}-grid"></div>
-	     <button class="btn btn-secondary" onclick="removeNutrient('${id}')" style="margin-top:8px;width:100%">移除</button>`;
-	  container.appendChild(card);
-	
-	  const grid = document.getElementById(`${id}-grid`);
-	  const fixed = fixedUnitForName(category, nutrient);
-	
-	// 數值欄位（共通）
-	  grid.innerHTML = `
-	     <div>
-	       <label>${valueLabel}</label>
-	       <input type="number" class="input-field" data-nutrient="${nutrient}" placeholder="0" step="0.01">
-	     </div>
-	   `;
-	
-	// 單位（固定/可選）
-	  renderLockedOrSelect(grid, nutrient, fixed);
-	
-	// 🔶 若是「有機酸類（需輸入名稱）」：多一個文字輸入、並標記旗標
-	  if (nutrient === '有機酸類（需輸入名稱）') {
-	    const extra = document.createElement('div');
-	    extra.innerHTML = `
-	       <div>
-	         <label>有機酸名稱</label>
-	         <input type="text" class="input-field" data-organic-acid-name="${id}" placeholder="例如：檸檬酸">
-	         <input type="hidden" data-organic-acid-flag="${id}" value="1">
-	       </div>
-	     `;
-	    grid.appendChild(extra);
+  // 預設
+  return { unit:'mcg', label:'微克', lock:false };
 }
 
-// reset 下拉
-document.getElementById('nutrientCategory').value='';
-const sp=document.getElementById('specificNutrient'); sp.value=''; sp.disabled=true;
-    }
+
+    function renderLockedOrSelect(container, name, fixed){
+  if (fixed.lock){
+    container.innerHTML += `
+      <div>
+        <label>單位（固定）</label>
+        <div class="input-field" style="background:#fff">${fixed.label}</div>
+        <input type="hidden" data-unit="${name}" value="${fixed.unit}">
+      </div>
+    `;
+  }else{
+    container.innerHTML += `
+      <div>
+        <label>單位</label>
+        <select class="input-field" data-unit="${name}">
+          <option value="g">公克</option>
+          <option value="mg">毫克</option>
+          <option value="mcg" selected>微克</option>
+        </select>
+      </div>
+    `;
+  }
+}
+
+function addNutrient(){
+  const category=document.getElementById('nutrientCategory').value;
+  const nutrient=document.getElementById('specificNutrient').value;
+  if(!category||!nutrient){ alert('請選擇營養素類別和名稱'); return; }
+
+  if (formData.specificType==='vitaminCapsule' && (category==='vitamin' || category==='mineral')){
+    alert('格式3已於上方填寫維生素與礦物質，請勿重複新增。'); return;
+  }
+
+  additionalNutrientCount++;
+  const id=`additional-${additionalNutrientCount}`;
+  const container=document.getElementById('additionalNutrients');
+  const card=document.createElement('div'); card.className='nutrient-item'; card.id=id;
+
+  const isFormat3=(formData.specificType==='vitaminCapsule');
+  const valueLabel=isFormat3?'含量（每份）':'含量（每100'+formData.unit+'）';
+  card.innerHTML = `<label>${nutrient}</label><div class="input-grid" style="margin-top:6px;" id="${id}-grid"></div>
+    <button class="btn btn-secondary" onclick="removeNutrient('${id}')" style="margin-top:8px;width:100%">移除</button>`;
+  container.appendChild(card);
+
+  const grid=document.getElementById(`${id}-grid`);
+  const fixed = fixedUnitForName(category, nutrient);
+
+  // 數值欄（熱量顯示成「每份（大卡）」；其餘照舊）
+  const valueLabelText = (nutrient==='熱量') ? '含量（每份，大卡）' : valueLabel;
+  grid.innerHTML = `
+    <div>
+      <label>${valueLabelText}</label>
+      <input type="number" class="input-field" data-nutrient="${nutrient}" placeholder="0" step="0.01">
+    </div>
+  `;
+  renderLockedOrSelect(grid, nutrient, fixed);
+
+  // 🔶 有機酸類：追加「自訂名稱」欄位，並標記旗標（供後續熱量計算）
+  if (nutrient === '有機酸類（需輸入名稱）'){
+    const ext = document.createElement('div');
+    ext.innerHTML = `
+      <div>
+        <label>有機酸名稱</label>
+        <input type="text" class="input-field" data-organic-acid-name="${id}" placeholder="例：檸檬酸">
+        <input type="hidden" data-is-organic-acid="${id}" value="1">
+      </div>
+    `;
+    grid.appendChild(ext);
+  }
+
+  // reset 下拉
+  document.getElementById('nutrientCategory').value='';
+  const sp=document.getElementById('specificNutrient'); sp.value=''; sp.disabled=true;
+}
+
     function removeNutrient(id){ const el=document.getElementById(id); if(el) el.remove(); }
 
     /* ===== 格式3：維生素／礦物質欄 ===== */
@@ -1141,38 +1145,36 @@ const sp=document.getElementById('specificNutrient'); sp.value=''; sp.disabled=t
         });
       }
 
-      // 其他營養素
-      // 其他營養素
-formData.additionalNutrients = [];
+// 其他營養素
+formData.additionalNutrients=[];
 document.querySelectorAll('#additionalNutrients .nutrient-item').forEach(item=>{
-  const input = item.querySelector('input[data-nutrient]');
+  const input=item.querySelector('input[data-nutrient]');
   if (!input) return;
 
-  const rawName = input.dataset.nutrient;  // 選單選到的顯示名稱
-  const unitHidden = item.querySelector('input[type="hidden"][data-unit]');
-  const unitSelect = item.querySelector('select[data-unit]');
+  const name = input.dataset.nutrient;
+  const unitHidden=item.querySelector('input[type="hidden"][data-unit]');
+  const unitSelect=item.querySelector('select[data-unit]');
   const unitValue = unitHidden ? unitHidden.value : (unitSelect?.value || 'mcg');
 
-  // 🔶 有機酸：額外名稱與旗標
-  const acidFlagEl = item.querySelector('input[data-organic-acid-flag]');
-  const acidNameEl = item.querySelector('input[data-organic-acid-name]');
-  const isOrganicAcid = !!acidFlagEl;
-  const acidName = (acidNameEl?.value || '').trim();
-
-  // 顯示/儲存用名稱
-  let finalName = rawName;
-  if (isOrganicAcid) {
-    finalName = acidName ? `有機酸（${acidName}）` : '有機酸';
+  // 有機酸額外欄位
+  let isOrganicAcid=false, organicAcidName='';
+  const acidFlag = item.querySelector('input[type="hidden"][data-is-organic-acid]');
+  if (acidFlag){
+    isOrganicAcid = true;
+    const id = acidFlag.getAttribute('data-is-organic-acid');
+    const nameEl = item.querySelector(`input[data-organic-acid-name="${id}"]`);
+    organicAcidName = (nameEl?.value || '').trim();
   }
 
   formData.additionalNutrients.push({
-    name: finalName,
+    name,
     value: parseFloat(input.value)||0,
     unit: unitValue,
-    // 🔶 旗標（供熱量計算用）
-    isOrganicAcid
+    isOrganicAcid,
+    organicAcidName
   });
 });
+
 
 
       if (formData.specificType!=='vitaminCapsule') calculatePerServing();
@@ -2402,6 +2404,7 @@ function computeKcalFromAdditionalF3(){
   </script>
 </body>
 </html>
+
 
 
 
