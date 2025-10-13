@@ -319,11 +319,11 @@
         <div class="preview-section">
   <div style="display:flex; align-items:center; justify-content:space-between;">
     <h3>營養標示預覽</h3>
-    <button class="btn btn-secondary" type="button" onclick="regeneratePreview()">🔁 重新評估</button>
-
+    <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
   </div>
   <div class="preview-grid" id="previewArea"></div>
 </div>
+
 
       </div>
     </div>
@@ -2232,11 +2232,66 @@ function regeneratePreview(){
     alert('重新評估時發生錯誤，請開啟主控台（Console）查看細節');
   }
 }
+/* 讓函式在全域可見，避免作用域導致找不到 */
+window.regeneratePreview = function regeneratePreview(){
+  try{
+    const fmt = detectCurrentFormatFromDOM();
+    if (!fmt){ alert('尚未選擇標示格式'); return; }
+
+    // 回填選擇格式到狀態，供其他功能使用
+    if (window.formData) formData.selectedFormat = fmt;
+
+    // 非格式3（維生素礦物質專用）才需要依目前 formData 重算每份
+    if (formData?.specificType !== 'vitaminCapsule'){
+      if (typeof calculatePerServing === 'function') {
+        calculatePerServing();
+      }
+    }
+
+    rerenderByFormat(fmt);
+  }catch(err){
+    console.error('regeneratePreview error:', err);
+    alert('重新評估時發生錯誤，請打開 Console 查看訊息');
+  }
+};
+
+/* 支援函式（也掛到全域，避免找不到） */
+window.detectCurrentFormatFromDOM = function detectCurrentFormatFromDOM(){
+  if (window.formData?.selectedFormat) return formData.selectedFormat;
+  const area = document.getElementById('previewArea');
+  if (!area) return '';
+  if (area.querySelector('#format1Table, #format1Horizontal')) return 'format1';
+  if (area.querySelector('#format2Table, #format2Horizontal')) return 'format2';
+  if (area.querySelector('#format3Table, #format3Horizontal')) return 'format3';
+  const sel = document.querySelector('input[name="format"]:checked');
+  return sel ? sel.value : '';
+};
+
+window.rerenderByFormat = function rerenderByFormat(fmt){
+  const area = document.getElementById('previewArea');
+  if (!area){ alert('找不到預覽區塊'); return; }
+  if (fmt === 'format1'){
+    area.innerHTML = generateFormat1() + generateFormat1Horizontal();
+  } else if (fmt === 'format2'){
+    area.innerHTML = generateFormat2() + generateFormat2Horizontal();
+  } else if (fmt === 'format3'){
+    area.innerHTML = generateFormat3() + generateFormat3Horizontal();
+  } else {
+    alert('尚未選擇標示格式');
+  }
+};
+
+/* 綁定按鈕事件（確保 DOM 就緒後綁定） */
+document.addEventListener('DOMContentLoaded', () => {
+  const b = document.getElementById('btnRegen');
+  if (b) b.addEventListener('click', window.regeneratePreview);
+});
 
   
   </script>
 </body>
 </html>
+
 
 
 
