@@ -1629,100 +1629,200 @@ function generateAdditionalNutrientsRows(){
       return map[unit]||unit;
     }
 
-    /* ===== 下載 ===== */
-    async function downloadPDF(){
-      const { jsPDF } = window.jspdf;
-      const prev=document.getElementById('previewArea');
-      if(!prev || prev.children.length===0){ alert('請先生成預覽'); return; }
-      const pdf=new jsPDF({ unit:'pt', format:'a4' });
-      const pageW=pdf.internal.pageSize.getWidth(), pageH=pdf.internal.pageSize.getHeight();
-      const pad=24; let first=true;
-      for (const node of prev.children){
-        const canvas=await html2canvas(node,{ scale:2, backgroundColor:'#ffffff' });
-        const img=canvas.toDataURL('image/png');
-        const s=Math.min((pageW-pad*2)/canvas.width,(pageH-pad*2)/canvas.height);
-        const w=canvas.width*s, h=canvas.height*s, x=(pageW-w)/2, y=(pageH-h)/2;
-        if(!first) pdf.addPage();
-        pdf.addImage(img,'PNG',x,y,w,h); first=false;
+    /* ===== 下載（直式/橫式分流 + 排除 data-nodownload）===== */
+
+/** 依使用者選擇回傳要下載的 DOM 節點陣列（只取目前預覽頁中的那一種格式） */
+function getPreviewNodes(mode /* 'vertical' | 'horizontal' */){
+  const area = document.getElementById('previewArea');
+  if (!area) return [];
+
+  // 依目前選擇的格式決定要抓的節點 ID
+  const map = {
+    vertical: {
+      format1: ['format1Table'],
+      format2: ['format2Table'],
+      format3: ['format3Table']
+    },
+    horizontal: {
+      format1: ['format1Horizontal'],
+      format2: ['format2Horizontal'],
+      format3: ['format3Horizontal']
+    }
+  };
+
+  const ids = map[mode]?.[formData.selectedFormat] || [];
+  const nodes = [];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) nodes.push(el);
+  });
+  return nodes;
+}
+
+/** 複製一份節點，並移除所有 data-nodownload="true" 的元素（避免被導出） */
+function cloneWithoutNoDownload(node){
+  const clone = node.cloneNode(true);
+  clone.querySelectorAll('[data-nodownload="true"]').forEach(n=>n.remove());
+  return clone;
+}
+
+/** 下載 PDF（分直式/橫式） */
+async function downloadPDF(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
+  const targets = getPreviewNodes(mode);
+  if (!targets.length){ alert('請先生成預覽，或確認已選擇正確的版型。'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit:'pt', format:'a4' });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const pad = 24;
+  let first = true;
+
+  for (const node of targets){
+    const clean = cloneWithoutNoDownload(node);
+    // 為避免與畫面衝突，先掛到離線容器再轉圖
+    const tmp = document.createElement('div');
+    tmp.style.position = 'fixed'; tmp.style.left='-99999px'; tmp.style.top='-99999px';
+    tmp.appendChild(clean); document.body.appendChild(tmp);
+
+    const canvas = await html2canvas(clean, { scale: 2, backgroundColor:'#ffffff' });
+    const img = canvas.toDataURL('image/png');
+    const s = Math.min((pageW - pad*2)/canvas.width, (pageH - pad*2)/canvas.height);
+    const w = canvas.width*s, h = canvas.height*s, x = (pageW - w)/2, y = (pageH - h)/2;
+    if (!first) pdf.addPage();
+    pdf.addImage(img, 'PNG', x, y, w, h);
+    first = false;
+
+    tmp.remove();
+  }
+
+  const orientLabel = mode === 'horizontal' ? '橫式' : '直式';
+  pdf.save(`營養標示_${orientLabel}.pdf`);
+}
+
+/** 下載 HTML（分直式/橫式，且排除 data-nodownload） */
+function downloadHTML(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
+  const targets = getPreviewNodes(mode);
+  if (!targets.length){ alert('請先生成預覽，或確認已選擇正確的版型。'); return; }
+
+  // 逐一複製並移除不下載的備註
+  const fragments = targets.map(n => cloneWithoutNoDownload(n).outerHTML).join('\n');
+
+  const css = `
+    body{font-family:'Microsoft JhengHei',sans-serif;padding:20px}
+    .nutrition-table{margin:20px 0;border:2px solid #333;border-radius:8px;overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #333}
+    th{background:#495057;color:#fff}
+    .horizontal-label{border:2px solid #333;padding:20px;margin:20px 0;border-radius:8px;line-height:1.8}
+    .note{margin-top:10px;padding:12px;background:#fff3cd;border-left:4px solid #ffc107;border-radius:6px}
+    .text-right{text-align:right}
+  `;
+
+  const html = `<!DOCTYPE html><html lang="zh-TW"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>營養標示</title>
+  <style>${css}</style>
+  </head><body>${fragments}</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.rel = 'noopener';
+  const orientLabel = mode === 'horizontal' ? '橫式' : '直式';
+  a.download = `營養標示_${orientLabel}.html`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 0);
+}
+
+/** 下載 Excel（分直式/橫式按鈕，但內容一致；檔名會標註） */
+function downloadExcel(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
+  const prev = document.getElementById('previewArea');
+  if(!prev || prev.children.length===0){ alert('請先生成預覽'); return; }
+
+  const dv = getDailyReference();
+  const data = [];
+  const orientLabel = mode === 'horizontal' ? '（橫式）' : '（直式）';
+
+  data.push(['營養標示' + orientLabel]); data.push([]);
+  if (formData.selectedFormat==='format3'){
+    data.push(['每一份量', formData.servingSize.toFixed(2), '顆/錠/粒']);
+  }else{
+    data.push(['每一份量', formData.servingSize.toFixed(2), formData.unit]);
+  }
+  data.push(['本包裝含', formData.servingsPerContainer, '份']); 
+  data.push([]);
+
+  if (formData.selectedFormat==='format3'){
+    data.push(['營養素','每份','每日參考值百分比']);
+    formData.vitamins.forEach(v=>{
+      const pct = calculateDailyPercentage(v.name, v.value, dv);
+      const showIU = ['維生素A','維生素D','維生素E'].includes(v.name) && typeof v.iu === 'number' && !isNaN(v.iu);
+      const valTxt = showIU
+        ? `${fmtSig3(v.value)} ${translateLockedUnit(v.unit)}（${v.iu} IU）`
+        : `${fmtSig3(v.value)} ${translateLockedUnit(v.unit)}`;
+      data.push([v.name, valTxt, pct]);
+    });
+    formData.minerals.forEach(m=>{
+      data.push([m.name, `${fmtSig3(m.value)} ${getUnitText(m.unit)}`, calculateDailyPercentage(m.name, m.value, dv)]);
+    });
+    if (formData.additionalNutrients.length>0){
+      formData.additionalNutrients.forEach(n=>{
+        const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
+        data.push([n.name, `${f(n.value)} ${getUnitText(n.unit)}`, '＊']);
+      });
+    }
+    data.push([]);
+    data.push(['每日參考值', buildDVListText(dv,'format3')]);
+
+  }else if (formData.selectedFormat==='format1'){
+    data.push(['營養素','每份','每100'+formData.unit]);
+    data.push(['熱量', fmt(formData.perServing.calories)+' 大卡', fmt(formData.nutrients.calories)+' 大卡']);
+    data.push(['蛋白質', fmt(formData.perServing.protein)+' 公克', fmt(formData.nutrients.protein||0)+' 公克']);
+    data.push(['脂肪', fmt(formData.perServing.fat)+' 公克', fmt(formData.nutrients.fat||0)+' 公克']);
+    data.push(['飽和脂肪', fmt(formData.perServing.saturatedFat)+' 公克', fmt(formData.nutrients.saturatedFat||0)+' 公克']);
+    data.push(['反式脂肪', fmt(formData.perServing.transFat)+' 公克', fmt(formData.nutrients.transFat||0)+' 公克']);
+    data.push(['碳水化合物', fmt(formData.perServing.carbs)+' 公克', fmt(formData.nutrients.carbs||0)+' 公克']);
+    data.push(['糖', fmt(formData.perServing.sugar)+' 公克', fmt(formData.nutrients.sugar||0)+' 公克']);
+    data.push(['鈉', fmt(formData.perServing.sodium)+' 毫克', fmt(formData.nutrients.sodium||0)+' 毫克']);
+    // 其他自願項目
+    formData.additionalNutrients.forEach(n=>{
+      const per = (Number(n.value||0) * (formData.servingSize/100));
+      const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
+      data.push([n.name, `${f(per)} ${getUnitText(n.unit)}`, `${f(n.value)} ${getUnitText(n.unit)}`]);
+    });
+
+  }else if (formData.selectedFormat==='format2'){
+    data.push(['營養素','每份','每日參考值百分比']);
+    data.push(['熱量', fmt(formData.perServing.calories)+' 大卡', ((formData.perServing.calories/dv.calories)*100).toFixed(1)+'%']);
+    data.push(['蛋白質', fmt(formData.perServing.protein)+' 公克', ((formData.perServing.protein/dv.protein)*100).toFixed(1)+'%']);
+    data.push(['脂肪', fmt(formData.perServing.fat)+' 公克', dv.fat?((formData.perServing.fat/dv.fat)*100).toFixed(1)+'%':'＊']);
+    data.push(['飽和脂肪', fmt(formData.perServing.saturatedFat)+' 公克', dv.saturatedFat?((formData.perServing.saturatedFat/dv.saturatedFat)*100).toFixed(1)+'%':'＊']);
+    data.push(['反式脂肪', fmt(formData.perServing.transFat)+' 公克', '＊']);
+    data.push(['碳水化合物', fmt(formData.perServing.carbs)+' 公克', dv.carbs?((formData.perServing.carbs/dv.carbs)*100).toFixed(1)+'%':'＊']);
+    data.push(['糖', fmt(formData.perServing.sugar)+' 公克', '＊']);
+    data.push(['鈉', fmt(formData.perServing.sodium)+' 毫克', ((formData.perServing.sodium/dv.sodium)*100).toFixed(1)+'%']);
+    formData.additionalNutrients.forEach(n=>{
+      const per = (n.value*formData.servingSize/100);
+      const key = nutrientNameToDVKey(n.name);
+      let pctText='＊';
+      if (key && dv[key]!==undefined){
+        const perSameUnit = convertToSameUnit(per, n.unit, dvUnitFromKey(key));
+        pctText = ((perSameUnit/dv[key])*100).toFixed(1)+'%';
       }
-      pdf.save('營養標示.pdf');
-    }
-    function downloadHTML(){
-      const content=document.getElementById('previewArea').innerHTML;
-      if(!content||!content.trim()){ alert('請先生成預覽'); return; }
-      const html=`<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><title>營養標示</title><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>body{font-family:'Microsoft JhengHei',sans-serif;padding:20px}.nutrition-table{margin:20px 0;border:2px solid #333;border-radius:8px;overflow:hidden}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #333}th{background:#495057;color:#fff}caption{background:#333;color:#fff;padding:10px;font-weight:700}.horizontal-label{border:2px solid #333;padding:20px;margin:20px 0;border-radius:8px}.note{margin-top:10px;padding:12px;background:#fff3cd;border-left:4px solid #ffc107}.text-right{text-align:right}</style></head><body>${content}</body></html>`;
-      const blob=new Blob([html],{type:'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.rel='noopener'; a.download='營養標示.html';
-      document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); },0);
-    }
-    function downloadExcel(){
-      const prev=document.getElementById('previewArea'); if(!prev||prev.children.length===0){ alert('請先生成預覽'); return; }
-      const dv=getDailyReference();
-      const data=[];
-      data.push(['營養標示']); data.push([]);
-      data.push(['每一份量', formData.servingSize.toFixed(2), formData.unit]);
-      data.push(['本包裝含', formData.servingsPerContainer, '份']); data.push([]);
+      const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
+      data.push([n.name, `${f(per)} ${getUnitText(n.unit)}`, pctText]);
+    });
+    data.push([]);
+    data.push(['每日參考值', buildDVListText(dv,'format2')]);
+  }
 
-      if (formData.selectedFormat==='format3'){
-        data.push(['營養素','每份','每日參考值百分比']);
-        formData.vitamins.forEach(v=>{
-  const pct = calculateDailyPercentage(v.name, v.value, dv);
-  const showIU = ['維生素A','維生素D','維生素E'].includes(v.name) && typeof v.iu === 'number' && !isNaN(v.iu);
-  const valTxt = showIU
-    ? `${v.value.toFixed(2)} ${translateLockedUnit(v.unit)}（${v.iu} IU）`
-    : `${v.value.toFixed(2)} ${translateLockedUnit(v.unit)}`;
-  data.push([v.name, valTxt, pct]);
-});
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '營養標示');
+  XLSX.writeFile(wb, `營養標示_${mode==='horizontal'?'橫式':'直式'}.xlsx`);
+}
 
-        formData.minerals.forEach(m=>{
-          data.push([m.name, `${m.value.toFixed(2)} ${getUnitText(m.unit)}`, calculateDailyPercentage(m.name, m.value, dv)]);
-        });
-        if (formData.additionalNutrients.length>0){
-          formData.additionalNutrients.forEach(n=>{
-            data.push([n.name, n.value.toFixed(2)+' '+getUnitText(n.unit), '＊']);
-          });
-        }
-        data.push([]);
-        data.push(['每日參考值', buildDVListText(dv,'format3')]);
-
-      }else if (formData.selectedFormat==='format1'){
-        data.push(['營養素','每份','每100'+formData.unit]);
-        data.push(['熱量', formData.perServing.calories.toFixed(1)+' 大卡', formData.nutrients.calories.toFixed(1)+' 大卡']);
-        data.push(['蛋白質', formData.perServing.protein.toFixed(1)+' 公克', (formData.nutrients.protein||0).toFixed(1)+' 公克']);
-        data.push(['脂肪', formData.perServing.fat.toFixed(1)+' 公克', (formData.nutrients.fat||0).toFixed(1)+' 公克']);
-        data.push(['飽和脂肪', formData.perServing.saturatedFat.toFixed(1)+' 公克', (formData.nutrients.saturatedFat||0).toFixed(1)+' 公克']);
-        data.push(['反式脂肪', formData.perServing.transFat.toFixed(1)+' 公克', (formData.nutrients.transFat||0).toFixed(1)+' 公克']);
-        data.push(['碳水化合物', formData.perServing.carbs.toFixed(1)+' 公克', (formData.nutrients.carbs||0).toFixed(1)+' 公克']);
-        data.push(['糖', formData.perServing.sugar.toFixed(1)+' 公克', (formData.nutrients.sugar||0).toFixed(1)+' 公克']);
-        data.push(['鈉', formData.perServing.sodium.toFixed(1)+' 毫克', (formData.nutrients.sodium||0).toFixed(1)+' 毫克']);
-
-      }else if (formData.selectedFormat==='format2'){
-        data.push(['營養素','每份','每日參考值百分比']);
-        data.push(['熱量', formData.perServing.calories.toFixed(1)+' 大卡', ((formData.perServing.calories/dv.calories)*100).toFixed(1)+'%']);
-        data.push(['蛋白質', formData.perServing.protein.toFixed(1)+' 公克', ((formData.perServing.protein/dv.protein)*100).toFixed(1)+'%']);
-        data.push(['脂肪', formData.perServing.fat.toFixed(1)+' 公克', dv.fat?((formData.perServing.fat/dv.fat)*100).toFixed(1)+'%':'＊']);
-        data.push(['飽和脂肪', formData.perServing.saturatedFat.toFixed(1)+' 公克', dv.saturatedFat?((formData.perServing.saturatedFat/dv.saturatedFat)*100).toFixed(1)+'%':'＊']);
-        data.push(['反式脂肪', formData.perServing.transFat.toFixed(1)+' 公克', '＊']);
-        data.push(['碳水化合物', formData.perServing.carbs.toFixed(1)+' 公克', dv.carbs?((formData.perServing.carbs/dv.carbs)*100).toFixed(1)+'%':'＊']);
-        data.push(['糖', formData.perServing.sugar.toFixed(1)+' 公克', '＊']);
-        data.push(['鈉', formData.perServing.sodium.toFixed(1)+' 毫克', ((formData.perServing.sodium/dv.sodium)*100).toFixed(1)+'%']);
-        formData.additionalNutrients.forEach(n=>{
-          const per=(n.value*formData.servingSize/100);
-          const key=nameToDVKey[n.name];
-          let pctText='＊';
-          if (key && dv[key]!==undefined){
-            const perSameUnit = convertToSameUnit(per, n.unit, dvUnitFromKey(key));
-            pctText = ((perSameUnit/dv[key])*100).toFixed(1)+'%';
-          }
-          data.push([n.name, per.toFixed(2)+' '+getUnitText(n.unit), pctText]);
-        });
-        data.push([]);
-        data.push(['每日參考值', buildDVListText(dv,'format2')]);
-      }
-
-      const ws=XLSX.utils.aoa_to_sheet(data); const wb=XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, '營養標示'); XLSX.writeFile(wb, '營養標示.xlsx');
-    }
 
     /* ===== 返回/重置 ===== */
     function backToSelection(){ document.querySelectorAll('.step-content').forEach(s=>s.classList.remove('active')); document.getElementById('step1-3').classList.add('active'); updateProgressBar(1); }
@@ -1753,4 +1853,5 @@ function generateAdditionalNutrientsRows(){
   </script>
 </body>
 </html>
+
 
