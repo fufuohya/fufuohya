@@ -1669,14 +1669,41 @@ function generateFormat3() {
     if (dvKey && !pct.starred) presentDVKeys.push(dvKey);
   });
 
-  // 其他（含有機酸／熱量等自願標示；格式3 不計 %DV）
-  formData.additionalNutrients.forEach(n=>{
-    const dvKey = nutrientNameToDVKey(n.name); // 可能為 null
-    const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-    const dispName = getDisplayedNutrientName ? getDisplayedNutrientName(n) : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
-    const display = (n.unit === 'kcal') ? `${fmt(n.value)} 大卡` : `${f(n.value)} ${getUnitText(n.unit)}`;
-    rows.push({ name:dispName, displayValue:display, percentText:'＊', starred:true, dvKey });
+
+  // 其他（含有機酸／熱量等自願標示；有 DV 的就計 %，沒有就顯示 ＊）
+formData.additionalNutrients.forEach(n=>{
+  const dvKey = nutrientNameToDVKey(n.name); // 可能為 null（如「糖」等）
+  const dvVal = dvKey ? getDailyReference()?.[dvKey] : undefined;
+
+  // 名稱顯示（有機酸以使用者填的名稱為主）
+  const dispName = (typeof getDisplayedNutrientName === 'function')
+    ? getDisplayedNutrientName(n)
+    : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
+
+  // 數值顯示（維/礦用 fmtSig3，其餘用 fmt；熱量用「大卡」）
+  const isVM = isVitaminMineralName(n.name);
+  const f = isVM ? fmtSig3 : fmt;
+  const display = (String(n.unit).toLowerCase() === 'kcal')
+    ? `${fmt(n.value)} 大卡`
+    : `${f(n.value)} ${getUnitText(n.unit)}`;
+
+  // 百分比（有 DV 就計算，沒有就 ＊）
+  const percentObj = dvKey
+    ? withDVPercent(n.value, n.unit, dvVal, dvKey)
+    : { text:'＊', starred:true };
+
+  // 若有算出 %（不是 ＊），把 dvKey 記入 presentDVKeys 用於頁尾「每日參考值：」
+  if (dvKey && !percentObj.starred) presentDVKeys.push(dvKey);
+
+  rows.push({
+    name: dispName,
+    displayValue: display,
+    percentText: percentObj.text,
+    starred: percentObj.starred,
+    dvKey
   });
+});
+
 
   // 註記行與 DV 行
   const anyStar = rows.some(r=>r.starred);
@@ -1741,16 +1768,30 @@ function generateFormat3Horizontal() {
   formData.vitamins.forEach(v => items.push(lineFor(v.name, v.value, v.unit, v.iu)));
   formData.minerals.forEach(m => items.push(lineFor(m.name, m.value, m.unit)));
   formData.additionalNutrients.forEach(n => {
-    const dispName = getDisplayedNutrientName ? getDisplayedNutrientName(n) : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
-    const dvKey = nutrientNameToDVKey(n.name);
-    const dvVal = dvKey ? dailyRef[dvKey] : undefined;
-    const res = dvKey ? withDVPercent(n.value, n.unit, dvVal, dvKey) : { text:'*', starred:true };
-    if (dvKey && !res.starred) presentDVKeys.push(dvKey);
-    if (res.starred) anyStar = true;
-    const f = isVitaminMineralName(n.name) ? fmtSig3 : fmt;
-    const valueTxt = (n.unit === 'kcal') ? `${fmt(n.value)}${getUnitText(n.unit)}` : `${f(n.value)}${getUnitText(n.unit)}`;
-    items.push(`${dispName}${valueTxt}（${res.text}）`);
-  });
+  const dispName = (typeof getDisplayedNutrientName === 'function')
+    ? getDisplayedNutrientName(n)
+    : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
+
+  const dvKey = nutrientNameToDVKey(n.name);
+  const dvVal = dvKey ? dailyRef[dvKey] : undefined;
+
+  const isVM = isVitaminMineralName(n.name);
+  const f = isVM ? fmtSig3 : fmt;
+
+  const valueTxt = (String(n.unit).toLowerCase() === 'kcal')
+    ? `${fmt(n.value)}${getUnitText(n.unit)}`
+    : `${f(n.value)}${getUnitText(n.unit)}`;
+
+  const res = dvKey
+    ? withDVPercent(n.value, n.unit, dvVal, dvKey)
+    : { text:'＊', starred:true };
+
+  if (dvKey && !res.starred) presentDVKeys.push(dvKey);
+  if (res.starred) anyStar = true;
+
+  items.push(`${dispName}${valueTxt}（${res.text}）`);
+});
+
 
   let dvText = '';
   if (anyStar) dvText += '＊參考值未訂定\n';
@@ -2322,6 +2363,7 @@ function getCapsuleServingContent(){
   </script>
 </body>
 </html>
+
 
 
 
