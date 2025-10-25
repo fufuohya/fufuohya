@@ -3,85 +3,64 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>即時 HTML 編輯與預覽工具（可調整寬度）</title>
+  <title>即時 HTML 編輯與預覽工具（v2）</title>
   <style>
     :root{
-      --bg: #0f172a; --panel: #111827ee; --muted: #94a3b8; --text: #e5e7eb;
-      --accent: #22d3ee; --border: #1f2937; --highlight: #fde68a; --active: #60a5fa;
-      --ok: #86efac;
-      --left: 50%; --right: 50%;
+      --bg:#0f172a;--panel:#111827ee;--text:#e5e7eb;--muted:#94a3b8;
+      --accent:#22d3ee;--border:#1f2937;--highlight:#fde68a;--active:#60a5fa;
+      --ok:#86efac;--left:50%;--right:50%;
     }
     [data-theme="light"]{
-      --bg: #f8fafc; --panel: #ffffff; --muted: #6b7280; --text: #111827;
-      --accent: #0284c7; --border: #d1d5db; --highlight: #facc15; --active: #2563eb;
-      --ok: #16a34a;
+      --bg:#f8fafc;--panel:#ffffff;--text:#111827;--muted:#6b7280;
+      --accent:#0284c7;--border:#d1d5db;--highlight:#facc15;--active:#2563eb;
+      --ok:#16a34a;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--text);
-      font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Helvetica,Arial;
-      transition: background .3s, color .3s;}
-    header{display:flex;align-items:center;gap:.75rem;justify-content:space-between;
-      padding:.75rem 1rem;border-bottom:1px solid var(--border);
-      background:var(--bg);position:sticky;top:0;z-index:10;flex-wrap:wrap;
-      transition: background .3s;}
+      font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Helvetica,Arial;
+      transition:background .3s,color .3s;}
+    header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      padding:.75rem 1rem;border-bottom:1px solid var(--border);background:var(--bg);}
     .brand{display:flex;align-items:center;gap:.5rem}
     .brand .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 12px var(--accent)}
-    .brand h1{font-size:14px;margin:0;color:var(--text);letter-spacing:.5px}
-
-    .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
-    .toolbar button,.toolbar label,.toolbar input[type="text"],.toolbar input[type="range"]{
+    .brand h1{font-size:14px;margin:0}
+    .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+    .toolbar button,.toolbar label,.toolbar input[type="range"]{
       background:var(--panel);border:1px solid var(--border);color:var(--text);
       padding:.45rem .6rem;border-radius:.6rem;font-size:13px;transition:background .3s,color .3s;}
-    .toolbar input[type="range"]{width:160px;padding:.35rem}
-    .stat{color:var(--muted);font-size:12px;padding:.45rem .6rem}
-
-    .layout{display:grid;grid-template-columns: var(--left) 8px var(--right);
-      gap:0;height:calc(100% - 76px)}
-    .pane{display:flex;flex-direction:column;height:100%}
-    .pane h2{margin:.5rem 0 .25rem .5rem;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-
-    .editor-wrap,.preview-wrap{flex:1;display:flex;flex-direction:column;gap:.5rem;padding:.5rem}
-    textarea{flex:1;width:100%;resize:none;border-radius:.8rem;padding:1rem;background:var(--panel);
-      color:var(--text);border:1px solid var(--border);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;outline:none;transition:background .3s,color .3s;}
-    .hint{color:var(--muted);font-size:12px;margin-left:.5rem}
-
-    .preview-head{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-    .preview-head input[type="text"]{flex:1;min-width:180px}
-    iframe{flex:1;width:100%;border:1px solid var(--border);border-radius:.8rem;background:var(--panel);transition:background .3s;box-shadow:0 0 0 1px var(--border) inset}
-
-    .splitter{background:var(--bg);position:relative;cursor:col-resize}
-    .splitter::before{content:"";position:absolute;inset:0;border-left:1px solid var(--border);border-right:1px solid var(--border);opacity:.8}
-    .splitter .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:40px;border-radius:8px;background:var(--panel);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;opacity:.7}
-    .splitter .grip::after{content:"⋮";font-size:18px;color:var(--muted);letter-spacing:2px}
-    .splitter:focus{outline:2px solid var(--active)}
-
-    .badge{border:1px solid var(--border);padding:.2rem .5rem;border-radius:.5rem;color:var(--muted);font-size:12px}
-    .count{color:var(--ok)}
-    .footer{padding:.5rem 1rem;color:var(--muted);border-top:1px solid var(--border);font-size:12px;transition:background .3s,color .3s;}
-
-    @media (max-width: 900px){
-      .layout{grid-template-columns: 1fr; grid-template-rows: 1fr 8px 1fr}
-      .splitter{cursor:row-resize}
-    }
+    .toolbar input[type="range"]{width:140px}
+    .stat{font-size:12px;color:var(--muted)}
+    .layout{display:grid;grid-template-columns:var(--left) 8px var(--right);height:calc(100% - 76px)}
+    .pane{display:flex;flex-direction:column}
+    .pane h2{font-size:12px;color:var(--muted);margin:.5rem 0 .25rem .5rem;text-transform:uppercase}
+    textarea{flex:1;padding:1rem;border-radius:.8rem;border:1px solid var(--border);
+      background:var(--panel);color:var(--text);resize:none;
+      font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;transition:background .3s,color .3s;}
+    iframe{flex:1;border:1px solid var(--border);border-radius:.8rem;background:var(--panel)}
+    .splitter{background:var(--bg);cursor:col-resize;position:relative}
+    .splitter::before{content:"";position:absolute;inset:0;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+    .splitter .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:24px;height:40px;border:1px solid var(--border);border-radius:8px;background:var(--panel);
+      display:flex;align-items:center;justify-content:center;opacity:.7}
+    .splitter .grip::after{content:"⋮";font-size:18px;color:var(--muted)}
+    .footer{padding:.5rem 1rem;font-size:12px;color:var(--muted);border-top:1px solid var(--border)}
+    @media(max-width:900px){.layout{grid-template-columns:1fr;grid-template-rows:1fr 8px 1fr}.splitter{cursor:row-resize}}
   </style>
 </head>
 <body>
   <header>
     <div class="brand">
-      <div class="dot"></div>
-      <h1>即時 HTML 編輯與預覽工具 · 可調整寬度</h1>
+      <div class="dot"></div><h1>即時 HTML 編輯與預覽工具 · v2</h1>
     </div>
     <div class="toolbar">
-      <button id="btn-new" title="清空內容 (Alt+N)">新檔</button>
-      <input type="file" id="file-open" hidden accept=".html,.htm,.txt" />
-      <button id="btn-open" title="開啟檔案 (Alt+O)">開啟</button>
-      <button id="btn-save" title="下載 (Ctrl/Cmd+S)">下載</button>
-      <button id="btn-format" title="簡易排版 (Alt+F)">格式化</button>
-      <label title="切換自動更新 (Alt+U)"><input type="checkbox" id="auto-update" checked /> 自動更新</label>
-      <label>寬度：<input id="split-range" type="range" min="20" max="80" value="50" step="1"/></label>
-      <button id="split-reset">重置比例</button>
-      <button id="toggle-theme" title="切換背景 (Alt+B)">🌓 切換主題</button>
+      <button id="btn-load" title="載入 HTML 或 TXT 檔 (Alt+L)">載入</button>
+      <input type="file" id="file-open" hidden accept=".html,.htm,.txt">
+      <button id="btn-save" title="下載 HTML 檔 (Ctrl/Cmd+S)">下載</button>
+      <button id="btn-format" title="整理 HTML 結構 (Alt+F)">整理排版</button>
+      <label>寬度：<input id="split-range" type="range" min="20" max="80" value="50"></label>
+      <button id="split-reset" title="重置比例 (Alt+R)">重置比例</button>
+      <button id="toggle-theme" title="切換黑白主題 (Alt+B)">🌓 切換主題</button>
       <span class="stat" id="status">就緒</span>
     </div>
   </header>
@@ -89,95 +68,113 @@
   <div class="layout" id="layout">
     <section class="pane">
       <h2>HTML 原始碼</h2>
-      <div class="editor-wrap">
-        <textarea id="editor" spellcheck="false" placeholder="在此輸入或貼上 HTML …"></textarea>
-        <div class="hint">✦ 快捷鍵：<kbd>Ctrl/Cmd + S</kbd> 下載、<kbd>Alt + U</kbd> 自動更新、<kbd>Alt + F</kbd> 格式化、<kbd>Alt + R</kbd> 重置比例、<kbd>Alt + B</kbd> 切換主題</div>
-      </div>
+      <textarea id="editor" spellcheck="false" placeholder="在此輸入或貼上 HTML …"></textarea>
     </section>
 
-    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" tabindex="0">
-      <div class="grip" aria-hidden="true"></div>
-    </div>
+    <div class="splitter" id="splitter"><div class="grip"></div></div>
 
     <section class="pane">
-      <h2>即時預覽 & 段落搜尋</h2>
-      <div class="preview-wrap">
-        <div class="preview-head">
-          <input type="text" id="search" placeholder="搜尋段落內容（支援不分大小寫）" />
-          <button id="btn-prev">▲ 上一個</button>
-          <button id="btn-next">▼ 下一個</button>
-          <span class="badge">符合：<span id="match-count" class="count">0</span></span>
-          <span class="badge">目前：<span id="match-index">-</span></span>
-        </div>
-        <iframe id="preview" sandbox="allow-scripts allow-modals"></iframe>
-      </div>
+      <h2>即時預覽</h2>
+      <iframe id="preview" sandbox="allow-scripts allow-modals"></iframe>
     </section>
   </div>
 
-  <div class="footer">本工具不會上傳資料；編輯內容與版面比例與主題設定皆會暫存於 <code>localStorage</code>。</div>
+  <div class="footer">本工具不會上傳資料；所有設定與內容將暫存在瀏覽器 <code>localStorage</code>。</div>
 
 <script>
 (function(){
-  const editor = document.getElementById('editor');
-  const preview = document.getElementById('preview');
-  const searchBox = document.getElementById('search');
-  const statusEl = document.getElementById('status');
-  const autoUpdate = document.getElementById('auto-update');
-  const splitter = document.getElementById('splitter');
-  const layout = document.getElementById('layout');
-  const range = document.getElementById('split-range');
-  const resetBtn = document.getElementById('split-reset');
-  const btnTheme = document.getElementById('toggle-theme');
+  const editor=document.getElementById('editor');
+  const preview=document.getElementById('preview');
+  const statusEl=document.getElementById('status');
+  const fileOpen=document.getElementById('file-open');
+  const range=document.getElementById('split-range');
+  const resetBtn=document.getElementById('split-reset');
+  const btnTheme=document.getElementById('toggle-theme');
+  const layout=document.getElementById('layout');
+  let debounceTimer=null;
 
-  let debounceTimer=null; let matches=[]; let current=-1;
+  // --- 狀態提示 ---
+  function setStatus(msg){statusEl.textContent=msg;clearTimeout(setStatus._t);
+    setStatus._t=setTimeout(()=>statusEl.textContent='就緒',1500);}
 
-  function setStatus(msg){
-    statusEl.textContent = msg;
-    clearTimeout(setStatus._t);
-    setStatus._t = setTimeout(()=> statusEl.textContent = '就緒', 1200);
-  }
+  // --- 主題切換 ---
+  function applyTheme(t){document.body.dataset.theme=t;localStorage.setItem('livepad_theme',t);
+    setStatus(t==='light'?'☀️ 白色模式':'🌙 深色模式');}
+  btnTheme.onclick=()=>applyTheme(document.body.dataset.theme==='light'?'dark':'light');
+  const savedTheme=localStorage.getItem('livepad_theme')||'dark';applyTheme(savedTheme);
 
-  // === 主題切換 ===
-  function applyTheme(theme){
-    document.body.dataset.theme = theme;
-    localStorage.setItem('livepad_theme', theme);
-    setStatus(theme==='light'?'☀️ 已切換為白色背景':'🌙 已切換為深色背景');
-  }
-  btnTheme.addEventListener('click', ()=>{
-    const newTheme = (document.body.dataset.theme === 'light') ? 'dark' : 'light';
-    applyTheme(newTheme);
-  });
-  window.addEventListener('keydown',(e)=>{
-    if(e.altKey && e.key.toLowerCase()==='b'){e.preventDefault();btnTheme.click();}
-  });
-
-  const savedTheme = localStorage.getItem('livepad_theme') || 'dark';
-  applyTheme(savedTheme);
-
-  // === 比例調整 ===
-  function applySplit(leftPercent){
-    const left=Math.max(20,Math.min(80,Math.round(leftPercent)));
-    document.documentElement.style.setProperty('--left', left + '%');
-    document.documentElement.style.setProperty('--right',(100-left)+'%');
-    range.value=left; localStorage.setItem('livepad_split',left);
-  }
-  range.addEventListener('input',()=>applySplit(range.value));
-  resetBtn.addEventListener('click',()=>applySplit(50));
-
-  // === 預覽更新 ===
-  function injectPreview(html){
-    preview.srcdoc = `<!doctype html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
-  }
-  function updatePreview(){ injectPreview(editor.value); }
-  function debounceUpdate(){ if(!autoUpdate.checked)return; clearTimeout(debounceTimer); debounceTimer=setTimeout(updatePreview,250); }
-
-  editor.addEventListener('input',()=>{ localStorage.setItem('livepad_html',editor.value); debounceUpdate(); });
-
-  // === 初始化 ===
-  const savedHTML = localStorage.getItem('livepad_html') || "<h1>歡迎使用即時 HTML 編輯器 ✨</h1>";
-  editor.value = savedHTML; updatePreview();
-  const savedSplit = parseInt(localStorage.getItem('livepad_split')||'50',10);
+  // --- 比例調整 ---
+  function applySplit(v){const p=Math.max(20,Math.min(80,Math.round(v)));
+    document.documentElement.style.setProperty('--left',p+'%');
+    document.documentElement.style.setProperty('--right',(100-p)+'%');
+    range.value=p;localStorage.setItem('livepad_split',p);}
+  range.oninput=()=>applySplit(range.value);
+  resetBtn.onclick=()=>{applySplit(50);setStatus('已重置比例');}
+  const savedSplit=parseInt(localStorage.getItem('livepad_split')||'50',10);
   applySplit(isNaN(savedSplit)?50:savedSplit);
+
+  // --- 載入檔案 ---
+  document.getElementById('btn-load').onclick=()=>fileOpen.click();
+  fileOpen.onchange=async(e)=>{
+    const f=e.target.files?.[0];if(!f)return;
+    const text=await f.text();editor.value=text;updatePreview();
+    localStorage.setItem('livepad_html',text);
+    setStatus('已載入：'+f.name);fileOpen.value='';
+  };
+
+  // --- 下載檔案 ---
+  document.getElementById('btn-save').onclick=()=>{
+    const name=prompt("請輸入檔名（不含副檔名）","my-page")||"live-html";
+    const blob=new Blob([editor.value],{type:'text/html;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download=name+".html";
+    document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);
+    setStatus('已下載 '+name+'.html');
+  };
+
+  // --- 整理排版 ---
+  document.getElementById('btn-format').onclick=()=>{
+    editor.value=simpleFormat(editor.value);
+    localStorage.setItem('livepad_html',editor.value);
+    updatePreview();setStatus('已整理 HTML 結構');
+  };
+  function simpleFormat(html){
+    try{
+      const parser=new DOMParser();const doc=parser.parseFromString(html,'text/html');
+      const voids=new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+      let out='',indent=0;const pad=n=>'  '.repeat(n);
+      function walk(node){for(const c of node.childNodes){
+        if(c.nodeType===1){const tag=c.tagName.toLowerCase();
+          out+=`\n${pad(indent)}<${tag}${[...c.attributes].map(a=>` ${a.name}="${a.value}"`).join('')}>`;
+          if(!voids.has(tag)){indent++;walk(c);indent--;out+=`\n${pad(indent)}</${tag}>`;}}
+        else if(c.nodeType===3){const t=c.nodeValue.replace(/\s+/g,' ').trim();if(t)out+=`\n${pad(indent)}${t}`;}
+        else if(c.nodeType===8){out+=`\n${pad(indent)}<!--${c.nodeValue}-->`;}}}
+      walk(doc.documentElement);return '<!DOCTYPE html>'+out.trimStart();
+    }catch(e){return html;}
+  }
+
+  // --- 預覽 ---
+  function injectPreview(html){
+    preview.srcdoc=`<!doctype html><html><head><meta charset='utf-8'></head><body>${html}</body></html>`;
+  }
+  function updatePreview(){injectPreview(editor.value);}
+  function debounceUpdate(){clearTimeout(debounceTimer);debounceTimer=setTimeout(updatePreview,250);}
+  editor.oninput=()=>{localStorage.setItem('livepad_html',editor.value);debounceUpdate();};
+
+  // --- 快捷鍵 ---
+  window.onkeydown=(e)=>{
+    const mac=navigator.platform.toUpperCase().includes('MAC');
+    if((mac?e.metaKey:e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();document.getElementById('btn-save').click();}
+    if(e.altKey&&e.key.toLowerCase()==='l'){e.preventDefault();document.getElementById('btn-load').click();}
+    if(e.altKey&&e.key.toLowerCase()==='f'){e.preventDefault();document.getElementById('btn-format').click();}
+    if(e.altKey&&e.key.toLowerCase()==='r'){e.preventDefault();resetBtn.click();}
+    if(e.altKey&&e.key.toLowerCase()==='b'){e.preventDefault();btnTheme.click();}
+  };
+
+  // --- 初始化 ---
+  editor.value=localStorage.getItem('livepad_html')||
+  "<h1>歡迎使用即時 HTML 編輯器 ✨</h1><p>可載入、下載與整理 HTML。</p>";
+  updatePreview();
 })();
 </script>
 </body>
