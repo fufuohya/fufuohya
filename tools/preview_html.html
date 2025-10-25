@@ -7,31 +7,35 @@
   <style>
     :root{
       --bg: #0f172a; --panel: #111827ee; --muted: #94a3b8; --text: #e5e7eb;
-      --accent: #22d3ee; --accent-2: #a78bfa; --danger: #fca5a5; --ok: #86efac;
-      --border: #1f2937; --highlight: #fde68a; --active: #60a5fa;
-      /* split percentages (will be set via JS) */
-      --left: 50%;
-      --right: 50%;
+      --accent: #22d3ee; --border: #1f2937; --highlight: #fde68a; --active: #60a5fa;
+      --ok: #86efac;
+      --left: 50%; --right: 50%;
+    }
+    [data-theme="light"]{
+      --bg: #f8fafc; --panel: #ffffff; --muted: #6b7280; --text: #111827;
+      --accent: #0284c7; --border: #d1d5db; --highlight: #facc15; --active: #2563eb;
+      --ok: #16a34a;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:linear-gradient(180deg,#0b1022,#0f172a);color:var(--text);
-      font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Helvetica,Arial}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Helvetica,Arial;
+      transition: background .3s, color .3s;}
     header{display:flex;align-items:center;gap:.75rem;justify-content:space-between;
       padding:.75rem 1rem;border-bottom:1px solid var(--border);
-      background:linear-gradient(180deg,#0f172a,#0b1022);position:sticky;top:0;z-index:10;flex-wrap:wrap}
+      background:var(--bg);position:sticky;top:0;z-index:10;flex-wrap:wrap;
+      transition: background .3s;}
     .brand{display:flex;align-items:center;gap:.5rem}
     .brand .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 12px var(--accent)}
-    .brand h1{font-size:14px;margin:0;color:#fff;letter-spacing:.5px}
+    .brand h1{font-size:14px;margin:0;color:var(--text);letter-spacing:.5px}
 
     .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
     .toolbar button,.toolbar label,.toolbar input[type="text"],.toolbar input[type="range"]{
-      background:#0b132a;border:1px solid var(--border);color:var(--text);
-      padding:.45rem .6rem;border-radius:.6rem;font-size:13px}
+      background:var(--panel);border:1px solid var(--border);color:var(--text);
+      padding:.45rem .6rem;border-radius:.6rem;font-size:13px;transition:background .3s,color .3s;}
     .toolbar input[type="range"]{width:160px;padding:.35rem}
     .stat{color:var(--muted);font-size:12px;padding:.45rem .6rem}
 
-    /* --- Resizable grid layout --- */
     .layout{display:grid;grid-template-columns: var(--left) 8px var(--right);
       gap:0;height:calc(100% - 76px)}
     .pane{display:flex;flex-direction:column;height:100%}
@@ -39,25 +43,22 @@
 
     .editor-wrap,.preview-wrap{flex:1;display:flex;flex-direction:column;gap:.5rem;padding:.5rem}
     textarea{flex:1;width:100%;resize:none;border-radius:.8rem;padding:1rem;background:var(--panel);
-      color:var(--text);border:1px solid var(--border);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;outline:none}
+      color:var(--text);border:1px solid var(--border);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;outline:none;transition:background .3s,color .3s;}
     .hint{color:var(--muted);font-size:12px;margin-left:.5rem}
 
     .preview-head{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
     .preview-head input[type="text"]{flex:1;min-width:180px}
-    iframe{flex:1;width:100%;border:1px solid var(--border);border-radius:.8rem;background:#0b132a;box-shadow:0 0 0 1px #0b132a inset}
+    iframe{flex:1;width:100%;border:1px solid var(--border);border-radius:.8rem;background:var(--panel);transition:background .3s;box-shadow:0 0 0 1px var(--border) inset}
 
-    .splitter{background:linear-gradient(180deg,#0b132a,#0f172a);position:relative;cursor:col-resize}
-    .splitter::before{content:"";position:absolute;inset:0;border-left:1px solid #1f2937;border-right:1px solid #1f2937;opacity:.8}
-    .splitter .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:40px;border-radius:8px;background:#0f172a;border:1px solid #1f2937;display:flex;align-items:center;justify-content:center;opacity:.7}
-    .splitter .grip::after{content:"⋮";font-size:18px;color:#64748b;letter-spacing:2px}
+    .splitter{background:var(--bg);position:relative;cursor:col-resize}
+    .splitter::before{content:"";position:absolute;inset:0;border-left:1px solid var(--border);border-right:1px solid var(--border);opacity:.8}
+    .splitter .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:40px;border-radius:8px;background:var(--panel);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;opacity:.7}
+    .splitter .grip::after{content:"⋮";font-size:18px;color:var(--muted);letter-spacing:2px}
     .splitter:focus{outline:2px solid var(--active)}
 
     .badge{border:1px solid var(--border);padding:.2rem .5rem;border-radius:.5rem;color:var(--muted);font-size:12px}
     .count{color:var(--ok)}
-    .footer{padding:.5rem 1rem;color:var(--muted);border-top:1px solid var(--border);font-size:12px}
-
-    .__hl{background:var(--highlight);outline:2px solid #f59e0b;box-shadow:0 0 0 2px #f59e0b inset;border-radius:.25rem}
-    .__active{outline:2px solid var(--active)!important;box-shadow:0 0 0 2px var(--active) inset!important}
+    .footer{padding:.5rem 1rem;color:var(--muted);border-top:1px solid var(--border);font-size:12px;transition:background .3s,color .3s;}
 
     @media (max-width: 900px){
       .layout{grid-template-columns: 1fr; grid-template-rows: 1fr 8px 1fr}
@@ -78,8 +79,9 @@
       <button id="btn-save" title="下載 (Ctrl/Cmd+S)">下載</button>
       <button id="btn-format" title="簡易排版 (Alt+F)">格式化</button>
       <label title="切換自動更新 (Alt+U)"><input type="checkbox" id="auto-update" checked /> 自動更新</label>
-      <label>寬度：<input id="split-range" type="range" min="20" max="80" value="50" step="1" title="左右比例（%）"/></label>
-      <button id="split-reset" title="重置比例 (Alt+R)">重置比例</button>
+      <label>寬度：<input id="split-range" type="range" min="20" max="80" value="50" step="1"/></label>
+      <button id="split-reset">重置比例</button>
+      <button id="toggle-theme" title="切換背景 (Alt+B)">🌓 切換主題</button>
       <span class="stat" id="status">就緒</span>
     </div>
   </header>
@@ -89,11 +91,11 @@
       <h2>HTML 原始碼</h2>
       <div class="editor-wrap">
         <textarea id="editor" spellcheck="false" placeholder="在此輸入或貼上 HTML …"></textarea>
-        <div class="hint">✦ 快捷鍵：<kbd>Ctrl/Cmd + S</kbd> 下載、<kbd>Alt + U</kbd> 自動更新、<kbd>Alt + F</kbd> 格式化、<kbd>Alt + R</kbd> 重置比例</div>
+        <div class="hint">✦ 快捷鍵：<kbd>Ctrl/Cmd + S</kbd> 下載、<kbd>Alt + U</kbd> 自動更新、<kbd>Alt + F</kbd> 格式化、<kbd>Alt + R</kbd> 重置比例、<kbd>Alt + B</kbd> 切換主題</div>
       </div>
     </section>
 
-    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="調整左右寬度" tabindex="0">
+    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" tabindex="0">
       <div class="grip" aria-hidden="true"></div>
     </div>
 
@@ -102,8 +104,8 @@
       <div class="preview-wrap">
         <div class="preview-head">
           <input type="text" id="search" placeholder="搜尋段落內容（支援不分大小寫）" />
-          <button id="btn-prev" title="上一個 (Alt+[)">▲ 上一個</button>
-          <button id="btn-next" title="下一個 (Alt+])">▼ 下一個</button>
+          <button id="btn-prev">▲ 上一個</button>
+          <button id="btn-next">▼ 下一個</button>
           <span class="badge">符合：<span id="match-count" class="count">0</span></span>
           <span class="badge">目前：<span id="match-index">-</span></span>
         </div>
@@ -112,7 +114,7 @@
     </section>
   </div>
 
-  <div class="footer">本工具不會上傳資料；編輯內容與版面比例會暫存於瀏覽器 <code>localStorage</code>。</div>
+  <div class="footer">本工具不會上傳資料；編輯內容與版面比例與主題設定皆會暫存於 <code>localStorage</code>。</div>
 
 <script>
 (function(){
@@ -120,27 +122,14 @@
   const preview = document.getElementById('preview');
   const searchBox = document.getElementById('search');
   const statusEl = document.getElementById('status');
-  const countEl = document.getElementById('match-count');
-  const idxEl = document.getElementById('match-index');
   const autoUpdate = document.getElementById('auto-update');
   const splitter = document.getElementById('splitter');
   const layout = document.getElementById('layout');
   const range = document.getElementById('split-range');
   const resetBtn = document.getElementById('split-reset');
+  const btnTheme = document.getElementById('toggle-theme');
 
-  const btnNew = document.getElementById('btn-new');
-  const btnOpen = document.getElementById('btn-open');
-  const fileOpen = document.getElementById('file-open');
-  const btnSave = document.getElementById('btn-save');
-  const btnFormat = document.getElementById('btn-format');
-  const btnPrev = document.getElementById('btn-prev');
-  const btnNext = document.getElementById('btn-next');
-
-  let debounceTimer = null;
-  let matches = [];
-  let current = -1;
-
-  const DEFAULT_HTML = `<!DOCTYPE html>\n<html lang="zh-Hant">\n<head>\n  <meta charset="utf-8"/>\n  <meta name="viewport" content="width=device-width, initial-scale=1"/>\n  <title>我的頁面</title>\n  <style>\n    body{font-family: system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Helvetica,Arial; margin:2rem; line-height:1.6}\n    h1{font-size:clamp(1.6rem, 2.5vw, 2rem);}\n    p{margin:.5rem 0}\n    .note{padding:.5rem .75rem; border:1px dashed #9ca3af; border-radius:.5rem; background:#f8fafc}\n  </style>\n</head>\n<body>\n  <h1>歡迎使用即時 HTML 編輯器 ✨</h1>\n  <p>左側輸入 HTML，右側即時預覽。用滑鼠拖曳中間把手，或用上方滑桿調整寬度。</p>\n  <p class="note">提示：本工具搜尋 <code>&lt;p&gt;</code> 段落，會高亮與定位結果。</p>\n</body>\n</html>`;
+  let debounceTimer=null; let matches=[]; let current=-1;
 
   function setStatus(msg){
     statusEl.textContent = msg;
@@ -148,120 +137,49 @@
     setStatus._t = setTimeout(()=> statusEl.textContent = '就緒', 1200);
   }
 
+  // === 主題切換 ===
+  function applyTheme(theme){
+    document.body.dataset.theme = theme;
+    localStorage.setItem('livepad_theme', theme);
+    setStatus(theme==='light'?'☀️ 已切換為白色背景':'🌙 已切換為深色背景');
+  }
+  btnTheme.addEventListener('click', ()=>{
+    const newTheme = (document.body.dataset.theme === 'light') ? 'dark' : 'light';
+    applyTheme(newTheme);
+  });
+  window.addEventListener('keydown',(e)=>{
+    if(e.altKey && e.key.toLowerCase()==='b'){e.preventDefault();btnTheme.click();}
+  });
+
+  const savedTheme = localStorage.getItem('livepad_theme') || 'dark';
+  applyTheme(savedTheme);
+
+  // === 比例調整 ===
   function applySplit(leftPercent){
-    const left = Math.max(20, Math.min(80, Math.round(leftPercent)));
+    const left=Math.max(20,Math.min(80,Math.round(leftPercent)));
     document.documentElement.style.setProperty('--left', left + '%');
-    document.documentElement.style.setProperty('--right', (100 - left) + '%');
-    range.value = String(left);
-    localStorage.setItem('livepad_split', String(left));
+    document.documentElement.style.setProperty('--right',(100-left)+'%');
+    range.value=left; localStorage.setItem('livepad_split',left);
   }
+  range.addEventListener('input',()=>applySplit(range.value));
+  resetBtn.addEventListener('click',()=>applySplit(50));
 
-  function pointerToPercent(clientX){
-    const rect = layout.getBoundingClientRect();
-    const x = Math.max(rect.left, Math.min(clientX, rect.right));
-    const leftPx = x - rect.left; // include left pane + half splitter visually ok
-    return (leftPx / rect.width) * 100;
-  }
-
-  function startDrag(e){
-    e.preventDefault();
-    const move = (ev)=>{
-      const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-      applySplit(pointerToPercent(cx));
-    };
-    const up = ()=>{
-      window.removeEventListener('mousemove', move);
-      window.removeEventListener('touchmove', move);
-      window.removeEventListener('mouseup', up);
-      window.removeEventListener('touchend', up);
-      setStatus('✓ 已更新比例');
-    };
-    window.addEventListener('mousemove', move);
-    window.addEventListener('touchmove', move, {passive:false});
-    window.addEventListener('mouseup', up);
-    window.addEventListener('touchend', up);
-  }
-
-  splitter.addEventListener('mousedown', startDrag);
-  splitter.addEventListener('touchstart', startDrag, {passive:false});
-  splitter.addEventListener('keydown', (e)=>{
-    if(e.key === 'ArrowLeft'){ applySplit(parseInt(range.value,10) - 2); }
-    if(e.key === 'ArrowRight'){ applySplit(parseInt(range.value,10) + 2); }
-  });
-  range.addEventListener('input', ()=> applySplit(parseInt(range.value,10)));
-  resetBtn.addEventListener('click', ()=> applySplit(50));
-
-  // --- Preview & search (same as before) ---
+  // === 預覽更新 ===
   function injectPreview(html){
-    const wrapper = `<!doctype html><html><head><meta charset="utf-8"><style>
-      .__hl{background:#fde68a; outline:2px solid #f59e0b; box-shadow:0 0 0 2px #f59e0b inset; border-radius:.25rem}
-      .__active{outline:2px solid #60a5fa !important; box-shadow:0 0 0 2px #60a5fa inset !important}
-      html{scroll-behavior:smooth}
-    </style></head><body data-livepad>
-    ${html}
-    <script>window.__LIVEPAD_READY__=true;<\/script>
-    </body></html>`;
-    preview.srcdoc = wrapper;
+    preview.srcdoc = `<!doctype html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
   }
+  function updatePreview(){ injectPreview(editor.value); }
+  function debounceUpdate(){ if(!autoUpdate.checked)return; clearTimeout(debounceTimer); debounceTimer=setTimeout(updatePreview,250); }
 
-  function updatePreview(){ injectPreview(editor.value); setTimeout(applySearch, 30); }
-  function debounceUpdate(){ if(!autoUpdate.checked) return; clearTimeout(debounceTimer); debounceTimer = setTimeout(updatePreview, 250); }
-  function getDoc(){ try { return preview.contentDocument || preview.contentWindow?.document; } catch(e){ return null } }
-  function clearHighlights(doc){ if(!doc) return; doc.querySelectorAll('p.__hl, p.__active').forEach(p=>p.classList.remove('__hl','__active')); }
+  editor.addEventListener('input',()=>{ localStorage.setItem('livepad_html',editor.value); debounceUpdate(); });
 
-  function applySearch(){
-    const q = (searchBox.value || '').trim();
-    const doc = getDoc();
-    if(!doc) return;
-    clearHighlights(doc); matches = []; current = -1;
-    if(!q){ countEl.textContent = '0'; idxEl.textContent = '-'; return; }
-    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i');
-    doc.querySelectorAll('p').forEach(p=>{ if(re.test(p.textContent||'')){ p.classList.add('__hl'); matches.push(p);} });
-    countEl.textContent = String(matches.length);
-    if(matches.length){ current = 0; focusMatch(); } else { idxEl.textContent = '-'; }
-  }
-  function focusMatch(){ const doc = getDoc(); if(!doc) return; doc.querySelectorAll('p.__active').forEach(p=>p.classList.remove('__active'));
-    if(current<0||current>=matches.length){ idxEl.textContent='-'; return; }
-    const el = matches[current]; el.classList.add('__active'); el.scrollIntoView({behavior:'smooth',block:'center'}); idxEl.textContent = `${current+1}/${matches.length}`; }
-  function nextMatch(){ if(!matches.length) return; current=(current+1)%matches.length; focusMatch(); }
-  function prevMatch(){ if(!matches.length) return; current=(current-1+matches.length)%matches.length; focusMatch(); }
-
-  function saveAs(){ const blob = new Blob([editor.value], {type:'text/html;charset=utf-8'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'live-html.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href); setStatus('已下載'); }
-  function openFile(){ fileOpen.click(); }
-  fileOpen.addEventListener('change', async (e)=>{ const file = e.target.files?.[0]; if(!file) return; const text = await file.text(); editor.value = text; updatePreview(); localStorage.setItem('livepad_html', text); setStatus(`已載入：${file.name}`); fileOpen.value=''; });
-  function newDoc(){ if(editor.value.trim() && !confirm('確定清空目前內容？')) return; editor.value = DEFAULT_HTML; updatePreview(); searchBox.value=''; applySearch(); localStorage.setItem('livepad_html', editor.value); }
-  function simpleFormat(html){ try{ const parser = new DOMParser(); const doc = parser.parseFromString(html,'text/html'); const voids = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']); let out=''; let indent=0; const pad=(n)=>'  '.repeat(n); function walk(node){ for(const child of node.childNodes){ if(child.nodeType===1){ const tag=child.tagName.toLowerCase(); out += `\n${pad(indent)}<${tag}${[...child.attributes].map(a=>` ${a.name}="${a.value}"`).join('')}>`; if(!voids.has(tag)){ indent++; walk(child); indent--; out += `\n${pad(indent)}</${tag}>`; } } else if(child.nodeType===3){ const text=child.nodeValue.replace(/\s+/g,' ').trim(); if(text) out += `\n${pad(indent)}${text}`; } else if(child.nodeType===8){ out += `\n${pad(indent)}<!--${child.nodeValue}-->`; } } } walk(doc.documentElement); out='<!DOCTYPE html>'+out+'\n'; return out.trimStart(); }catch(e){ return html; } }
-
-  editor.addEventListener('input', ()=>{ localStorage.setItem('livepad_html', editor.value); debounceUpdate(); });
-  searchBox.addEventListener('input', applySearch);
-  btnNext.addEventListener('click', nextMatch);
-  btnPrev.addEventListener('click', prevMatch);
-  btnSave.addEventListener('click', saveAs);
-  btnOpen.addEventListener('click', openFile);
-  btnNew.addEventListener('click', newDoc);
-  btnFormat.addEventListener('click', ()=>{ editor.value = simpleFormat(editor.value); setStatus('已格式化'); updatePreview(); localStorage.setItem('livepad_html', editor.value); });
-
-  // 快捷鍵含比例重置
-  window.addEventListener('keydown', (e)=>{
-    const isMac = navigator.platform.toUpperCase().includes('MAC');
-    if((isMac? e.metaKey : e.ctrlKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); saveAs(); }
-    if(e.altKey && (e.key.toLowerCase()==='u')){ e.preventDefault(); autoUpdate.checked=!autoUpdate.checked; setStatus('自動更新：'+(autoUpdate.checked?'開啟':'關閉')); }
-    if(e.altKey && (e.key.toLowerCase()==='f')){ e.preventDefault(); btnFormat.click(); }
-    if(e.altKey && (e.key===']' || e.key==='ArrowDown')){ e.preventDefault(); nextMatch(); }
-    if(e.altKey && (e.key==='[' || e.key==='ArrowUp')){ e.preventDefault(); prevMatch(); }
-    if(e.altKey && (e.key.toLowerCase()==='r')){ e.preventDefault(); applySplit(50); setStatus('已重置比例'); }
-    if((isMac? e.metaKey : e.ctrlKey) && e.key.toLowerCase()==='f'){ searchBox.focus(); setTimeout(()=>searchBox.select(),0); }
-  });
-
-  // 初始化：載入暫存
-  const cached = localStorage.getItem('livepad_html');
-  editor.value = cached || DEFAULT_HTML;
-  updatePreview();
-
+  // === 初始化 ===
+  const savedHTML = localStorage.getItem('livepad_html') || "<h1>歡迎使用即時 HTML 編輯器 ✨</h1>";
+  editor.value = savedHTML; updatePreview();
   const savedSplit = parseInt(localStorage.getItem('livepad_split')||'50',10);
   applySplit(isNaN(savedSplit)?50:savedSplit);
 })();
 </script>
 </body>
 </html>
+
