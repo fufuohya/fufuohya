@@ -3,180 +3,927 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>即時 HTML 編輯與預覽工具（v2）</title>
+  <title>即時 HTML 編輯與預覽工具</title>
   <style>
     :root{
-      --bg:#0f172a;--panel:#111827ee;--text:#e5e7eb;--muted:#94a3b8;
-      --accent:#22d3ee;--border:#1f2937;--highlight:#fde68a;--active:#60a5fa;
-      --ok:#86efac;--left:50%;--right:50%;
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #0f1419;
+      --bg-tertiary: #151b26;
+      --surface: #1a2332;
+      --surface-hover: #1f2937;
+      --border: #2d3748;
+      --border-light: #374151;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-glow: rgba(59, 130, 246, 0.3);
+      --success: #10b981;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --warning: #f59e0b;
+      --highlight: #fbbf24;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      --glow: 0 0 20px var(--accent-glow);
     }
-    [data-theme="light"]{
-      --bg:#f8fafc;--panel:#ffffff;--text:#111827;--muted:#6b7280;
-      --accent:#0284c7;--border:#d1d5db;--highlight:#facc15;--active:#2563eb;
-      --ok:#16a34a;
+    
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);
-      font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Helvetica,Arial;
-      transition:background .3s,color .3s;}
-    header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
-      padding:.75rem 1rem;border-bottom:1px solid var(--border);background:var(--bg);}
-    .brand{display:flex;align-items:center;gap:.5rem}
-    .brand .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 12px var(--accent)}
-    .brand h1{font-size:14px;margin:0}
-    .toolbar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
-    .toolbar button,.toolbar label,.toolbar input[type="range"]{
-      background:var(--panel);border:1px solid var(--border);color:var(--text);
-      padding:.45rem .6rem;border-radius:.6rem;font-size:13px;transition:background .3s,color .3s;}
-    .toolbar input[type="range"]{width:140px}
-    .stat{font-size:12px;color:var(--muted)}
-    .layout{display:grid;grid-template-columns:var(--left) 8px var(--right);height:calc(100% - 76px)}
-    .pane{display:flex;flex-direction:column}
-    .pane h2{font-size:12px;color:var(--muted);margin:.5rem 0 .25rem .5rem;text-transform:uppercase}
-    textarea{flex:1;padding:1rem;border-radius:.8rem;border:1px solid var(--border);
-      background:var(--panel);color:var(--text);resize:none;
-      font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;transition:background .3s,color .3s;}
-    iframe{flex:1;border:1px solid var(--border);border-radius:.8rem;background:var(--panel)}
-    .splitter{background:var(--bg);cursor:col-resize;position:relative}
-    .splitter::before{content:"";position:absolute;inset:0;border-left:1px solid var(--border);border-right:1px solid var(--border)}
-    .splitter .grip{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-      width:24px;height:40px;border:1px solid var(--border);border-radius:8px;background:var(--panel);
-      display:flex;align-items:center;justify-content:center;opacity:.7}
-    .splitter .grip::after{content:"⋮";font-size:18px;color:var(--muted)}
-    .footer{padding:.5rem 1rem;font-size:12px;color:var(--muted);border-top:1px solid var(--border)}
-    @media(max-width:900px){.layout{grid-template-columns:1fr;grid-template-rows:1fr 8px 1fr}.splitter{cursor:row-resize}}
+    
+    html,body{
+      height:100%;
+      overflow:hidden;
+    }
+    
+    body{
+      background: linear-gradient(135deg, #0a0e1a 0%, #0f1419 50%, #0a0e1a 100%);
+      color:var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Header 優化 */
+    header{
+      display:flex;
+      align-items:center;
+      gap:1rem;
+      justify-content:space-between;
+      padding:1rem 1.5rem;
+      background: linear-gradient(180deg, rgba(15, 20, 25, 0.95), rgba(10, 14, 26, 0.98));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      position:sticky;
+      top:0;
+      z-index:100;
+      flex-wrap:wrap;
+      box-shadow: var(--shadow-md);
+    }
+    
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+    }
+    
+    .brand .dot{
+      width:12px;
+      height:12px;
+      border-radius:50%;
+      background: linear-gradient(135deg, var(--accent), #60a5fa);
+      box-shadow: 0 0 16px var(--accent-glow), 0 0 32px var(--accent-glow);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+    }
+    
+    .brand h1{
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: var(--text-primary);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Toolbar 優化 */
+    .toolbar{
+      display:flex;
+      gap:.5rem;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    
+    .toolbar button,
+    .toolbar label{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: .5rem .875rem;
+      border-radius: .5rem;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-sm);
+      user-select: none;
+    }
+    
+    .toolbar button:hover{
+      background: var(--surface-hover);
+      border-color: var(--border-light);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+      color: var(--text-primary);
+    }
+    
+    .toolbar button:active{
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .toolbar label{
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem .75rem;
+    }
+    
+    .toolbar label input[type="checkbox"]{
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+    
+    .toolbar .stat{
+      color: var(--success);
+      font-size: 12px;
+      font-weight: 600;
+      padding: .5rem .875rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: .5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .toolbar button.danger{
+      border-color: rgba(239, 68, 68, 0.4);
+      color: var(--danger);
+    }
+    
+    .toolbar button.danger:hover{
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+
+    /* Layout 優化 */
+    .layout{
+      display: grid;
+      grid-template-columns: minmax(400px, 1fr) minmax(450px, 1fr);
+      gap: 1rem;
+      height: calc(100% - 77px);
+      padding: 1rem;
+      overflow: hidden;
+    }
+    
+    .pane{
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .pane h2{
+      padding: .875rem 1.25rem;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Editor Section 優化 */
+    .editor-wrap{
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+      padding: 1rem;
+      overflow: hidden;
+    }
+    
+    .editor-actions{
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+    
+    .editor-actions button{
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: .4rem .75rem;
+      border-radius: .4rem;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    
+    .editor-actions button:hover{
+      background: var(--surface);
+      border-color: var(--border-light);
+      color: var(--text-primary);
+    }
+    
+    .editor-actions button.danger:hover{
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+    
+    /* Search & Replace 優化 */
+    .search-replace{
+      display: flex;
+      flex-direction: column;
+      gap: .625rem;
+      padding: .875rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .search-row{
+      display: flex;
+      gap: .5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .search-replace input[type="text"]{
+      flex: 1;
+      min-width: 160px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: .5rem .75rem;
+      border-radius: .5rem;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all .2s ease;
+    }
+    
+    .search-replace input[type="text"]:focus{
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    
+    .search-replace input[type="text"]::placeholder{
+      color: var(--text-muted);
+    }
+    
+    .search-replace button{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: .5rem .875rem;
+      border-radius: .5rem;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s ease;
+      white-space: nowrap;
+    }
+    
+    .search-replace button:hover{
+      background: var(--surface-hover);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    
+    .search-replace .badge{
+      border: 1px solid var(--border);
+      padding: .375rem .625rem;
+      border-radius: .4rem;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--surface);
+      white-space: nowrap;
+    }
+    
+    .search-replace .count{
+      color: var(--success);
+      font-weight: 700;
+    }
+    
+    /* Textarea 優化 */
+    textarea{
+      flex: 1;
+      width: 100%;
+      resize: none;
+      border-radius: .75rem;
+      padding: 1rem;
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      outline: none;
+      transition: all .2s ease;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    textarea:focus{
+      border-color: var(--accent);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 0 0 3px var(--accent-glow);
+    }
+    
+    textarea::selection{
+      background: rgba(59, 130, 246, 0.3);
+    }
+    
+    .hint{
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 0 .25rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+
+    /* Preview Section 優化 */
+    .preview-wrap{
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      overflow: hidden;
+    }
+    
+    iframe{
+      flex: 1;
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      background: #ffffff;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Utility Components */
+    .kbd{
+      display: inline-block;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: .125rem .375rem;
+      border-radius: .3rem;
+      font-size: 11px;
+      font-family: inherit;
+      color: var(--text-secondary);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Footer 優化 */
+    .footer{
+      padding: .75rem 1.5rem;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      text-align: center;
+      box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px){
+      .layout{
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+      
+      header{
+        padding: .875rem 1rem;
+      }
+      
+      .brand h1{
+        font-size: 13px;
+      }
+    }
+    
+    @media (max-width: 640px){
+      .toolbar{
+        font-size: 12px;
+      }
+      
+      .toolbar button,
+      .toolbar label{
+        padding: .4rem .625rem;
+        font-size: 12px;
+      }
+      
+      .layout{
+        padding: .5rem;
+        gap: .5rem;
+      }
+    }
+
+    /* Scrollbar 優化 */
+    ::-webkit-scrollbar{
+      width: 10px;
+      height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track{
+      background: var(--bg-tertiary);
+    }
+    
+    ::-webkit-scrollbar-thumb{
+      background: var(--border-light);
+      border-radius: 5px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover{
+      background: var(--text-muted);
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="brand">
-      <div class="dot"></div><h1>即時 HTML 編輯與預覽工具 · v2</h1>
+      <div class="dot"></div>
+      <h1>即時 HTML 編輯與預覽工具 · Live HTML Pad</h1>
     </div>
     <div class="toolbar">
-      <button id="btn-load" title="載入 HTML 或 TXT 檔 (Alt+L)">載入</button>
-      <input type="file" id="file-open" hidden accept=".html,.htm,.txt">
-      <button id="btn-save" title="下載 HTML 檔 (Ctrl/Cmd+S)">下載</button>
-      <button id="btn-format" title="整理 HTML 結構 (Alt+F)">整理排版</button>
-      <label>寬度：<input id="split-range" type="range" min="20" max="80" value="50"></label>
-      <button id="split-reset" title="重置比例 (Alt+R)">重置比例</button>
-      <button id="toggle-theme" title="切換黑白主題 (Alt+B)">🌓 切換主題</button>
+      <button id="btn-new" title="清空內容 (Alt+N)">🔄 新檔</button>
+      <input type="file" id="file-open" hidden accept=".html,.htm,.txt" />
+      <button id="btn-open" title="開啟檔案 (Alt+O)">📂 開啟</button>
+      <button id="btn-save" title="下載 (Ctrl/Cmd+S)">💾 下載</button>
+      <button id="btn-format" title="簡易排版 (Alt+F)">✨ 格式化</button>
+      <label title="切換自動更新 (Alt+U)">
+        <input type="checkbox" id="auto-update" checked />
+        自動更新
+      </label>
       <span class="stat" id="status">就緒</span>
     </div>
   </header>
 
-  <div class="layout" id="layout">
+  <div class="layout">
     <section class="pane">
       <h2>HTML 原始碼</h2>
-      <textarea id="editor" spellcheck="false" placeholder="在此輸入或貼上 HTML …"></textarea>
+      <div class="editor-wrap">
+        <div class="editor-actions">
+          <button id="btn-select-all" title="全選文字 (Ctrl/Cmd+A)">📋 全選</button>
+          <button id="btn-clear-all" class="danger" title="清空編輯器 (Alt+C)">🗑️ 全刪除</button>
+          <button id="btn-copy" title="複製到剪貼簿 (Ctrl/Cmd+C)">📋 複製</button>
+          <button id="btn-undo" title="復原 (Ctrl/Cmd+Z)">↩️ 復原</button>
+        </div>
+        
+        <div class="search-replace">
+          <div class="search-row">
+            <input type="text" id="search-code" placeholder="🔍 搜尋程式碼..." />
+            <button id="btn-prev-code">▲ 上一個</button>
+            <button id="btn-next-code">▼ 下一個</button>
+            <span class="badge">符合：<span id="code-match-count" class="count">0</span></span>
+            <span class="badge">目前：<span id="code-match-index">-</span></span>
+          </div>
+          <div class="search-row">
+            <input type="text" id="replace-code" placeholder="✏️ 取代為..." />
+            <button id="btn-replace-one">取代目前</button>
+            <button id="btn-replace-all">全部取代</button>
+          </div>
+        </div>
+        
+        <textarea id="editor" spellcheck="false" placeholder="在此輸入或貼上 HTML …"></textarea>
+        <div class="hint">
+          ✦ 快捷鍵：
+          <span class="kbd">Ctrl/Cmd + F</span> 搜尋
+          <span class="kbd">Ctrl/Cmd + S</span> 下載
+          <span class="kbd">Alt + C</span> 全刪除
+        </div>
+      </div>
     </section>
-
-    <div class="splitter" id="splitter"><div class="grip"></div></div>
 
     <section class="pane">
       <h2>即時預覽</h2>
-      <iframe id="preview" sandbox="allow-scripts allow-modals"></iframe>
+      <div class="preview-wrap">
+        <iframe id="preview" sandbox="allow-scripts allow-modals"></iframe>
+      </div>
     </section>
   </div>
 
-  <div class="footer">本工具不會上傳資料；所有設定與內容將暫存在瀏覽器 <code>localStorage</code>。</div>
+  <div class="footer">💡 本工具不會上傳資料；編輯內容會暫存於瀏覽器。建議常用「下載」保存副本。</div>
 
 <script>
 (function(){
-  const editor=document.getElementById('editor');
-  const preview=document.getElementById('preview');
-  const statusEl=document.getElementById('status');
-  const fileOpen=document.getElementById('file-open');
-  const range=document.getElementById('split-range');
-  const resetBtn=document.getElementById('split-reset');
-  const btnTheme=document.getElementById('toggle-theme');
-  const layout=document.getElementById('layout');
-  let debounceTimer=null;
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const searchCodeBox = document.getElementById('search-code');
+  const replaceCodeBox = document.getElementById('replace-code');
+  const statusEl = document.getElementById('status');
+  const codeCountEl = document.getElementById('code-match-count');
+  const codeIdxEl = document.getElementById('code-match-index');
+  const autoUpdate = document.getElementById('auto-update');
 
-  // --- 狀態提示 ---
-  function setStatus(msg){statusEl.textContent=msg;clearTimeout(setStatus._t);
-    setStatus._t=setTimeout(()=>statusEl.textContent='就緒',1500);}
+  const btnNew = document.getElementById('btn-new');
+  const btnOpen = document.getElementById('btn-open');
+  const fileOpen = document.getElementById('file-open');
+  const btnSave = document.getElementById('btn-save');
+  const btnFormat = document.getElementById('btn-format');
+  const btnPrevCode = document.getElementById('btn-prev-code');
+  const btnNextCode = document.getElementById('btn-next-code');
+  const btnReplaceOne = document.getElementById('btn-replace-one');
+  const btnReplaceAll = document.getElementById('btn-replace-all');
+  const btnSelectAll = document.getElementById('btn-select-all');
+  const btnClearAll = document.getElementById('btn-clear-all');
+  const btnCopy = document.getElementById('btn-copy');
+  const btnUndo = document.getElementById('btn-undo');
 
-  // --- 主題切換 ---
-  function applyTheme(t){document.body.dataset.theme=t;localStorage.setItem('livepad_theme',t);
-    setStatus(t==='light'?'☀️ 白色模式':'🌙 深色模式');}
-  btnTheme.onclick=()=>applyTheme(document.body.dataset.theme==='light'?'dark':'light');
-  const savedTheme=localStorage.getItem('livepad_theme')||'dark';applyTheme(savedTheme);
+  let debounceTimer = null;
+  let codeMatches = [];
+  let currentCodeMatch = -1;
+  let history = [];
+  let historyIndex = -1;
 
-  // --- 比例調整 ---
-  function applySplit(v){const p=Math.max(20,Math.min(80,Math.round(v)));
-    document.documentElement.style.setProperty('--left',p+'%');
-    document.documentElement.style.setProperty('--right',(100-p)+'%');
-    range.value=p;localStorage.setItem('livepad_split',p);}
-  range.oninput=()=>applySplit(range.value);
-  resetBtn.onclick=()=>{applySplit(50);setStatus('已重置比例');}
-  const savedSplit=parseInt(localStorage.getItem('livepad_split')||'50',10);
-  applySplit(isNaN(savedSplit)?50:savedSplit);
+  const DEFAULT_HTML = `<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>我的頁面</title>
+  <style>
+    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Helvetica, Arial; margin:2rem; line-height:1.6}
+    h1{font-size:clamp(1.6rem, 2.5vw, 2rem);}
+    p{margin:.5rem 0}
+    .note{padding:.5rem .75rem; border:1px dashed #9ca3af; border-radius:.5rem; background:#f8fafc}
+    mark{padding:.05rem .2rem; border-radius:.2rem}
+  </style>
+</head>
+<body>
+  <h1>歡迎使用即時 HTML 編輯器 ✨</h1>
+  <p>左側輸入 HTML，右側即時預覽。試著輸入一些 <strong>段落文字</strong>，再用上方的搜尋框尋找吧。</p>
+  <p class="note">提示：本工具會搜尋程式碼內容，並支援取代功能。</p>
+  <p>快速鍵：<kbd>Ctrl/Cmd + S</kbd> 下載、<kbd>Ctrl/Cmd + F</kbd> 搜尋。</p>
+</body>
+</html>`;
 
-  // --- 載入檔案 ---
-  document.getElementById('btn-load').onclick=()=>fileOpen.click();
-  fileOpen.onchange=async(e)=>{
-    const f=e.target.files?.[0];if(!f)return;
-    const text=await f.text();editor.value=text;updatePreview();
-    localStorage.setItem('livepad_html',text);
-    setStatus('已載入：'+f.name);fileOpen.value='';
-  };
+  function saveToHistory(content){
+    if(historyIndex < history.length - 1){
+      history = history.slice(0, historyIndex + 1);
+    }
+    history.push(content);
+    if(history.length > 50) history.shift();
+    else historyIndex++;
+  }
 
-  // --- 下載檔案 ---
-  document.getElementById('btn-save').onclick=()=>{
-    const name=prompt("請輸入檔名（不含副檔名）","my-page")||"live-html";
-    const blob=new Blob([editor.value],{type:'text/html;charset=utf-8'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);a.download=name+".html";
-    document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);
-    setStatus('已下載 '+name+'.html');
-  };
+  function setStatus(msg){
+    statusEl.textContent = msg;
+    clearTimeout(setStatus._t);
+    setStatus._t = setTimeout(()=> statusEl.textContent = '就緒', 1200);
+  }
 
-  // --- 整理排版 ---
-  document.getElementById('btn-format').onclick=()=>{
-    editor.value=simpleFormat(editor.value);
-    localStorage.setItem('livepad_html',editor.value);
-    updatePreview();setStatus('已整理 HTML 結構');
-  };
+  function injectPreview(html){
+    const wrapper = `<!doctype html><html><head><meta charset="utf-8"><style>
+      html{scroll-behavior:smooth}
+    </style></head><body data-livepad>
+    ${html}
+    </body></html>`;
+    preview.srcdoc = wrapper;
+  }
+
+  function updatePreview(){
+    injectPreview(editor.value);
+  }
+
+  function debounceUpdate(){
+    if(!autoUpdate.checked) return;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(updatePreview, 250);
+  }
+
+  function searchInCode(){
+    const query = searchCodeBox.value;
+    codeMatches = [];
+    currentCodeMatch = -1;
+
+    if(!query){
+      codeCountEl.textContent = '0';
+      codeIdxEl.textContent = '-';
+      return;
+    }
+
+    const code = editor.value;
+    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    let match;
+    
+    while((match = regex.exec(code)) !== null){
+      codeMatches.push({
+        index: match.index,
+        length: match[0].length
+      });
+    }
+
+    codeCountEl.textContent = String(codeMatches.length);
+    
+    if(codeMatches.length > 0){
+      currentCodeMatch = 0;
+      highlightCodeMatch();
+    } else {
+      codeIdxEl.textContent = '-';
+    }
+  }
+
+  function highlightCodeMatch(){
+    if(currentCodeMatch < 0 || currentCodeMatch >= codeMatches.length){
+      codeIdxEl.textContent = '-';
+      return;
+    }
+
+    const match = codeMatches[currentCodeMatch];
+    editor.focus();
+    editor.setSelectionRange(match.index, match.index + match.length);
+    
+    const lineHeight = 20;
+    const lines = editor.value.substring(0, match.index).split('\n').length;
+    editor.scrollTop = Math.max(0, (lines - 10) * lineHeight);
+    
+    codeIdxEl.textContent = `${currentCodeMatch + 1}/${codeMatches.length}`;
+  }
+
+  function nextCodeMatch(){
+    if(codeMatches.length === 0) return;
+    currentCodeMatch = (currentCodeMatch + 1) % codeMatches.length;
+    highlightCodeMatch();
+  }
+
+  function prevCodeMatch(){
+    if(codeMatches.length === 0) return;
+    currentCodeMatch = (currentCodeMatch - 1 + codeMatches.length) % codeMatches.length;
+    highlightCodeMatch();
+  }
+
+  function replaceCurrentMatch(){
+    if(currentCodeMatch < 0 || currentCodeMatch >= codeMatches.length){
+      setStatus('請先搜尋並選擇要取代的內容');
+      return;
+    }
+
+    const searchText = searchCodeBox.value;
+    const replaceText = replaceCodeBox.value;
+    
+    if(!searchText){
+      setStatus('請輸入搜尋內容');
+      return;
+    }
+
+    saveToHistory(editor.value);
+    
+    const match = codeMatches[currentCodeMatch];
+    const before = editor.value.substring(0, match.index);
+    const after = editor.value.substring(match.index + match.length);
+    
+    editor.value = before + replaceText + after;
+    localStorage.setItem('livepad_html', editor.value);
+    updatePreview();
+    
+    searchInCode();
+    setStatus('✓ 已取代 1 處');
+  }
+
+  function replaceAllMatches(){
+    const searchText = searchCodeBox.value;
+    const replaceText = replaceCodeBox.value;
+    
+    if(!searchText){
+      setStatus('請輸入搜尋內容');
+      return;
+    }
+
+    if(codeMatches.length === 0){
+      setStatus('找不到符合的內容');
+      return;
+    }
+
+    if(!confirm(`確定要取代全部 ${codeMatches.length} 處符合的內容嗎？`)){
+      return;
+    }
+
+    saveToHistory(editor.value);
+    
+    const regex = new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+    editor.value = editor.value.replace(regex, replaceText);
+    
+    const count = codeMatches.length;
+    localStorage.setItem('livepad_html', editor.value);
+    updatePreview();
+    searchInCode();
+    
+    setStatus(`✓ 已取代 ${count} 處`);
+  }
+
+  function saveAs(){
+    const blob = new Blob([editor.value], {type:'text/html;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'live-html.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    setStatus('✓ 已下載');
+  }
+
+  function openFile(){ fileOpen.click(); }
+
+  fileOpen.addEventListener('change', async (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+    
+    try {
+      const text = await file.text();
+      saveToHistory(editor.value);
+      editor.value = text;
+      updatePreview();
+      localStorage.setItem('livepad_html', text);
+      setStatus(`✓ 已載入：${file.name}`);
+    } catch(error) {
+      setStatus('❌ 讀取檔案失敗');
+      console.error('File read error:', error);
+    }
+    
+    fileOpen.value = '';
+  });
+
+  function newDoc(){
+    if(editor.value.trim() && !confirm('確定清空目前內容？')) return;
+    saveToHistory(editor.value);
+    editor.value = DEFAULT_HTML;
+    updatePreview();
+    searchCodeBox.value = '';
+    replaceCodeBox.value = '';
+    searchInCode();
+    localStorage.setItem('livepad_html', editor.value);
+    setStatus('✓ 已建立新檔');
+  }
+
+  function selectAll(){
+    editor.select();
+    editor.focus();
+    setStatus('✓ 已全選');
+  }
+
+  function clearAll(){
+    if(!editor.value.trim()){
+      setStatus('編輯器已是空的');
+      return;
+    }
+    if(!confirm('確定要清空全部內容嗎？此操作可復原。')){
+      return;
+    }
+    saveToHistory(editor.value);
+    editor.value = '';
+    updatePreview();
+    localStorage.setItem('livepad_html', '');
+    setStatus('✓ 已清空內容');
+  }
+
+  function copyToClipboard(){
+    if(!editor.value.trim()){
+      setStatus('無內容可複製');
+      return;
+    }
+    navigator.clipboard.writeText(editor.value).then(()=>{
+      setStatus('✓ 已複製到剪貼簿');
+    }).catch(()=>{
+      editor.select();
+      document.execCommand('copy');
+      setStatus('✓ 已複製到剪貼簿');
+    });
+  }
+
+  function undo(){
+    if(historyIndex <= 0){
+      setStatus('無法復原');
+      return;
+    }
+    historyIndex--;
+    editor.value = history[historyIndex];
+    updatePreview();
+    localStorage.setItem('livepad_html', editor.value);
+    setStatus('✓ 已復原');
+  }
+
   function simpleFormat(html){
     try{
-      const parser=new DOMParser();const doc=parser.parseFromString(html,'text/html');
-      const voids=new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
-      let out='',indent=0;const pad=n=>'  '.repeat(n);
-      function walk(node){for(const c of node.childNodes){
-        if(c.nodeType===1){const tag=c.tagName.toLowerCase();
-          out+=`\n${pad(indent)}<${tag}${[...c.attributes].map(a=>` ${a.name}="${a.value}"`).join('')}>`;
-          if(!voids.has(tag)){indent++;walk(c);indent--;out+=`\n${pad(indent)}</${tag}>`;}}
-        else if(c.nodeType===3){const t=c.nodeValue.replace(/\s+/g,' ').trim();if(t)out+=`\n${pad(indent)}${t}`;}
-        else if(c.nodeType===8){out+=`\n${pad(indent)}<!--${c.nodeValue}-->`;}}}
-      walk(doc.documentElement);return '<!DOCTYPE html>'+out.trimStart();
-    }catch(e){return html;}
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const voids = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+      let out = '';
+      let indent = 0;
+      const pad = (n)=>'  '.repeat(n);
+      function walk(node){
+        for(const child of node.childNodes){
+          if(child.nodeType === 1){
+            const tag = child.tagName.toLowerCase();
+            out += `\n${pad(indent)}<${tag}${[...child.attributes].map(a=>` ${a.name}="${a.value}"`).join('')}>`;
+            if(!voids.has(tag)){
+              indent++;
+              walk(child);
+              indent--;
+              out += `\n${pad(indent)}</${tag}>`;
+            }
+          } else if(child.nodeType === 3){
+            const text = child.nodeValue.replace(/\s+/g,' ').trim();
+            if(text) out += `\n${pad(indent)}${text}`;
+          } else if(child.nodeType === 8){
+            out += `\n${pad(indent)}<!--${child.nodeValue}-->`;
+          }
+        }
+      }
+      walk(doc.documentElement);
+      out = '<!DOCTYPE html>' + out + '\n';
+      return out.trimStart();
+    }catch(e){
+      return html;
+    }
   }
 
-  // --- 預覽 ---
-  function injectPreview(html){
-    preview.srcdoc=`<!doctype html><html><head><meta charset='utf-8'></head><body>${html}</body></html>`;
-  }
-  function updatePreview(){injectPreview(editor.value);}
-  function debounceUpdate(){clearTimeout(debounceTimer);debounceTimer=setTimeout(updatePreview,250);}
-  editor.oninput=()=>{localStorage.setItem('livepad_html',editor.value);debounceUpdate();};
+  editor.addEventListener('input', ()=>{ 
+    localStorage.setItem('livepad_html', editor.value); 
+    debounceUpdate();
+    if(searchCodeBox.value){
+      searchInCode();
+    }
+  });
+  
+  searchCodeBox.addEventListener('input', searchInCode);
+  btnNextCode.addEventListener('click', nextCodeMatch);
+  btnPrevCode.addEventListener('click', prevCodeMatch);
+  btnReplaceOne.addEventListener('click', replaceCurrentMatch);
+  btnReplaceAll.addEventListener('click', replaceAllMatches);
+  btnSave.addEventListener('click', saveAs);
+  btnOpen.addEventListener('click', openFile);
+  btnNew.addEventListener('click', newDoc);
+  btnSelectAll.addEventListener('click', selectAll);
+  btnClearAll.addEventListener('click', clearAll);
+  btnCopy.addEventListener('click', copyToClipboard);
+  btnUndo.addEventListener('click', undo);
+  btnFormat.addEventListener('click', ()=>{ 
+    saveToHistory(editor.value);
+    editor.value = simpleFormat(editor.value); 
+    setStatus('✓ 已格式化'); 
+    updatePreview(); 
+    localStorage.setItem('livepad_html', editor.value); 
+  });
 
-  // --- 快捷鍵 ---
-  window.onkeydown=(e)=>{
-    const mac=navigator.platform.toUpperCase().includes('MAC');
-    if((mac?e.metaKey:e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();document.getElementById('btn-save').click();}
-    if(e.altKey&&e.key.toLowerCase()==='l'){e.preventDefault();document.getElementById('btn-load').click();}
-    if(e.altKey&&e.key.toLowerCase()==='f'){e.preventDefault();document.getElementById('btn-format').click();}
-    if(e.altKey&&e.key.toLowerCase()==='r'){e.preventDefault();resetBtn.click();}
-    if(e.altKey&&e.key.toLowerCase()==='b'){e.preventDefault();btnTheme.click();}
-  };
+  window.addEventListener('keydown', (e)=>{
+    const isMac = navigator.platform.toUpperCase().includes('MAC');
+    const ctrlCmd = isMac ? e.metaKey : e.ctrlKey;
+    
+    if(ctrlCmd && e.key.toLowerCase() === 's'){
+      e.preventDefault(); saveAs();
+    }
+    if(e.altKey && e.key.toLowerCase() === 'c'){
+      e.preventDefault(); clearAll();
+    }
+    if(ctrlCmd && e.key.toLowerCase() === 'z' && !e.shiftKey){
+      e.preventDefault(); undo();
+    }
+    if(ctrlCmd && e.key.toLowerCase() === 'f'){
+      e.preventDefault();
+      searchCodeBox.focus();
+      setTimeout(()=>searchCodeBox.select(), 0);
+    }
+    if(e.altKey && e.key.toLowerCase() === 'u'){ 
+      e.preventDefault(); 
+      autoUpdate.checked = !autoUpdate.checked; 
+      setStatus('自動更新：' + (autoUpdate.checked?'開啟':'關閉')); 
+    }
+    if(e.altKey && e.key.toLowerCase() === 'f'){ 
+      e.preventDefault(); btnFormat.click(); 
+    }
+    if(e.altKey && e.key.toLowerCase() === 'n'){ 
+      e.preventDefault(); newDoc(); 
+    }
+    if(e.altKey && e.key.toLowerCase() === 'o'){ 
+      e.preventDefault(); openFile(); 
+    }
+    if(e.key === 'F3' || (ctrlCmd && e.key.toLowerCase() === 'g')){
+      e.preventDefault();
+      if(e.shiftKey) prevCodeMatch();
+      else nextCodeMatch();
+    }
+  });
 
-  // --- 初始化 ---
-  editor.value=localStorage.getItem('livepad_html')||
-  "<h1>歡迎使用即時 HTML 編輯器 ✨</h1><p>可載入、下載與整理 HTML。</p>";
+  const cached = localStorage.getItem('livepad_html');
+  const initial = cached || DEFAULT_HTML;
+  editor.value = initial;
+  saveToHistory(initial);
   updatePreview();
 })();
 </script>
 </body>
 </html>
-
