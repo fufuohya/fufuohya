@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>作品集｜FuSheng 的工具箱</title>
-  <meta name="description" content="FuSheng 的作品集：食品法規與營養標示、文件處理、效率工具與 AI 小幫手。可搜尋、可篩選，快速了解每個作品的價值與特色。" />
+  <title>FuSheng｜作品集工具箱</title>
+  <meta name="description" content="FuSheng 的作品集：食品法規與營養標示、文件處理、效率工具與 AI 自動化。可搜尋、可篩選，快速理解每個作品。" />
+
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
@@ -22,17 +23,13 @@
       --brand1:#7c3aed;
       --brand2:#22c55e;
       --brand3:#38bdf8;
-
       --radius: 18px;
       --radius2: 14px;
-
       --max: 1180px;
       --pad: 22px;
-
       --focus: rgba(56,189,248,.55);
     }
 
-    /* Light mode variables */
     [data-theme="light"]{
       --bg: #f6f7fb;
       --bg2:#ffffff;
@@ -132,6 +129,7 @@
       align-items:center;
       gap: 8px;
       transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+      text-decoration: none;
     }
     .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow2); }
     .btn:active{ transform: translateY(0); }
@@ -279,9 +277,7 @@
       transition-delay: var(--delay, 0ms);
     }
     body.is-ready .card{ opacity: 1; transform: translateY(0); }
-
     .card.hidden{ display:none; }
-
     .card::before{
       content:"";
       position:absolute;
@@ -290,13 +286,32 @@
       background: linear-gradient(90deg, var(--brand3), var(--brand2), var(--brand1));
       opacity: .9;
     }
-
     .card-inner{
       padding: 18px 18px 16px;
       display:flex;
       flex-direction: column;
       gap: 10px;
     }
+
+    /* Placeholder cover (for future screenshots) */
+    .cover{
+      width: 100%;
+      height: 170px;
+      border-radius: 14px;
+      border: 1px dashed color-mix(in srgb, var(--line) 95%, transparent);
+      background:
+        radial-gradient(420px 180px at 10% 0%, color-mix(in srgb, var(--brand1) 24%, transparent), transparent 60%),
+        radial-gradient(420px 180px at 90% 10%, color-mix(in srgb, var(--brand3) 20%, transparent), transparent 60%),
+        color-mix(in srgb, var(--card2) 80%, transparent);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 10px;
+      color: color-mix(in srgb, var(--text) 78%, var(--muted));
+      font-size: 13px;
+      user-select:none;
+    }
+    .cover i{ opacity:.9; }
 
     .card-head{
       display:flex;
@@ -402,7 +417,7 @@
         color-mix(in srgb, var(--brand1) 35%, transparent),
         color-mix(in srgb, var(--brand3) 25%, transparent));
       color: var(--text);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 13px;
       transition: transform .12s ease, box-shadow .12s ease;
       white-space: nowrap;
@@ -444,7 +459,7 @@
     footer a{
       color: color-mix(in srgb, var(--brand3) 70%, var(--text));
       text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
     }
     footer a:hover{ text-decoration: underline; }
 
@@ -464,9 +479,9 @@
       .controls{ gap: 10px; }
       .chips{ justify-content: flex-start; }
       .mini{ display:none; }
+      .cover{ height: 150px; }
     }
 
-    /* Reduced motion */
     @media (prefers-reduced-motion: reduce){
       *{ scroll-behavior:auto !important; }
       .card{ transition:none !important; }
@@ -476,14 +491,13 @@
 </head>
 
 <body>
-  <!-- Topbar -->
   <div class="topbar" role="banner">
     <div class="topbar-inner">
       <div class="brand" aria-label="網站標題">
         <div class="brand-badge" aria-hidden="true"><i class="fa-solid fa-toolbox"></i></div>
         <div class="brand-title">
           <strong>FuSheng｜作品集工具箱</strong>
-          <span>食品法規 × 自動化 × 文件處理 × AI</span>
+          <span>食品法規 × 文件處理 × AI 自動化 × 效率工具</span>
         </div>
       </div>
 
@@ -493,7 +507,6 @@
           <span>外觀</span>
           <span class="hint" id="themeHint">Auto</span>
         </button>
-
         <a class="btn" href="#works" aria-label="跳到作品區">
           <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
           <span>看作品</span>
@@ -503,14 +516,13 @@
   </div>
 
   <div class="wrap">
-    <!-- Hero -->
     <header class="hero">
       <div class="hero-inner">
         <div>
-          <h1>把複雜的事，做成一鍵就能用的工具</h1>
+          <h1>把複雜流程，做成一鍵就能用的工具</h1>
           <p>
-            這裡整理我做過的一些 HTML / Apps Script / Streamlit / VBA 小作品。
-            你可以用「搜尋」快速定位，或用「分類」秒懂我擅長的領域。
+            這裡整理我做過的一些 HTML / Apps Script / Streamlit / VBA 作品。你可以用「搜尋」快速定位，
+            或用「分類」一眼看懂我擅長的領域。封面圖片之後會逐步補齊，先讓網站上線。
           </p>
         </div>
 
@@ -525,7 +537,7 @@
           <div class="kpi">
             <div>
               <strong id="kpiVisible">—</strong><br />
-              <span>符合篩選的作品</span>
+              <span>符合條件作品數</span>
             </div>
             <i class="fa-solid fa-filter" aria-hidden="true"></i>
           </div>
@@ -533,7 +545,6 @@
       </div>
     </header>
 
-    <!-- Controls -->
     <section class="controls" aria-label="搜尋與篩選">
       <label class="search" aria-label="搜尋作品">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -563,28 +574,31 @@
       找不到符合條件的作品。你可以試試看：縮短關鍵字、切回「全部」或清空搜尋。
     </div>
 
-    <!-- Works -->
     <main id="works" class="grid" aria-label="作品列表">
+      <!-- Card helper:
+           - data-category: food | docs | ai | utility
+           - data-tags: keywords for search
+           - cover placeholder now; later replace cover div with <img class="cover-img" ...> or keep as placeholder
+      -->
 
-      <!-- 1 -->
-      <article class="card tool-card"
-        data-category="utility"
-        data-tags="HTML,前端,編輯器,預覽"
-      >
+      <article class="card tool-card" data-category="utility" data-tags="HTML,前端,編輯器,預覽,live preview">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-code"></i></div>
               <div>
                 <h3 class="tool-title">即時 HTML 編輯與預覽</h3>
-                <p class="summary tool-summary">
-                  同一頁面完成撰寫與預覽，適合快速測試範例、教學展示與原型驗證。
-                </p>
+                <p class="summary tool-summary">同一頁面完成撰寫與預覽，適合快速測試範例、教學展示與原型驗證。</p>
               </div>
             </div>
           </div>
 
-          <div class="meta" aria-label="標籤">
+          <div class="meta">
             <span class="tag">HTML</span><span class="tag">Live Preview</span><span class="tag">前端工具</span>
           </div>
 
@@ -596,8 +610,8 @@
             <div class="detail-body">
               <ul class="bullets">
                 <li>即時編輯與預覽：所見即所得，縮短試錯時間。</li>
-                <li>程式碼關鍵字搜尋：快速定位段落與標記。</li>
-                <li>可調整編輯/預覽寬度：更符合你的閱讀習慣。</li>
+                <li>程式碼搜尋：快速定位段落與標記。</li>
+                <li>可調整編輯/預覽比例：更符合閱讀習慣。</li>
               </ul>
             </div>
           </details>
@@ -606,31 +620,30 @@
             <a class="link tool-link" href="./tools/preview_html.html" target="_blank" rel="noopener">
               <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
             </a>
-            <div class="mini"><i class="fa-solid fa-clock" aria-hidden="true"></i>快速原型/教學</div>
+            <div class="mini"><i class="fa-solid fa-bolt" aria-hidden="true"></i>快速原型</div>
           </div>
         </div>
       </article>
 
-      <!-- 2 -->
-      <article class="card tool-card"
-        data-category="food"
-        data-tags="食品法規,營養標示,台灣,PDF,Excel,HTML"
-      >
+      <article class="card tool-card" data-category="food" data-tags="食品法規,營養標示,台灣,PDF,Excel,HTML,v1.42">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-seedling"></i></div>
               <div>
                 <h3 class="tool-title">台灣食品營養標示製作工具</h3>
-                <p class="summary tool-summary">
-                  依產品型態與族群條件建立符合台灣規範的營養標示，支援多格式與匯出。
-                </p>
+                <p class="summary tool-summary">依產品型態與族群條件建立符合台灣規範的營養標示，支援多格式與匯出。</p>
               </div>
             </div>
           </div>
 
-          <div class="meta" aria-label="標籤">
-            <span class="tag">v1.42</span><span class="tag">繁中</span><span class="tag">PDF/HTML/Excel 匯出</span>
+          <div class="meta">
+            <span class="tag">v1.42</span><span class="tag">繁中</span><span class="tag">PDF/HTML/Excel</span>
           </div>
 
           <details>
@@ -640,17 +653,17 @@
             </summary>
             <div class="detail-body">
               <ul class="bullets">
-                <li>分步式引導：降低使用門檻，幾分鐘就能產出標示。</li>
-                <li>多格式支援：一般食品、膠囊錠狀、維礦添加等應用情境。</li>
-                <li>多元匯出：可輸出 PDF / HTML / Excel，便於交付與留存。</li>
+                <li>分步式引導：降低使用門檻，快速產出標示。</li>
+                <li>多格式支援：一般食品、膠囊錠狀、維礦添加等。</li>
+                <li>多元匯出：PDF / HTML / Excel，便於交付與留存。</li>
               </ul>
             </div>
           </details>
 
           <div class="card-actions">
             <a class="link tool-link"
-              href="https://fufuohya.github.io/fufuohya/tools/Taiwan%20Food%20Nutrition%20Label%20Generator.html"
-              target="_blank" rel="noopener">
+               href="https://fufuohya.github.io/fufuohya/tools/Taiwan%20Food%20Nutrition%20Label%20Generator.html"
+               target="_blank" rel="noopener">
               <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
             </a>
             <div class="mini"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>法規導向</div>
@@ -658,20 +671,19 @@
         </div>
       </article>
 
-      <!-- 3 -->
-      <article class="card tool-card"
-        data-category="food"
-        data-tags="營養計算,核對,每日參考值"
-      >
+      <article class="card tool-card" data-category="food" data-tags="營養計算,核對,每日參考值,每份,每100克">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-calculator"></i></div>
               <div>
                 <h3 class="tool-title">一般營養標示計算器</h3>
-                <p class="summary tool-summary">
-                  快速換算每份/每 100 公克數值，並檢查每日參考值百分比的合理性。
-                </p>
+                <p class="summary tool-summary">快速換算每份/每 100 公克數值，協助複核標示計算的合理性。</p>
               </div>
             </div>
           </div>
@@ -688,8 +700,8 @@
             <div class="detail-body">
               <ul class="bullets">
                 <li>輸入重量與營養素，立即得到每份/每 100 公克換算值。</li>
-                <li>協助核對現有標示是否可能存在計算誤差。</li>
-                <li>適合內部品管、自查與交付前複核。</li>
+                <li>可作為交付前複核、內部品管自查工具。</li>
+                <li>降低人工計算失誤與溝通成本。</li>
               </ul>
             </div>
           </details>
@@ -703,20 +715,19 @@
         </div>
       </article>
 
-      <!-- 4 -->
-      <article class="card tool-card"
-        data-category="utility"
-        data-tags="錄音,重複播放,前端"
-      >
+      <article class="card tool-card" data-category="utility" data-tags="錄音,重複播放,loop,audio">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-microphone"></i></div>
               <div>
                 <h3 class="tool-title">錄音重複撥放器</h3>
-                <p class="summary tool-summary">
-                  錄下訊息並循環播放，減少重複講解的負擔，簡單直接好上手。
-                </p>
+                <p class="summary tool-summary">錄下訊息並循環播放，減少重複講解的負擔，簡單直接好上手。</p>
               </div>
             </div>
           </div>
@@ -748,20 +759,19 @@
         </div>
       </article>
 
-      <!-- 5 -->
-      <article class="card tool-card"
-        data-category="ai"
-        data-tags="Gemini,標籤,擷取,AI"
-      >
+      <article class="card tool-card" data-category="ai" data-tags="Gemini,標籤,擷取,AI,成分,規格,警語">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-cubes"></i></div>
               <div>
                 <h3 class="tool-title">標籤智能抓取</h3>
-                <p class="summary tool-summary">
-                  透過模型協助從標籤文字抓出重點，讓整理成分、規格與警語更快速。
-                </p>
+                <p class="summary tool-summary">透過模型協助從標籤文字抓出重點，讓整理成分、規格與警語更快速。</p>
               </div>
             </div>
           </div>
@@ -777,8 +787,8 @@
             </summary>
             <div class="detail-body">
               <ul class="bullets">
-                <li>快速萃取：主要成分、規格、警語等關鍵欄位。</li>
-                <li>降低人工逐字閱讀與複製貼上的時間成本。</li>
+                <li>快速萃取主要欄位：成分、規格、警語等。</li>
+                <li>降低人工逐字閱讀與整理時間成本。</li>
                 <li>適合作為資料庫建檔與初稿整理工具。</li>
               </ul>
             </div>
@@ -793,20 +803,19 @@
         </div>
       </article>
 
-      <!-- 6 -->
-      <article class="card tool-card"
-        data-category="utility"
-        data-tags="證件照,裁切,排版,列印"
-      >
+      <article class="card tool-card" data-category="utility" data-tags="證件照,裁切,排版,列印,photo">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-id-card"></i></div>
               <div>
                 <h3 class="tool-title">證件照裁切工具</h3>
-                <p class="summary tool-summary">
-                  協助裁切與排版證件照，對應常見尺寸需求，並可輸出列印版面。
-                </p>
+                <p class="summary tool-summary">協助裁切與排版證件照，對應常見尺寸需求，並可輸出列印版面。</p>
               </div>
             </div>
           </div>
@@ -838,20 +847,19 @@
         </div>
       </article>
 
-      <!-- 7 -->
-      <article class="card tool-card"
-        data-category="food"
-        data-tags="食品法規,營養計算,平台,Apps Script"
-      >
+      <article class="card tool-card" data-category="food" data-tags="食品法規,營養計算,平台,Apps Script,安全">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-microchip"></i></div>
               <div>
                 <h3 class="tool-title">一站式食品法規與營養計算平台</h3>
-                <p class="summary tool-summary">
-                  把法規查詢與營養計算整合成一個入口，降低跨工具切換與資料散落的成本。
-                </p>
+                <p class="summary tool-summary">把法規查詢與營養計算整合成一個入口，降低跨工具切換與資料散落成本。</p>
               </div>
             </div>
           </div>
@@ -867,17 +875,17 @@
             </summary>
             <div class="detail-body">
               <ul class="bullets">
-                <li>法規查詢：集中入口，提升查找效率。</li>
-                <li>營養計算：支援配方/標示相關換算。</li>
-                <li>適合團隊：可納入既有工作流程與資料控管。</li>
+                <li>集中入口：法規查詢與計算工具整合。</li>
+                <li>降低重複作業：減少資料搬運與版本混亂。</li>
+                <li>可納入既有流程：適合個人與團隊使用。</li>
               </ul>
             </div>
           </details>
 
           <div class="card-actions">
             <a class="link tool-link"
-              href="https://script.google.com/macros/s/AKfycbyQuToVFBuenWsuB5T3dsIMWqDTavSp0Dem6NBQwOKQwXtwRduCkDhumN0sEYQ8IBGO/exec"
-              target="_blank" rel="noopener">
+               href="https://script.google.com/macros/s/AKfycbyQuToVFBuenWsuB5T3dsIMWqDTavSp0Dem6NBQwOKQwXtwRduCkDhumN0sEYQ8IBGO/exec"
+               target="_blank" rel="noopener">
               <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟平台
             </a>
             <div class="mini"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>整合入口</div>
@@ -885,20 +893,19 @@
         </div>
       </article>
 
-      <!-- 8 -->
-      <article class="card tool-card"
-        data-category="ai"
-        data-tags="COSING,INCI,化妝品,查詢"
-      >
+      <article class="card tool-card" data-category="ai" data-tags="COSING,INCI,化妝品,查詢,歐盟">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-flask-vial"></i></div>
               <div>
                 <h3 class="tool-title">COSing INCI 成分快查</h3>
-                <p class="summary tool-summary">
-                  快速查詢 INCI 成分的用途分類與限制資訊，方便補齊成分資料庫缺口。
-                </p>
+                <p class="summary tool-summary">快速查詢 INCI 成分的用途分類與限制資訊，便於補齊成分資料庫缺口。</p>
               </div>
             </div>
           </div>
@@ -914,9 +921,9 @@
             </summary>
             <div class="detail-body">
               <ul class="bullets">
-                <li>連結 COSING：快速取得官方資料庫資訊。</li>
-                <li>顯示功能分類與限制：便於後續風險評估與建檔。</li>
-                <li>適合資料補全：把查到的資訊直接回填你的成分庫。</li>
+                <li>查詢 COSING：快速取得資料庫資訊。</li>
+                <li>顯示用途分類與限制：便於後續評估與建檔。</li>
+                <li>適合資料補全：把查到的資訊回填你的成分庫。</li>
               </ul>
             </div>
           </details>
@@ -930,20 +937,19 @@
         </div>
       </article>
 
-      <!-- 9 -->
-      <article class="card tool-card"
-        data-category="ai"
-        data-tags="新聞,爬蟲,關鍵字,彙整,Apps Script"
-      >
+      <article class="card tool-card" data-category="ai" data-tags="新聞,爬蟲,關鍵字,彙整,Apps Script,定時">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-newspaper"></i></div>
               <div>
                 <h3 class="tool-title">智能新聞彙整工具</h3>
-                <p class="summary tool-summary">
-                  定時抓取多來源新聞，依關鍵字整理重點，讓資訊追蹤變得更省時。
-                </p>
+                <p class="summary tool-summary">定時抓取多來源新聞，依關鍵字整理重點，讓資訊追蹤更省時。</p>
               </div>
             </div>
           </div>
@@ -959,17 +965,17 @@
             </summary>
             <div class="detail-body">
               <ul class="bullets">
-                <li>自動新聞抓取：集中各來源的最新內容。</li>
+                <li>自動抓取：集中各來源最新內容。</li>
                 <li>關鍵字分類：快速掌握特定領域動態。</li>
-                <li>一站式瀏覽：減少跳頁與手動收藏成本。</li>
+                <li>一站式瀏覽：減少手動收藏與跳頁。</li>
               </ul>
             </div>
           </details>
 
           <div class="card-actions">
             <a class="link tool-link"
-              href="https://script.google.com/macros/s/AKfycbxFRzxfsaMICxJiRUCG1G__fwbjVK-DLZmrGOEc9Sws0YxYIdA3AimYKx7YdjNFeP0K/exec"
-              target="_blank" rel="noopener">
+               href="https://script.google.com/macros/s/AKfycbxFRzxfsaMICxJiRUCG1G__fwbjVK-DLZmrGOEc9Sws0YxYIdA3AimYKx7YdjNFeP0K/exec"
+               target="_blank" rel="noopener">
               <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>查看彙整
             </a>
             <div class="mini"><i class="fa-solid fa-rss" aria-hidden="true"></i>資訊追蹤</div>
@@ -977,20 +983,19 @@
         </div>
       </article>
 
-      <!-- 10 -->
-      <article class="card tool-card"
-        data-category="docs"
-        data-tags="PDF,遮罩,隱私,關鍵字"
-      >
+      <article class="card tool-card" data-category="docs" data-tags="PDF,遮罩,隱私,關鍵字,redaction">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-file-contract"></i></div>
               <div>
                 <h3 class="tool-title">PDF 關鍵字遮罩工具</h3>
-                <p class="summary tool-summary">
-                  自動掃描並遮蔽 PDF 中指定關鍵字，適合個資、合約與內部文件外發前處理。
-                </p>
+                <p class="summary tool-summary">自動掃描並遮蔽 PDF 中指定關鍵字，適合個資、合約與內部文件外發前處理。</p>
               </div>
             </div>
           </div>
@@ -1008,7 +1013,7 @@
               <ul class="bullets">
                 <li>關鍵字搜尋與遮罩：降低敏感資訊外洩風險。</li>
                 <li>適用情境：法務文件、個資處理、內部報告分享。</li>
-                <li>可搭配關鍵字清單：提高處理一致性與效率。</li>
+                <li>可搭配關鍵字清單：提高處理一致性。</li>
               </ul>
             </div>
           </details>
@@ -1022,20 +1027,19 @@
         </div>
       </article>
 
-      <!-- 11 -->
-      <article class="card tool-card"
-        data-category="docs"
-        data-tags="PDF,比對,版本,差異"
-      >
+      <article class="card tool-card" data-category="docs" data-tags="PDF,比對,版本,差異,diff">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-file-code"></i></div>
               <div>
                 <h3 class="tool-title">PDF 差異比對工具</h3>
-                <p class="summary tool-summary">
-                  上傳兩份 PDF 就能比對差異並標示變動，適合合約審閱與版本追蹤。
-                </p>
+                <p class="summary tool-summary">上傳兩份 PDF 即可比對差異並標示變動，適合合約審閱與版本追蹤。</p>
               </div>
             </div>
           </div>
@@ -1052,8 +1056,8 @@
             <div class="detail-body">
               <ul class="bullets">
                 <li>快速定位差異：節省逐字比對的時間。</li>
-                <li>適用多情境：合約、技術文件、標準作業文件更新。</li>
-                <li>降低人為疏漏：提高版本審閱的可靠性。</li>
+                <li>適用：合約、技術文件、SOP 更新追蹤。</li>
+                <li>降低人為疏漏：提升審閱可靠性。</li>
               </ul>
             </div>
           </details>
@@ -1067,20 +1071,19 @@
         </div>
       </article>
 
-      <!-- 12 -->
-      <article class="card tool-card"
-        data-category="utility"
-        data-tags="開發中,待續"
-      >
+      <article class="card tool-card" data-category="utility" data-tags="開發中,待續,wip,roadmap">
         <div class="card-inner">
+          <div class="cover" aria-label="封面圖片佔位">
+            <i class="fa-regular fa-image" aria-hidden="true"></i>
+            封面截圖待補（cover.jpg）
+          </div>
+
           <div class="card-head">
             <div class="title-wrap">
               <div class="icon" aria-hidden="true"><i class="fa-solid fa-hourglass-half"></i></div>
               <div>
                 <h3 class="tool-title">未完待續</h3>
-                <p class="summary tool-summary">
-                  這裡保留給下一個作品。等我把它打磨到「一看就懂、一用就順」再上線。
-                </p>
+                <p class="summary tool-summary">更多作品正在打磨中：一看就懂、一用就順，完成後再上線。</p>
               </div>
             </div>
           </div>
@@ -1096,7 +1099,7 @@
             </summary>
             <div class="detail-body">
               <ul class="bullets">
-                <li>持續新增：把日常工作中高頻、重複的流程工具化。</li>
+                <li>持續新增：把高頻、重複流程工具化。</li>
                 <li>優先原則：可交付、可重用、可維護。</li>
               </ul>
             </div>
@@ -1113,14 +1116,11 @@
 
     </main>
 
-    <!-- Footer -->
     <footer>
-      <div>
-        Made by FuSheng ・ <span id="year"></span>
-      </div>
+      <div>Made by FuSheng ・ <span id="year"></span></div>
       <div>
         <a href="https://github.com/your-username" target="_blank" rel="noopener">GitHub</a>
-        <span style="opacity:.7;">｜如果有 bug：先微笑，再修正。</span>
+        <span style="opacity:.7;">｜有 bug：先微笑，再修正。</span>
       </div>
     </footer>
   </div>
@@ -1139,7 +1139,6 @@
       }
 
       function applyTheme(mode) {
-        // mode: auto|light|dark
         const resolved = (mode === "auto") ? getSystemTheme() : mode;
         root.setAttribute("data-theme", resolved);
         themeHint.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
@@ -1154,7 +1153,6 @@
       let currentPref = localStorage.getItem(THEME_KEY) || "auto";
       applyTheme(currentPref);
 
-      // react to system changes when in auto
       const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: light)") : null;
       if (mq && mq.addEventListener) {
         mq.addEventListener("change", () => {
@@ -1172,10 +1170,9 @@
       // ---- Year ----
       document.getElementById("year").textContent = new Date().getFullYear();
 
-      // ---- Cards reveal (delays) ----
+      // ---- Cards reveal delays ----
       const cards = Array.from(document.querySelectorAll(".tool-card"));
       cards.forEach((card, idx) => card.style.setProperty("--delay", `${idx * 60}ms`));
-      // prevent motion flash, then reveal
       requestAnimationFrame(() => document.body.classList.add("is-ready"));
 
       // ---- Search + Filter ----
@@ -1229,8 +1226,6 @@
       });
 
       searchInput.addEventListener("input", applyFilters);
-
-      // initial
       applyFilters();
     })();
   </script>
