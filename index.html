@@ -1,597 +1,1238 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的 HTML 工具箱 | 專業又搞笑的收藏</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>作品集｜FuSheng 的工具箱</title>
+  <meta name="description" content="FuSheng 的作品集：食品法規與營養標示、文件處理、效率工具與 AI 小幫手。可搜尋、可篩選，快速了解每個作品的價值與特色。" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
+  <style>
+    :root{
+      --bg: #0b1220;
+      --bg2:#0f1a33;
+      --card:#0f172a;
+      --card2:#101c36;
+      --text:#e5e7eb;
+      --muted:#a7b0c0;
+      --line: rgba(255,255,255,.12);
+      --shadow: 0 18px 60px rgba(0,0,0,.35);
+      --shadow2: 0 10px 30px rgba(0,0,0,.25);
+      --brand1:#7c3aed;
+      --brand2:#22c55e;
+      --brand3:#38bdf8;
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+      --radius: 18px;
+      --radius2: 14px;
 
-        .header {
-            text-align: center;
-            margin-bottom: 50px;
-            padding: 60px 0;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+      --max: 1180px;
+      --pad: 22px;
 
-        .header h1 {
-            font-size: 3.5em;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            margin-bottom: 20px;
-            position: relative;
-        }
+      --focus: rgba(56,189,248,.55);
+    }
 
-        .header h1::before {
-            content: "🛠️";
-            position: absolute;
-            left: -80px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.8em;
-            animation: bounce 2s infinite;
-        }
+    /* Light mode variables */
+    [data-theme="light"]{
+      --bg: #f6f7fb;
+      --bg2:#ffffff;
+      --card:#ffffff;
+      --card2:#ffffff;
+      --text:#111827;
+      --muted:#4b5563;
+      --line: rgba(17,24,39,.10);
+      --shadow: 0 18px 60px rgba(17,24,39,.10);
+      --shadow2: 0 10px 30px rgba(17,24,39,.08);
+      --focus: rgba(124,58,237,.30);
+    }
 
-        .header p {
-            font-size: 1.3em;
-            color: rgba(255, 255, 255, 0.9);
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 15% 5%, rgba(124,58,237,.40), transparent 60%),
+        radial-gradient(900px 540px at 85% 0%, rgba(56,189,248,.35), transparent 55%),
+        radial-gradient(900px 600px at 75% 85%, rgba(34,197,94,.25), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      min-height:100vh;
+    }
 
-        .subtitle {
-            font-style: italic;
-            margin-top: 10px;
-            opacity: 0.8;
-        }
+    a{ color:inherit; }
+    .wrap{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 26px var(--pad) 44px;
+    }
 
-        .search-container {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+    /* Top bar */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      background: color-mix(in srgb, var(--bg2) 65%, transparent);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 12px var(--pad);
+      display:flex;
+      gap: 12px;
+      align-items:center;
+      justify-content: space-between;
+    }
+    .brand{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      min-width: 240px;
+    }
+    .brand-badge{
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand3));
+      box-shadow: 0 10px 26px rgba(124,58,237,.25);
+      display:grid;
+      place-items:center;
+      border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+    }
+    .brand-badge i{ color: white; }
+    .brand-title{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+    .brand-title strong{
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .brand-title span{
+      font-size: 12px;
+      color: var(--muted);
+    }
 
-        .search-container input {
-            padding: 12px 20px;
-            width: 100%;
-            max-width: 500px;
-            border: none;
-            border-radius: 25px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 1em;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
+    .actions{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+    }
+    .btn{
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 60%, transparent);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow2); }
+    .btn:active{ transform: translateY(0); }
+    .btn:focus{ outline: 3px solid var(--focus); outline-offset: 2px; }
+    .btn .hint{ font-size: 12px; color: var(--muted); }
 
-        .search-container input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
+    /* Hero */
+    .hero{
+      margin-top: 22px;
+      border-radius: 24px;
+      padding: 34px 28px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--card) 82%, transparent), color-mix(in srgb, var(--card2) 85%, transparent));
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(600px 260px at 20% 0%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(520px 260px at 80% 10%, rgba(56,189,248,.30), transparent 60%),
+        radial-gradient(520px 300px at 70% 100%, rgba(34,197,94,.20), transparent 60%);
+      pointer-events:none;
+    }
+    .hero-inner{
+      position:relative;
+      display:grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 18px;
+      align-items: center;
+    }
+    .hero h1{
+      margin:0 0 10px;
+      font-size: clamp(28px, 3.2vw, 44px);
+      letter-spacing: -0.5px;
+    }
+    .hero p{
+      margin: 0;
+      color: color-mix(in srgb, var(--text) 88%, var(--muted));
+      line-height: 1.7;
+      max-width: 62ch;
+      font-size: 15.5px;
+    }
+    .hero .kpis{
+      display:grid;
+      gap: 10px;
+      justify-items: end;
+    }
+    .kpi{
+      width: min(320px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--card) 86%, transparent);
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .kpi strong{ font-size: 18px; }
+    .kpi span{ font-size: 12px; color: var(--muted); }
+    .kpi i{ color: color-mix(in srgb, var(--brand3) 80%, var(--text)); }
 
-        .search-container input:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
+    /* Controls */
+    .controls{
+      margin: 18px 0 10px;
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .search{
+      flex: 1 1 360px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 78%, transparent);
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow2);
+      min-height: 48px;
+    }
+    .search i{ color: var(--muted); }
+    .search input{
+      width:100%;
+      border:none;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    .search input::placeholder{ color: color-mix(in srgb, var(--muted) 90%, transparent); }
 
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 50px;
-        }
+    .chips{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 72%, transparent);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+      user-select:none;
+    }
+    .chip:hover{ transform: translateY(-1px); box-shadow: var(--shadow2); }
+    .chip[aria-pressed="true"]{
+      border-color: color-mix(in srgb, var(--brand3) 45%, var(--line));
+      background: linear-gradient(135deg, color-mix(in srgb, var(--brand1) 24%, transparent), color-mix(in srgb, var(--brand3) 18%, transparent));
+    }
 
-        .tool-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: block;
-        }
+    /* Grid */
+    .grid{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+    .card{
+      grid-column: span 4;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 86%, transparent);
+      box-shadow: var(--shadow2);
+      overflow: hidden;
+      position: relative;
 
-        .tool-card.hidden {
-            display: none;
-        }
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .55s ease, transform .55s ease;
+      transition-delay: var(--delay, 0ms);
+    }
+    body.is-ready .card{ opacity: 1; transform: translateY(0); }
 
-        .tool-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
-            transition: left 0.5s ease;
-        }
+    .card.hidden{ display:none; }
 
-        .tool-card:hover::before {
-            left: 0;
-        }
+    .card::before{
+      content:"";
+      position:absolute;
+      left:0; top:0; right:0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand3), var(--brand2), var(--brand1));
+      opacity: .9;
+    }
 
-        .tool-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
+    .card-inner{
+      padding: 18px 18px 16px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-        .tool-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+    .card-head{
+      display:flex;
+      gap: 12px;
+      align-items:flex-start;
+      justify-content: space-between;
+    }
+    .title-wrap{
+      display:flex;
+      gap: 12px;
+      align-items:flex-start;
+    }
 
-        .tool-icon {
-    font-size: 48px;   /* 圖示大小 */
-    color: #2c3e50;    /* 預設顏色，可以自己換 */
-    margin-right: 10px;
-}
+    .icon{
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display:grid;
+      place-items:center;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--brand1) 18%, transparent), color-mix(in srgb, var(--brand3) 14%, transparent));
+    }
+    .icon i{ font-size: 18px; }
 
-        .tool-icon.python {
-            color: #306998; /* Python 藍 */
-        }
+    .card h3{
+      margin:0;
+      font-size: 16.5px;
+      letter-spacing: -.2px;
+    }
+    .summary{
+      margin:0;
+      color: color-mix(in srgb, var(--text) 78%, var(--muted));
+      line-height: 1.65;
+      font-size: 13.8px;
+      min-height: 44px;
+    }
 
-        .tool-icon.vba {
-            color: #4CAF50; /* VBA 綠 */
-        }
+    .meta{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items:center;
+      margin-top: 2px;
+    }
+    .tag{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card2) 78%, transparent);
+      color: color-mix(in srgb, var(--text) 86%, var(--muted));
+    }
 
-        .tool-title {
-            font-size: 1.5em;
-            font-weight: 600;
-            color: #333;
-        }
+    details{
+      border: 1px dashed color-mix(in srgb, var(--line) 90%, transparent);
+      border-radius: var(--radius2);
+      overflow: hidden;
+      background: color-mix(in srgb, var(--card2) 72%, transparent);
+    }
+    details summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 11px 12px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      color: color-mix(in srgb, var(--text) 90%, var(--muted));
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    details summary:focus{ outline: 3px solid var(--focus); outline-offset: 2px; }
+    details .detail-body{
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--line);
+      color: color-mix(in srgb, var(--text) 80%, var(--muted));
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .bullets{
+      margin: 0;
+      padding-left: 18px;
+      display:grid;
+      gap: 6px;
+    }
 
-        .tool-description {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
+    .card-actions{
+      margin-top: 4px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content: space-between;
+    }
+    .link{
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+      text-decoration:none;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg,
+        color-mix(in srgb, var(--brand1) 35%, transparent),
+        color-mix(in srgb, var(--brand3) 25%, transparent));
+      color: var(--text);
+      font-weight: 600;
+      font-size: 13px;
+      transition: transform .12s ease, box-shadow .12s ease;
+      white-space: nowrap;
+    }
+    .link:hover{ transform: translateY(-1px); box-shadow: var(--shadow2); }
+    .link:focus{ outline: 3px solid var(--focus); outline-offset: 2px; }
+    .mini{
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      white-space: nowrap;
+    }
 
-        .tool-link {
-            display: inline-block;
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            text-decoration: none;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
+    .empty{
+      margin: 18px 0 0;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: color-mix(in srgb, var(--card) 84%, transparent);
+      color: color-mix(in srgb, var(--text) 82%, var(--muted));
+      display:none;
+    }
 
-        .tool-link:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+    /* Footer */
+    footer{
+      margin-top: 24px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items:center;
+    }
+    footer a{
+      color: color-mix(in srgb, var(--brand3) 70%, var(--text));
+      text-decoration: none;
+      font-weight: 600;
+    }
+    footer a:hover{ text-decoration: underline; }
 
-        details {
-            margin-top: 20px;
-            font-size: 0.9em;
-        }
+    /* Responsive */
+    @media (max-width: 1024px){
+      .card{ grid-column: span 6; }
+      .hero-inner{ grid-template-columns: 1fr; }
+      .hero .kpis{ justify-items: start; }
+    }
+    @media (max-width: 640px){
+      .wrap{ padding: 18px 14px 34px; }
+      .topbar-inner{ padding: 10px 14px; }
+      .brand{ min-width: auto; }
+      .brand-title span{ display:none; }
+      .card{ grid-column: span 12; }
+      .hero{ padding: 26px 18px; }
+      .controls{ gap: 10px; }
+      .chips{ justify-content: flex-start; }
+      .mini{ display:none; }
+    }
 
-        details summary {
-            cursor: pointer;
-            color: #667eea;
-            font-weight: 500;
-            padding: 10px;
-            border-radius: 5px;
-            background: rgba(0, 0, 0, 0.05);
-            transition: background 0.3s ease;
-        }
-
-        details summary:hover {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .code-example {
-            background: rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            margin-top: 10px;
-            overflow-x: auto;
-            font-size: 0.9em;
-            color: #333;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            color: white;
-        }
-
-        .footer a {
-            color: #4ecdc4;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .footer a:hover {
-            color: #ff6b6b;
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(-50%) translateX(0); }
-            40% { transform: translateY(-50%) translateX(-10px) rotate(-10deg); }
-            60% { transform: translateY(-50%) translateX(-5px) rotate(5deg); }
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.5em;
-            }
-            
-            .header h1::before {
-                display: none;
-            }
-            
-            .tools-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ scroll-behavior:auto !important; }
+      .card{ transition:none !important; }
+      .btn, .chip, .link{ transition:none !important; }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>我的 HTML 工具箱</h1>
-            <p>蒐集我精心打造的 HTML、Python 和 VBA 小工具，專業又不失幽默！</p>
-            <p class="subtitle">每個工具都像咖啡一樣提神，卻不會讓你睡不著 😜</p>
-        </header>
-
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="搜尋工具（例如：時間、銷售、發票）..." />
+  <!-- Topbar -->
+  <div class="topbar" role="banner">
+    <div class="topbar-inner">
+      <div class="brand" aria-label="網站標題">
+        <div class="brand-badge" aria-hidden="true"><i class="fa-solid fa-toolbox"></i></div>
+        <div class="brand-title">
+          <strong>FuSheng｜作品集工具箱</strong>
+          <span>食品法規 × 自動化 × 文件處理 × AI</span>
         </div>
+      </div>
 
-        <div class="tools-grid" id="toolsGrid">
-<!-- HTML 即時預覽工具卡片 -->
-<div class="tool-card">
-  <div class="tool-header">
-    <i class="fas fa-code tool-icon"></i>
-    <h3 class="tool-title">即時 HTML 編輯與預覽</h3>
-  </div>
-  <p class="tool-summary">
-    即時 HTML 編輯器帶有預覽區，支援搜尋與調整寬度，可同步顯示程式碼和結果。
-  </p>
-  <details>
-    <summary>特色</summary>
-    <div class="code-example"><pre>✏️ 即時編輯與預覽：在同一介面撰寫 HTML 並即時顯示效果
-🔍 關鍵字搜尋：支援在程式碼中搜尋文字，快速定位段落
-↔️ 可調預覽寬度：拖曳分隔條調整編輯區與預覽區比例
-🧪 適合練習與展示：用於快速測試標記語法或製作教學範例</pre></div>
-  </details>
-  <a href="./tools/preview_html.html" class="tool-link" target="_blank">
-    <i class="fas fa-external-link-alt"></i> 開啟編輯器
-  </a>
-</div>
+      <div class="actions">
+        <button class="btn" id="themeBtn" type="button" aria-label="切換深色/淺色模式">
+          <i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+          <span>外觀</span>
+          <span class="hint" id="themeHint">Auto</span>
+        </button>
 
-<!-- HTML 工具卡片 -->
-<div class="tool-card">
-  <div class="tool-header">
-    <i class="fas fa-seedling tool-icon" aria-hidden="true"></i>
-    <h3 class="tool-title">台灣食品營養標示製作工具</h3>
+        <a class="btn" href="#works" aria-label="跳到作品區">
+          <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+          <span>看作品</span>
+        </a>
+      </div>
+    </div>
   </div>
 
-  <p class="tool-summary">
-    依產品類型及適用族群建立符合台灣法規的營養標示，支援多種格式與匯出。
-  </p>
+  <div class="wrap">
+    <!-- Hero -->
+    <header class="hero">
+      <div class="hero-inner">
+        <div>
+          <h1>把複雜的事，做成一鍵就能用的工具</h1>
+          <p>
+            這裡整理我做過的一些 HTML / Apps Script / Streamlit / VBA 小作品。
+            你可以用「搜尋」快速定位，或用「分類」秒懂我擅長的領域。
+          </p>
+        </div>
 
-  <details>
-    <summary>特色</summary>
-    <div class="code-example"><pre>🧭 分步式引導：依次選擇產品型態、適用對象及標示格式【842938158232198†L12-L36】
-📊 輸入營養數據：支援八大營養素、維生素與礦物質輸入及 IU 換算【842938158232198†L50-L103】
-📋 多種格式：支援格式 1/2/3，含依族群計算每日參考值與維生素 A/D/E 必填【842938158232198†L12-L33】【842938158232198†L90-L103】
-📥 多元匯出：生成直式或橫式標示並可輸出 PDF、HTML、Excel</pre></div>
-  </details>
+        <div class="kpis" aria-label="統計資訊">
+          <div class="kpi">
+            <div>
+              <strong id="kpiTotal">—</strong><br />
+              <span>目前收錄作品數</span>
+            </div>
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          </div>
+          <div class="kpi">
+            <div>
+              <strong id="kpiVisible">—</strong><br />
+              <span>符合篩選的作品</span>
+            </div>
+            <i class="fa-solid fa-filter" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+    </header>
 
-  <div class="tool-meta">
-    <span class="badge">v1.42</span>
-    <span class="badge">繁中</span>
+    <!-- Controls -->
+    <section class="controls" aria-label="搜尋與篩選">
+      <label class="search" aria-label="搜尋作品">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="searchInput" type="search" placeholder="搜尋：營養標示、PDF、新聞、INCI、錄音…" autocomplete="off" />
+      </label>
+
+      <div class="chips" role="group" aria-label="作品分類">
+        <button class="chip" type="button" data-filter="all" aria-pressed="true">
+          <i class="fa-solid fa-border-all" aria-hidden="true"></i>全部
+        </button>
+        <button class="chip" type="button" data-filter="food" aria-pressed="false">
+          <i class="fa-solid fa-utensils" aria-hidden="true"></i>食品法規/營養
+        </button>
+        <button class="chip" type="button" data-filter="docs" aria-pressed="false">
+          <i class="fa-solid fa-file-lines" aria-hidden="true"></i>文件處理
+        </button>
+        <button class="chip" type="button" data-filter="ai" aria-pressed="false">
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>AI/自動化
+        </button>
+        <button class="chip" type="button" data-filter="utility" aria-pressed="false">
+          <i class="fa-solid fa-bolt" aria-hidden="true"></i>效率工具
+        </button>
+      </div>
+    </section>
+
+    <div class="empty" id="emptyState" role="status" aria-live="polite">
+      找不到符合條件的作品。你可以試試看：縮短關鍵字、切回「全部」或清空搜尋。
+    </div>
+
+    <!-- Works -->
+    <main id="works" class="grid" aria-label="作品列表">
+
+      <!-- 1 -->
+      <article class="card tool-card"
+        data-category="utility"
+        data-tags="HTML,前端,編輯器,預覽"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-code"></i></div>
+              <div>
+                <h3 class="tool-title">即時 HTML 編輯與預覽</h3>
+                <p class="summary tool-summary">
+                  同一頁面完成撰寫與預覽，適合快速測試範例、教學展示與原型驗證。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta" aria-label="標籤">
+            <span class="tag">HTML</span><span class="tag">Live Preview</span><span class="tag">前端工具</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>即時編輯與預覽：所見即所得，縮短試錯時間。</li>
+                <li>程式碼關鍵字搜尋：快速定位段落與標記。</li>
+                <li>可調整編輯/預覽寬度：更符合你的閱讀習慣。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="./tools/preview_html.html" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-clock" aria-hidden="true"></i>快速原型/教學</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2 -->
+      <article class="card tool-card"
+        data-category="food"
+        data-tags="食品法規,營養標示,台灣,PDF,Excel,HTML"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-seedling"></i></div>
+              <div>
+                <h3 class="tool-title">台灣食品營養標示製作工具</h3>
+                <p class="summary tool-summary">
+                  依產品型態與族群條件建立符合台灣規範的營養標示，支援多格式與匯出。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta" aria-label="標籤">
+            <span class="tag">v1.42</span><span class="tag">繁中</span><span class="tag">PDF/HTML/Excel 匯出</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>分步式引導：降低使用門檻，幾分鐘就能產出標示。</li>
+                <li>多格式支援：一般食品、膠囊錠狀、維礦添加等應用情境。</li>
+                <li>多元匯出：可輸出 PDF / HTML / Excel，便於交付與留存。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link"
+              href="https://fufuohya.github.io/fufuohya/tools/Taiwan%20Food%20Nutrition%20Label%20Generator.html"
+              target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>法規導向</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3 -->
+      <article class="card tool-card"
+        data-category="food"
+        data-tags="營養計算,核對,每日參考值"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-calculator"></i></div>
+              <div>
+                <h3 class="tool-title">一般營養標示計算器</h3>
+                <p class="summary tool-summary">
+                  快速換算每份/每 100 公克數值，並檢查每日參考值百分比的合理性。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">換算</span><span class="tag">驗證</span><span class="tag">食品</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>輸入重量與營養素，立即得到每份/每 100 公克換算值。</li>
+                <li>協助核對現有標示是否可能存在計算誤差。</li>
+                <li>適合內部品管、自查與交付前複核。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="./tools/NutritionCheck-1.html" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>快速核對</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4 -->
+      <article class="card tool-card"
+        data-category="utility"
+        data-tags="錄音,重複播放,前端"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-microphone"></i></div>
+              <div>
+                <h3 class="tool-title">錄音重複撥放器</h3>
+                <p class="summary tool-summary">
+                  錄下訊息並循環播放，減少重複講解的負擔，簡單直接好上手。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">錄音</span><span class="tag">Loop</span><span class="tag">效率</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>一鍵錄音、停止、播放。</li>
+                <li>支援循環播放，適合固定提醒或教學語句。</li>
+                <li>降低重複說明與嗓音消耗。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="./tools/recordvoice.html" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-headphones" aria-hidden="true"></i>語音小幫手</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 5 -->
+      <article class="card tool-card"
+        data-category="ai"
+        data-tags="Gemini,標籤,擷取,AI"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-cubes"></i></div>
+              <div>
+                <h3 class="tool-title">標籤智能抓取</h3>
+                <p class="summary tool-summary">
+                  透過模型協助從標籤文字抓出重點，讓整理成分、規格與警語更快速。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">AI</span><span class="tag">萃取</span><span class="tag">效率</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>快速萃取：主要成分、規格、警語等關鍵欄位。</li>
+                <li>降低人工逐字閱讀與複製貼上的時間成本。</li>
+                <li>適合作為資料庫建檔與初稿整理工具。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="./tools/labelcheck.html" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-wand-magic" aria-hidden="true"></i>自動萃取</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 6 -->
+      <article class="card tool-card"
+        data-category="utility"
+        data-tags="證件照,裁切,排版,列印"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-id-card"></i></div>
+              <div>
+                <h3 class="tool-title">證件照裁切工具</h3>
+                <p class="summary tool-summary">
+                  協助裁切與排版證件照，對應常見尺寸需求，並可輸出列印版面。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">影像處理</span><span class="tag">排版</span><span class="tag">列印</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>快速裁切：按常見規範調整頭部與背景比例。</li>
+                <li>多尺寸：支援不同證件需求的尺寸配置。</li>
+                <li>合併排版：一次輸出多張，方便列印。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="./tools/ID%20Photo%20Crop%20%26%20Layout%20Tool.html" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-scissors" aria-hidden="true"></i>裁切排版</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 7 -->
+      <article class="card tool-card"
+        data-category="food"
+        data-tags="食品法規,營養計算,平台,Apps Script"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-microchip"></i></div>
+              <div>
+                <h3 class="tool-title">一站式食品法規與營養計算平台</h3>
+                <p class="summary tool-summary">
+                  把法規查詢與營養計算整合成一個入口，降低跨工具切換與資料散落的成本。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">平台化</span><span class="tag">法規</span><span class="tag">計算</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>法規查詢：集中入口，提升查找效率。</li>
+                <li>營養計算：支援配方/標示相關換算。</li>
+                <li>適合團隊：可納入既有工作流程與資料控管。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link"
+              href="https://script.google.com/macros/s/AKfycbyQuToVFBuenWsuB5T3dsIMWqDTavSp0Dem6NBQwOKQwXtwRduCkDhumN0sEYQ8IBGO/exec"
+              target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟平台
+            </a>
+            <div class="mini"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i>整合入口</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 8 -->
+      <article class="card tool-card"
+        data-category="ai"
+        data-tags="COSING,INCI,化妝品,查詢"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-flask-vial"></i></div>
+              <div>
+                <h3 class="tool-title">COSing INCI 成分快查</h3>
+                <p class="summary tool-summary">
+                  快速查詢 INCI 成分的用途分類與限制資訊，方便補齊成分資料庫缺口。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">化妝品</span><span class="tag">資料查詢</span><span class="tag">Streamlit</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>連結 COSING：快速取得官方資料庫資訊。</li>
+                <li>顯示功能分類與限制：便於後續風險評估與建檔。</li>
+                <li>適合資料補全：把查到的資訊直接回填你的成分庫。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="https://fufuohya-kyfwip2et6auoltptkj9mv.streamlit.app/" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>INCI 快查</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 9 -->
+      <article class="card tool-card"
+        data-category="ai"
+        data-tags="新聞,爬蟲,關鍵字,彙整,Apps Script"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-newspaper"></i></div>
+              <div>
+                <h3 class="tool-title">智能新聞彙整工具</h3>
+                <p class="summary tool-summary">
+                  定時抓取多來源新聞，依關鍵字整理重點，讓資訊追蹤變得更省時。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">彙整</span><span class="tag">關鍵字</span><span class="tag">定時更新</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>自動新聞抓取：集中各來源的最新內容。</li>
+                <li>關鍵字分類：快速掌握特定領域動態。</li>
+                <li>一站式瀏覽：減少跳頁與手動收藏成本。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link"
+              href="https://script.google.com/macros/s/AKfycbxFRzxfsaMICxJiRUCG1G__fwbjVK-DLZmrGOEc9Sws0YxYIdA3AimYKx7YdjNFeP0K/exec"
+              target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>查看彙整
+            </a>
+            <div class="mini"><i class="fa-solid fa-rss" aria-hidden="true"></i>資訊追蹤</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 10 -->
+      <article class="card tool-card"
+        data-category="docs"
+        data-tags="PDF,遮罩,隱私,關鍵字"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-file-contract"></i></div>
+              <div>
+                <h3 class="tool-title">PDF 關鍵字遮罩工具</h3>
+                <p class="summary tool-summary">
+                  自動掃描並遮蔽 PDF 中指定關鍵字，適合個資、合約與內部文件外發前處理。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">資安/隱私</span><span class="tag">PDF</span><span class="tag">自動化</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>關鍵字搜尋與遮罩：降低敏感資訊外洩風險。</li>
+                <li>適用情境：法務文件、個資處理、內部報告分享。</li>
+                <li>可搭配關鍵字清單：提高處理一致性與效率。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="https://fufuohya-jr54g4yhtv2az4z3mk7b4k.streamlit.app/" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>遮罩保護</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 11 -->
+      <article class="card tool-card"
+        data-category="docs"
+        data-tags="PDF,比對,版本,差異"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-file-code"></i></div>
+              <div>
+                <h3 class="tool-title">PDF 差異比對工具</h3>
+                <p class="summary tool-summary">
+                  上傳兩份 PDF 就能比對差異並標示變動，適合合約審閱與版本追蹤。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">版本控管</span><span class="tag">審閱</span><span class="tag">PDF</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 特色亮點</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>快速定位差異：節省逐字比對的時間。</li>
+                <li>適用多情境：合約、技術文件、標準作業文件更新。</li>
+                <li>降低人為疏漏：提高版本審閱的可靠性。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="https://fufuohya-8p3dbalpbnurkkcuufjuod.streamlit.app/" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>開啟工具
+            </a>
+            <div class="mini"><i class="fa-solid fa-code-compare" aria-hidden="true"></i>差異標示</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 12 -->
+      <article class="card tool-card"
+        data-category="utility"
+        data-tags="開發中,待續"
+      >
+        <div class="card-inner">
+          <div class="card-head">
+            <div class="title-wrap">
+              <div class="icon" aria-hidden="true"><i class="fa-solid fa-hourglass-half"></i></div>
+              <div>
+                <h3 class="tool-title">未完待續</h3>
+                <p class="summary tool-summary">
+                  這裡保留給下一個作品。等我把它打磨到「一看就懂、一用就順」再上線。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <span class="tag">WIP</span><span class="tag">Roadmap</span>
+          </div>
+
+          <details>
+            <summary>
+              <span><i class="fa-solid fa-sparkles" aria-hidden="true"></i> 目前規劃</span>
+              <span class="tag">點我展開</span>
+            </summary>
+            <div class="detail-body">
+              <ul class="bullets">
+                <li>持續新增：把日常工作中高頻、重複的流程工具化。</li>
+                <li>優先原則：可交付、可重用、可維護。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="card-actions">
+            <a class="link tool-link" href="./tools/invoice-organizer.xlsm" target="_blank" rel="noopener">
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>先看雛形
+            </a>
+            <div class="mini"><i class="fa-solid fa-person-digging" aria-hidden="true"></i>開發中</div>
+          </div>
+        </div>
+      </article>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div>
+        Made by FuSheng ・ <span id="year"></span>
+      </div>
+      <div>
+        <a href="https://github.com/your-username" target="_blank" rel="noopener">GitHub</a>
+        <span style="opacity:.7;">｜如果有 bug：先微笑，再修正。</span>
+      </div>
+    </footer>
   </div>
 
-  <a
-    href="https://fufuohya.github.io/fufuohya/tools/Taiwan%20Food%20Nutrition%20Label%20Generator.html"
-    class="tool-link"
-    target="_blank"
-    rel="noopener"
-  >
-    <i class="fas fa-external-link-alt" aria-hidden="true"></i> 開啟工具
-  </a>
-</div>
+  <script>
+    (function () {
+      const root = document.documentElement;
 
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-calculator tool-icon"></i>
-        <h3 class="tool-title">一般營養標示計算器</h3>
-    </div>
-    <p class="tool-summary">
-        簡易計算營養標示數值，驗證每份與每100克營養含量是否正確。
-    </p>
+      // ---- Theme (Auto/Light/Dark) ----
+      const themeBtn = document.getElementById("themeBtn");
+      const themeHint = document.getElementById("themeHint");
+      const THEME_KEY = "portfolio_theme_pref"; // "auto" | "light" | "dark"
 
-    <details>
-        <summary>特色</summary>
-        <div class="code-example"><pre>🧮 自動換算：輸入重量與營養素，立即換算每份與每100克營養值
-✅ 核對每日參考值：計算每日參考值百分比，檢查標示是否符合規範
-📝 適合檢測：用於檢驗現有標示計算是否有誤差</pre></div>
-    </details>
-    <a href="./tools/NutritionCheck-1.html" class="tool-link" target="_blank">
-        <i class="fas fa-external-link-alt"></i> 法規確認
-    </a>
-</div>
+      function getSystemTheme() {
+        return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      }
 
-<!-- Python 工具卡片 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-microphone tool-icon"></i>
-        <h3 class="tool-title">錄音重複撥放器</h3>
-    </div>
-    <p class="tool-summary">
-        錄製語音並循環播放，節省家長重複說話的時間與嗓力。
-    </p>
+      function applyTheme(mode) {
+        // mode: auto|light|dark
+        const resolved = (mode === "auto") ? getSystemTheme() : mode;
+        root.setAttribute("data-theme", resolved);
+        themeHint.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+      }
 
-    <details>
-        <summary>特色</summary>
-        <div class="code-example"><pre>🎙️ 簡易錄音：錄製自己的聲音或訊息
-🔁 重複播放：自動循環播放錄音，解放嗓子
-🔊 調整功能：支援音量與播放速度調整</pre></div>
-    </details>
-    <a href="./tools/recordvoice.html" class="tool-link" target="_blank">
-        <i class="fas fa-external-link-alt"></i> 聲音重播
-    </a>
-</div>
+      function nextTheme(mode) {
+        if (mode === "auto") return "light";
+        if (mode === "light") return "dark";
+        return "auto";
+      }
 
-<!-- VBA 工具卡片 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-cubes tool-icon"></i>
-        <h3 class="tool-title">標籤智能抓取</h3>
-    </div>
-    <p class="tool-summary">
-        利用 Gemini 模型擷取標籤上的重點資訊，快速收斂內容。
-    </p>
+      let currentPref = localStorage.getItem(THEME_KEY) || "auto";
+      applyTheme(currentPref);
 
-    <details>
-        <summary>特色</summary>
-        <div class="code-example"><pre>🧠 智能分析：連結 Gemini 模型解析標籤內容
-📄 擷取要點：自動萃取主要成分、規格與警語等關鍵資料
-💡 降低負擔：減少人工逐字讀取與整理時間</pre></div>
-    </details>
-    <a href="./tools/labelcheck.html" class="tool-link" target="_blank">
-        <i class="fas fa-external-link-alt"></i> 我自己用的啦
-    </a>
-</div>
+      // react to system changes when in auto
+      const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: light)") : null;
+      if (mq && mq.addEventListener) {
+        mq.addEventListener("change", () => {
+          const pref = localStorage.getItem(THEME_KEY) || "auto";
+          if (pref === "auto") applyTheme("auto");
+        });
+      }
 
-<!-- VBA 工具卡片 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-id-card tool-icon"></i>
-        <h3 class="tool-title">證件照裁切工具</h3>
-    </div>
-    <p class="tool-summary">
-        裁切並排版證件照片，符合各國證件規格，提供列印格式。
-    </p>
+      themeBtn.addEventListener("click", () => {
+        currentPref = nextTheme(currentPref);
+        localStorage.setItem(THEME_KEY, currentPref);
+        applyTheme(currentPref);
+      });
 
-    <details>
-        <summary>特色</summary>
-        <div class="code-example"><pre>✂️ 自動裁切：根據規範裁切頭部與背景比例
-📐 多國尺寸：支援多種證件尺寸與背景設定
-🖨️ 合併排版：一次排版多張照片並輸出列印檔案</pre></div>
-    </details>
-    <a href="./tools/ID Photo Crop & Layout Tool.html" class="tool-link" target="_blank">
-        <i class="fas fa-external-link-alt"></i> 我自己用的啦
-    </a>
-</div>
+      // ---- Year ----
+      document.getElementById("year").textContent = new Date().getFullYear();
 
-<!-- VBA 工具卡片 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-microchip tool-icon"></i>
-        <h3 class="tool-title">一站式食品法規與營養計算平台</h3>
-    </div>
-    <p class="tool-summary">
-        整合法規查詢與營養計算的一站式平台，協助遵循食品法規。
-    </p>
+      // ---- Cards reveal (delays) ----
+      const cards = Array.from(document.querySelectorAll(".tool-card"));
+      cards.forEach((card, idx) => card.style.setProperty("--delay", `${idx * 60}ms`));
+      // prevent motion flash, then reveal
+      requestAnimationFrame(() => document.body.classList.add("is-ready"));
 
-    <!-- 新增功能特色區塊 -->
-    <details>
-        <summary>特色</summary>
-        <div class="code-example"><pre>📚 法規查詢：提供最新食品法規與相關解讀
-🧮 營養計算：支援配方營養值計算與標示生成
-🔐 安全資料：平台運作在安全環境，保護資料隱私
-🔧 使用說明：內建簡表與公式可提供進階使用</pre></div>
-    </details>
-    <a href="https://script.google.com/macros/s/AKfycbyQuToVFBuenWsuB5T3dsIMWqDTavSp0Dem6NBQwOKQwXtwRduCkDhumN0sEYQ8IBGO/exec" class="tool-link" target="_blank">
-        <i class="fas fa-external-link-alt"></i> 超級厲害
-    </a>
-</div>
+      // ---- Search + Filter ----
+      const searchInput = document.getElementById("searchInput");
+      const chips = Array.from(document.querySelectorAll(".chip"));
+      const emptyState = document.getElementById("emptyState");
 
-<!-- ★ 新增：COSing 快速爬取 INCI 成分資訊 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-flask-vial tool-icon"></i>
-        <h3 class="tool-title">COSing INCI 成分快查</h3>
-    </div>
-    <p class="tool-summary">
-        快速查詢 INCI 成分資訊，包括功用分類與限制。
-    </p>
-    <!-- 特色與使用提示合併 -->
-    <details>
-        <summary>特色</summary>
-        <div class="code-example"><pre>🔗 連結 COSING：查詢歐盟官方 COSING 資料庫
-⚙️ 功能分類：顯示成分的功能類別與限制
-📑 補全資料：可用於填補未收錄的成分資訊，便於後續評估
-💡 使用建議：輸入 INCI 名稱後查詢，將結果複製到你的成分資料庫以便後續評估</pre></div>
-    </details>
-    <a href="https://fufuohya-kyfwip2et6auoltptkj9mv.streamlit.app/" class="tool-link" target="_blank" rel="noopener">
-        <i class="fas fa-external-link-alt"></i> 開啟工具
-    </a>
-</div>
+      const kpiTotal = document.getElementById("kpiTotal");
+      const kpiVisible = document.getElementById("kpiVisible");
+      kpiTotal.textContent = String(cards.length);
 
-<!-- ★ 智能新聞彙整工具 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-newspaper tool-icon"></i>
-        <h3 class="tool-title">智能新聞彙整工具</h3>
-    </div>
-    <p class="tool-summary">
-        定時爬取多來源新聞，按關鍵字與熱度整理文章，助您即時掌握動態。
-    </p>
-    <details>
-        <summary>特色</summary>
-        <div class="code-example">
-            <pre>📰 自動新聞爬取：定時從多個新聞網站擷取最新資訊
-🔍 關鍵字分類：依據設定關鍵字智能整理新聞內容
-⚡ 即時更新：提供最新的新聞動態與重要資訊
-🎯 快速瀏覽：一站式新聞彙整，節省資訊搜尋時間
-💡 使用建議：適合需要快速掌握特定領域新聞的使用者</pre>
-        </div>
-    </details>
-    <a href="https://script.google.com/macros/s/AKfycbxFRzxfsaMICxJiRUCG1G__fwbjVK-DLZmrGOEc9Sws0YxYIdA3AimYKx7YdjNFeP0K/exec" class="tool-link" target="_blank" rel="noopener">
-        <i class="fas fa-external-link-alt"></i> 查看新聞彙整
-    </a>
-</div>
+      let activeFilter = "all";
 
-<!-- 📕 PDF 關鍵字遮罩工具 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-file-contract tool-icon"></i>
-        <h3 class="tool-title">PDF 關鍵字遮罩工具</h3>
-    </div>
-    <p class="tool-summary">
-        自動掃描 PDF 遮蔽指定關鍵字，保護敏感資訊。
-    </p>
-    <details>
-        <summary>特色</summary>
-        <div class="code-example">
-            <pre>🛡️ 隱私保護：快速遮罩 PDF 中的敏感字詞
-🔍 關鍵字搜尋：自動偵測指定詞彙並處理
-📂 文件安全：降低資訊外洩風險
-🎯 使用情境：法務文件、個資處理、內部報告
-💡 使用建議：搭配關鍵字清單以提高遮罩精準度</pre>
-        </div>
-    </details>
-    <a href="https://fufuohya-jr54g4yhtv2az4z3mk7b4k.streamlit.app/" class="tool-link" target="_blank" rel="noopener">
-        <i class="fas fa-external-link-alt"></i> 開啟 PDF 關鍵字遮罩
-    </a>
-</div>
+      function normalize(s) {
+        return (s || "").toLowerCase().trim();
+      }
 
-<!-- 📘 PDF 差異比對工具 -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-file-code tool-icon"></i>
-        <h3 class="tool-title">PDF 差異比對工具</h3>
-    </div>
-    <p class="tool-summary">
-        上傳兩份 PDF 即可比對差異並標示變動，適合合約與版本追蹤。
-    </p>
-    <details>
-        <summary>特色</summary>
-        <div class="code-example">
-            <pre>📑 文件比對：支援多版本 PDF 差異檢視
-🔎 精準定位：快速找出文件不同處
-⚡ 高效率：大幅降低人工逐字比對的時間
-🎯 使用情境：合約審閱、版本控制、技術文件更新追蹤
-💡 使用建議：建議搭配內部文件審查流程使用</pre>
-        </div>
-    </details>
-    <a href="https://fufuohya-8p3dbalpbnurkkcuufjuod.streamlit.app/" class="tool-link" target="_blank" rel="noopener">
-        <i class="fas fa-external-link-alt"></i> 開啟 PDF 差異比對
-    </a>
-</div>
+      function cardText(card) {
+        const title = card.querySelector(".tool-title")?.textContent || "";
+        const summary = card.querySelector(".tool-summary")?.textContent || "";
+        const tags = card.getAttribute("data-tags") || "";
+        const detailsText = card.querySelector("details .detail-body")?.textContent || "";
+        return normalize([title, summary, tags, detailsText].join(" "));
+      }
 
-<!-- VBA 工具卡片（保留：未完待續） -->
-<div class="tool-card">
-    <div class="tool-header">
-        <i class="fas fa-otter tool-icon"></i>
-        <h3 class="tool-title">未完待續</h3>
-    </div>
-    <p class="tool-summary">
-        程式還在撰寫中，敬請期待！
-    </p>
-    <details>
-        <summary>特色</summary>
-        <div class="code-example"><pre>⌛ 開發中：更多功能敬請期待</pre></div>
-    </details>
-    <a href="./tools/invoice-organizer.xlsm" class="tool-link" target="_blank">
-        <i class="fas fa-external-link-alt"></i> 還沒有
-    </a>
-</div>
+      function applyFilters() {
+        const q = normalize(searchInput.value);
+        let visible = 0;
 
-        <footer class="footer">
-            <p style="margin-top: 20px; opacity: 0.7;">
-                Made with 😎 by FuSheng | 
-                <a href="https://github.com/your-username" target="_blank">我的 GitHub</a> | 
-                若有 bug，請笑一笑再修
-            </p>
-        </footer>
-    </div>
+        cards.forEach((card) => {
+          const cat = card.getAttribute("data-category") || "utility";
+          const matchCat = (activeFilter === "all") || (cat === activeFilter);
+          const matchQ = !q || cardText(card).includes(q);
 
-    <script>
-        // 搜尋功能
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const toolCards = document.querySelectorAll('.tool-card');
-
-            toolCards.forEach(card => {
-                const title = card.querySelector('.tool-title').textContent.toLowerCase();
-                const description = card.querySelector('.tool-description').textContent.toLowerCase();
-                const isMatch = title.includes(searchTerm) || description.includes(searchTerm);
-                card.classList.toggle('hidden', !isMatch);
-            });
+          const show = matchCat && matchQ;
+          card.classList.toggle("hidden", !show);
+          if (show) visible++;
         });
 
-        // 動態載入效果
-        window.addEventListener('load', function() {
-            const cards = document.querySelectorAll('.tool-card');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(30px)';
-                    card.style.transition = 'all 0.6s ease';
-                    
-                    setTimeout(() => {
-                        card.style.opacity = '1';
-                        card.style.transform = 'translateY(0)';
-                    }, 100);
-                }, index * 150);
-            });
+        kpiVisible.textContent = String(visible);
+        emptyState.style.display = (visible === 0) ? "block" : "none";
+      }
+
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          chips.forEach(c => c.setAttribute("aria-pressed", "false"));
+          chip.setAttribute("aria-pressed", "true");
+          activeFilter = chip.getAttribute("data-filter") || "all";
+          applyFilters();
         });
-    </script>
+      });
+
+      searchInput.addEventListener("input", applyFilters);
+
+      // initial
+      applyFilters();
+    })();
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
