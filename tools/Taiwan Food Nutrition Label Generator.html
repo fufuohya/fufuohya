@@ -49,12 +49,13 @@
     select{width:100%;padding:10px;border:2px solid #e9ecef;border-radius:8px;margin-top:8px}
     .preview-section{margin-top:26px;padding:20px;background:#f8f9fa;border-radius:12px}
     .preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;margin-top:12px}
-    .nutrition-table{background:#fff;border:2px solid #333;border-radius:8px;overflow:hidden}
+    .nutrition-table{background:#fff;border:3px solid #000;border-radius:0;overflow:hidden;max-width:320px;margin:0 auto;font-family:'Microsoft JhengHei',sans-serif;color:#000}
     .nutrition-table table{width:100%;border-collapse:collapse}
-    .nutrition-table th{background:#495057;color:#fff;padding:10px;text-align:left}
-    .nutrition-table td{padding:10px;border-bottom:1px solid #dee2e6}
+    .nutrition-table th{background:#fff;color:#000;padding:8px;text-align:center;font-size:1.3em;font-weight:900;letter-spacing:2px;border-bottom:2px solid #000}
+    .nutrition-table td{padding:6px 8px;border-bottom:1px solid #000;font-size:1em;font-weight:600}
+    .nutrition-table tr:last-child td{border-bottom:none}
     .text-right{text-align:right}
-    .horizontal-label{background:#fff;border:2px solid #333;border-radius:8px;padding:16px;line-height:1.8}
+    .horizontal-label{background:#fff;border:3px solid #000;border-radius:0;padding:16px;line-height:1.6;font-family:'Microsoft JhengHei',sans-serif;color:#000;font-weight:600;max-width:600px;margin:0 auto}
     .download-section{text-align:center;margin-top:18px}
     .download-btn{margin:8px;padding:12px 22px;background:#28a745;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer}
     .download-btn:hover{background:#218838;transform:translateY(-2px)}
@@ -319,7 +320,10 @@
         <div class="preview-section">
   <div style="display:flex; align-items:center; justify-content:space-between;">
     <h3>營養標示預覽</h3>
-    <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
+    <div>
+      <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
+      <button id="btnExportJson" class="btn btn-primary" type="button" onclick="exportDataToJson()">📥 匯出 JSON</button>
+    </div>
   </div>
   <div class="preview-grid" id="previewArea"></div>
 </div>
@@ -509,11 +513,12 @@ function downloadSingleHTML(nodeId, filename='營養標示.html'){
   const htmlFrag = cloneWithoutNoDownload(node).outerHTML;
   const css = `
     body{font-family:'Microsoft JhengHei',sans-serif;padding:20px}
-    .nutrition-table{margin:20px 0;border:2px solid #333;border-radius:8px;overflow:hidden}
+    .nutrition-table{margin:20px auto;max-width:320px;border:3px solid #000;border-radius:0;overflow:hidden;font-family:'Microsoft JhengHei',sans-serif;color:#000}
     table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid #333}
-    th{background:#495057;color:#fff}
-    .horizontal-label{border:2px solid #333;padding:20px;margin:20px 0;border-radius:8px;line-height:1.8}
+    th,td{padding:6px 8px;border-bottom:1px solid #000;font-weight:600}
+    th{background:#fff;color:#000;font-size:1.3em;font-weight:900;letter-spacing:2px;border-bottom:2px solid #000;text-align:center}
+    tr:last-child td{border-bottom:none}
+    .horizontal-label{border:3px solid #000;border-radius:0;padding:16px;margin:20px auto;line-height:1.6;font-family:'Microsoft JhengHei',sans-serif;color:#000;font-weight:600}
     .text-right{text-align:right}
     .dv-text{margin-top:10px}
   `;
@@ -1442,7 +1447,7 @@ const dvOrderFormat3 = [
   return `
   <div class="nutrition-table" id="format1Table">
     <table>
-      <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
+      <thead><tr><th colspan="3">營養標示</th></tr></thead>
       <tbody>
         <tr><td colspan="2">每一份量</td><td>${(formData.servingSize || 0).toFixed(2)} ${unit}</td></tr>
         <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
@@ -1485,7 +1490,7 @@ const dvOrderFormat3 = [
 
   return `
   <div class="horizontal-label" id="format1Horizontal">
-    <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
+    <div style="text-align:center;font-size:1.3em;font-weight:900;letter-spacing:2px;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;">營養標示</div>
     <p>
       每一份量${(formData.servingSize || 0).toFixed(2)}${unit}，本包裝含${formData.servingsPerContainer}份。
       每份（每100${unit}）：
@@ -1555,7 +1560,7 @@ function generateFormat2(){
   return `
     <div class="nutrition-table" id="format2Table">
       <table>
-        <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
+        <thead><tr><th colspan="3">營養標示</th></tr></thead>
         <tbody>
           <tr><td colspan="2">每一份量</td><td>${formData.servingSize} ${unit}</td></tr>
           <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
@@ -1628,7 +1633,7 @@ function generateFormat2Horizontal(){
 
   return `
     <div class="horizontal-label" id="format2Horizontal">
-      <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
+      <div style="text-align:center;font-size:1.3em;font-weight:900;letter-spacing:2px;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;">營養標示</div>
       <p>每一份量${formData.servingSize}${unit}，本包裝含${formData.servingsPerContainer}份。每份：${items.join('、')}。</p>
       ${dvText ? `<p class="dv-text" style="white-space:pre-line">${dvText}</p>` : ''}
     </div>
@@ -1722,7 +1727,7 @@ formData.additionalNutrients.forEach(n=>{
   return `
     <div class="nutrition-table" id="format3Table">
       <table>
-        <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
+        <thead><tr><th colspan="3">營養標示</th></tr></thead>
         <tbody>
           <tr><td colspan="2">每一份量</td><td>${getCapsuleServingContent()}</td></tr>
           <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
@@ -1800,7 +1805,7 @@ function generateFormat3Horizontal() {
 
   return `
     <div class="horizontal-label" id="format3Horizontal">
-      <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
+      <div style="text-align:center;font-size:1.3em;font-weight:900;letter-spacing:2px;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:8px;">營養標示</div>
       <p>
         每一份量${getCapsuleServingContent()}，本包裝含${formData.servingsPerContainer}份。
         每份：${items.join('、')}。
@@ -2003,12 +2008,13 @@ function downloadHTML(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
 
   const css = `
     body{font-family:'Microsoft JhengHei',sans-serif;padding:20px}
-    .nutrition-table{margin:20px 0;border:2px solid #333;border-radius:8px;overflow:hidden}
+    .nutrition-table{margin:20px auto;max-width:320px;border:3px solid #000;border-radius:0;overflow:hidden;color:#000}
     table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid #333}
-    th{background:#495057;color:#fff}
-    .horizontal-label{border:2px solid #333;padding:20px;margin:20px 0;border-radius:8px;line-height:1.8}
-    .note{margin-top:10px;padding:12px;background:#fff3cd;border-left:4px solid #ffc107;border-radius:6px}
+    th,td{padding:6px 8px;border-bottom:1px solid #000;font-weight:600}
+    th{background:#fff;color:#000;font-size:1.3em;font-weight:900;letter-spacing:2px;border-bottom:2px solid #000;text-align:center}
+    tr:last-child td{border-bottom:none}
+    .horizontal-label{background:#fff;border:3px solid #000;border-radius:0;padding:16px;margin:20px auto;line-height:1.6;color:#000;font-weight:600}
+    .note{display:none}
     .text-right{text-align:right}
   `;
 
@@ -2334,6 +2340,31 @@ function computeKcalFromAdditionalF3(){
   }
   return n?.name || '';
 }
+
+function exportDataToJson() {
+  const exportData = {
+    productType: formData.productType,
+    specificType: formData.specificType,
+    ageGroup: formData.ageGroup,
+    unit: formData.unit,
+    servingSize: formData.servingSize,
+    servingsPerContainer: formData.servingsPerContainer,
+    selectedFormat: formData.selectedFormat,
+    perServing: formData.perServing,
+    nutrients: formData.nutrients,
+    additionalNutrients: formData.additionalNutrients,
+    vitamins: formData.vitamins,
+    minerals: formData.minerals
+  };
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+  const a = document.createElement('a');
+  a.href = dataStr;
+  a.download = "營養標示資料.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 	  // 只回傳「每一份量」右側要顯示的內容
 function getCapsuleServingContent(){
   const modeEl = document.querySelector('input[name="capsuleMode"]:checked');
