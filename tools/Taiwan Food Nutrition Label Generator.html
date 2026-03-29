@@ -4,78 +4,469 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>台灣食品營養標示製作工具 v1.42</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --primary-shadow: rgba(37,99,235,.18);
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,.12);
+    }
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Microsoft JhengHei','Segoe UI',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
-    .container{max-width:1200px;margin:0 auto;background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
-    .header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:40px;text-align:center}
-    .header h1{font-size:2.2em;margin-bottom:8px}
-    .muted{color:#e6e6e6;font-size:.9em}
-    .progress-bar{display:flex;justify-content:space-between;padding:24px 40px;background:#f8f9fa;border-bottom:2px solid #e9ecef}
-    .progress-step{flex:1;text-align:center;position:relative;padding:10px}
-    .progress-step::before{content:attr(data-step);display:block;width:40px;height:40px;background:#dee2e6;color:#6c757d;border-radius:50%;margin:0 auto 10px;line-height:40px;font-weight:bold;transition:all .3s}
-    .progress-step.active::before{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;transform:scale(1.1)}
-    .progress-step.completed::before{background:#28a745;color:#fff}
-    .progress-step::after{content:'';position:absolute;top:20px;left:60%;width:80%;height:2px;background:#dee2e6;z-index:-1}
+    body{
+      font-family:'Noto Sans TC','Microsoft JhengHei','Segoe UI',sans-serif;
+      background:#f1f5f9;
+      min-height:100vh;
+      padding:24px 16px;
+      color:var(--gray-800);
+      line-height:1.6;
+    }
+    .container{
+      max-width:860px;
+      margin:0 auto;
+      background:#fff;
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow-lg);
+      overflow:hidden;
+      border:1px solid var(--gray-200);
+    }
+    /* ===== HEADER ===== */
+    .header{
+      background:linear-gradient(135deg,#1e40af 0%,#2563eb 50%,#3b82f6 100%);
+      color:#fff;
+      padding:36px 40px 28px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .header::before{
+      content:'';
+      position:absolute;
+      top:-60px;right:-60px;
+      width:200px;height:200px;
+      background:rgba(255,255,255,.06);
+      border-radius:50%;
+    }
+    .header::after{
+      content:'';
+      position:absolute;
+      bottom:-40px;left:-40px;
+      width:150px;height:150px;
+      background:rgba(255,255,255,.04);
+      border-radius:50%;
+    }
+    .header h1{
+      font-size:1.7em;
+      font-weight:700;
+      margin-bottom:6px;
+      letter-spacing:.5px;
+    }
+    .muted{color:rgba(255,255,255,.7);font-size:.85em;margin-top:4px}
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar{
+      display:flex;
+      padding:20px 40px;
+      background:#fff;
+      border-bottom:1px solid var(--gray-200);
+      gap:0;
+    }
+    .progress-step{
+      flex:1;
+      text-align:center;
+      position:relative;
+      padding:6px 4px;
+    }
+    .progress-step::before{
+      content:attr(data-step);
+      display:block;
+      width:34px;height:34px;
+      background:var(--gray-200);
+      color:var(--gray-500);
+      border-radius:50%;
+      margin:0 auto 8px;
+      line-height:34px;
+      font-weight:700;
+      font-size:.9em;
+      transition:all .3s ease;
+    }
+    .progress-step div{
+      font-size:.78em;
+      color:var(--gray-500);
+      font-weight:500;
+      transition:color .3s;
+    }
+    .progress-step.active::before{
+      background:var(--primary);
+      color:#fff;
+      box-shadow:0 0 0 4px var(--primary-light),0 0 0 5px var(--primary);
+      transform:scale(1.08);
+    }
+    .progress-step.active div{color:var(--primary);font-weight:700}
+    .progress-step.completed::before{
+      background:var(--success);
+      color:#fff;
+    }
+    .progress-step.completed div{color:var(--success)}
+    .progress-step::after{
+      content:'';
+      position:absolute;
+      top:22px;left:55%;
+      width:90%;height:2px;
+      background:var(--gray-200);
+      z-index:0;
+      transition:background .3s;
+    }
     .progress-step:last-child::after{display:none}
-    .progress-step.completed::after{background:#28a745}
-    .content{padding:32px}
+    .progress-step.completed::after{background:var(--success)}
+    /* ===== CONTENT ===== */
+    .content{padding:32px 40px}
     .step-content{display:none}
-    .step-content.active{display:block;animation:fadeIn .4s}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .step-content.active{display:block;animation:fadeIn .35s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    /* ===== STEP HEADINGS ===== */
+    .step-content > h2 {
+      font-size:1.2em;
+      font-weight:700;
+      color:var(--gray-800);
+      margin-bottom:20px;
+      padding-bottom:12px;
+      border-bottom:2px solid var(--gray-100);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .step-content > h2::before{
+      content:'';
+      display:inline-block;
+      width:4px;height:20px;
+      background:var(--primary);
+      border-radius:2px;
+    }
+    /* ===== FORM GROUPS ===== */
     .form-group{margin-bottom:24px}
-    .form-group label{display:block;font-weight:600;margin-bottom:10px;color:#495057}
-    .radio-group{display:grid;gap:12px}
-    .radio-option{position:relative;padding:16px;border:2px solid #e9ecef;border-radius:12px;cursor:pointer;transition:all .3s;background:#fff}
-    .radio-option:hover{border-color:#667eea;box-shadow:0 4px 12px rgba(102,126,234,.15);transform:translateY(-2px)}
-    .radio-option input[type=radio]{position:absolute;opacity:0}
-    .radio-label{display:flex;align-items:center}
-    .radio-label::before{content:'';width:18px;height:18px;border:2px solid #dee2e6;border-radius:50%;margin-right:10px;transition:all .3s}
-    .radio-option input[type=radio]:checked + .radio-label{color:#667eea;font-weight:600}
-    .radio-option input[type=radio]:checked + .radio-label::before{border-color:#667eea;background:#667eea;box-shadow:inset 0 0 0 4px #fff}
-    .btn{padding:12px 24px;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:.25s;margin:5px}
-    .btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff}
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(102,126,234,.4)}
-    .btn-secondary{background:#6c757d;color:#fff}
-    .btn-secondary:hover{background:#5a6268;transform:translateY(-2px)}
-    .btn-group{display:flex;justify-content:space-between;flex-wrap:wrap;margin-top:18px}
-    .input-field{width:100%;padding:10px 14px;border:2px solid #e9ecef;border-radius:8px;font-size:1em}
-    .input-field:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.1)}
-    .input-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:10px}
-    .nutrient-item{background:#f8f9fa;padding:16px;border-radius:12px;border:2px solid #e9ecef}
-    select{width:100%;padding:10px;border:2px solid #e9ecef;border-radius:8px;margin-top:8px}
-    .preview-section{margin-top:26px;padding:20px;background:#f8f9fa;border-radius:12px}
-    .preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;margin-top:12px}
-    .nutrition-table{background:#fff;border:3px solid #000;border-radius:0;overflow:hidden;max-width:320px;margin:0 auto;font-family:'Microsoft JhengHei',sans-serif;color:#000}
+    .form-group > label{
+      display:block;
+      font-weight:600;
+      font-size:.9em;
+      margin-bottom:10px;
+      color:var(--gray-600);
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    /* ===== RADIO OPTIONS ===== */
+    .radio-group{display:grid;gap:10px}
+    .radio-option{
+      position:relative;
+      padding:14px 16px;
+      border:2px solid var(--gray-200);
+      border-radius:var(--radius-md);
+      cursor:pointer;
+      transition:all .2s ease;
+      background:#fff;
+    }
+    .radio-option:hover{
+      border-color:var(--primary);
+      background:var(--primary-light);
+      transform:translateX(3px);
+    }
+    .radio-option input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+    .radio-label{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:.95em;
+      color:var(--gray-700);
+    }
+    .radio-label::before{
+      content:'';
+      flex-shrink:0;
+      width:18px;height:18px;
+      border:2px solid var(--gray-300);
+      border-radius:50%;
+      transition:all .2s;
+    }
+    .radio-option input[type=radio]:checked + .radio-label{
+      color:var(--primary);
+      font-weight:600;
+    }
+    .radio-option input[type=radio]:checked + .radio-label::before{
+      border-color:var(--primary);
+      background:var(--primary);
+      box-shadow:inset 0 0 0 4px #fff;
+    }
+    .radio-option:has(input:checked){
+      border-color:var(--primary);
+      background:var(--primary-light);
+    }
+    /* ===== BUTTONS ===== */
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:10px 22px;
+      border:none;
+      border-radius:var(--radius-sm);
+      font-weight:600;
+      font-size:.92em;
+      cursor:pointer;
+      transition:all .2s ease;
+      margin:4px;
+      font-family:inherit;
+    }
+    .btn-primary{
+      background:var(--primary);
+      color:#fff;
+    }
+    .btn-primary:hover{
+      background:var(--primary-dark);
+      transform:translateY(-1px);
+      box-shadow:0 6px 16px var(--primary-shadow);
+    }
+    .btn-secondary{
+      background:var(--gray-100);
+      color:var(--gray-700);
+      border:1px solid var(--gray-200);
+    }
+    .btn-secondary:hover{
+      background:var(--gray-200);
+      transform:translateY(-1px);
+    }
+    .btn-group{
+      display:flex;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-top:24px;
+      padding-top:20px;
+      border-top:1px solid var(--gray-100);
+    }
+    /* ===== INPUTS ===== */
+    .input-field{
+      width:100%;
+      padding:9px 12px;
+      border:1.5px solid var(--gray-200);
+      border-radius:var(--radius-sm);
+      font-size:.95em;
+      font-family:inherit;
+      color:var(--gray-800);
+      background:#fff;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .input-field:focus{
+      outline:none;
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(37,99,235,.1);
+    }
+    .input-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:14px;
+      margin-top:10px;
+    }
+    /* ===== NUTRIENT CARDS ===== */
+    .nutrient-item{
+      background:var(--gray-50);
+      padding:14px;
+      border-radius:var(--radius-md);
+      border:1.5px solid var(--gray-200);
+    }
+    .nutrient-item label{
+      display:block;
+      font-size:.85em;
+      font-weight:600;
+      color:var(--gray-600);
+      margin-bottom:6px;
+    }
+    select{
+      width:100%;
+      padding:9px 12px;
+      border:1.5px solid var(--gray-200);
+      border-radius:var(--radius-sm);
+      margin-top:6px;
+      font-family:inherit;
+      font-size:.95em;
+      color:var(--gray-800);
+      background:#fff;
+      cursor:pointer;
+    }
+    select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+    /* ===== INFO / NOTE BOXES ===== */
+    .info-box{
+      background:var(--primary-light);
+      border-left:3px solid var(--primary);
+      padding:12px 14px;
+      margin:12px 0;
+      border-radius:var(--radius-sm);
+      font-size:.9em;
+      color:var(--gray-700);
+    }
+    .note{
+      margin-top:10px;
+      padding:12px 14px;
+      background:#fffbeb;
+      border-left:3px solid #f59e0b;
+      border-radius:var(--radius-sm);
+      font-size:.88em;
+      color:var(--gray-600);
+    }
+    /* ===== SECTION HEADINGS inside step2 ===== */
+    .step-content h3{
+      font-size:1em;
+      font-weight:700;
+      color:var(--gray-700);
+      margin:20px 0 10px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .step-content h3::before{
+      content:'';
+      display:inline-block;
+      width:8px;height:8px;
+      background:var(--primary);
+      border-radius:50%;
+    }
+    /* ===== PREVIEW SECTION ===== */
+    .preview-section{
+      margin-top:24px;
+      padding:24px;
+      background:var(--gray-50);
+      border-radius:var(--radius-lg);
+      border:1px solid var(--gray-200);
+    }
+    .preview-section > div:first-child{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:20px;
+    }
+    .preview-section h3{
+      font-size:1em;
+      font-weight:700;
+      color:var(--gray-700);
+    }
+    .preview-section h3::before{display:none}
+    .preview-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:24px;
+      margin-top:4px;
+    }
+    /* ===== NUTRITION LABEL (print-accurate) ===== */
+    .nutrition-table{
+      background:#fff;
+      border:3px solid #000;
+      border-radius:0;
+      overflow:hidden;
+      max-width:320px;
+      margin:0 auto;
+      font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;
+      color:#000;
+    }
     .nutrition-table table{width:100%;border-collapse:collapse}
-    .nutrition-table th{background:#fff;color:#000;padding:8px;text-align:center;font-size:1.3em;font-weight:900;letter-spacing:2px;border-bottom:2px solid #000}
-    .nutrition-table td{padding:6px 8px;border-bottom:1px solid #000;font-size:1em;font-weight:600}
+    .nutrition-table th{
+      background:#fff;
+      color:#000;
+      padding:8px;
+      text-align:center;
+      font-size:1.3em;
+      font-weight:900;
+      letter-spacing:2px;
+      border-bottom:2px solid #000;
+    }
+    .nutrition-table td{
+      padding:6px 8px;
+      border-bottom:1px solid #000;
+      font-size:.95em;
+      font-weight:600;
+    }
     .nutrition-table tr:last-child td{border-bottom:none}
     .text-right{text-align:right}
-    .horizontal-label{background:#fff;border:3px solid #000;border-radius:0;padding:16px;line-height:1.6;font-family:'Microsoft JhengHei',sans-serif;color:#000;font-weight:600;max-width:600px;margin:0 auto}
+    .horizontal-label{
+      background:#fff;
+      border:3px solid #000;
+      border-radius:0;
+      padding:16px;
+      line-height:1.7;
+      font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;
+      color:#000;
+      font-weight:600;
+      max-width:600px;
+      margin:0 auto;
+      font-size:.92em;
+    }
+    /* ===== DOWNLOAD SECTION ===== */
     .download-section{text-align:center;margin-top:18px}
-    .download-btn{margin:8px;padding:12px 22px;background:#28a745;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer}
-    .download-btn:hover{background:#218838;transform:translateY(-2px)}
-    .note{margin-top:10px;padding:12px;background:#fff3cd;border-left:4px solid #ffc107;border-radius:6px}
-    .info-box{background:#e7f3ff;border-left:4px solid #2196F3;padding:12px;margin:12px 0;border-radius:6px}
-    @media(max-width:768px){.btn{width:100%}}
-	.local-download { margin-top:10px; text-align:right }
-	.local-download .btn-mini {
-	  padding:8px 14px; border:none; border-radius:8px; font-weight:600; cursor:pointer;
-	  background:#28a745; color:#fff; margin-left:8px;
-	}
-	.local-download .btn-mini:hover { background:#218838; transform:translateY(-1px) }
-
+    .download-btn{
+      margin:6px;
+      padding:10px 20px;
+      background:var(--success);
+      color:#fff;
+      border:none;
+      border-radius:var(--radius-sm);
+      font-weight:600;
+      cursor:pointer;
+      font-family:inherit;
+    }
+    .download-btn:hover{background:#15803d;transform:translateY(-1px)}
+    .local-download{margin-top:12px;text-align:right}
+    .local-download .btn-mini{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:7px 13px;
+      border:none;
+      border-radius:var(--radius-sm);
+      font-weight:600;
+      font-size:.82em;
+      cursor:pointer;
+      background:var(--success);
+      color:#fff;
+      margin-left:6px;
+      font-family:inherit;
+      transition:all .2s;
+    }
+    .local-download .btn-mini:hover{background:#15803d;transform:translateY(-1px)}
+    /* ===== MISC ===== */
+    small{color:var(--gray-500);font-size:.82em;margin-top:4px;display:inline-block}
+    .dv-text{margin-top:12px;font-size:.84em;color:var(--gray-600);line-height:1.7}
+    @media(max-width:640px){
+      .content{padding:20px 16px}
+      .progress-bar{padding:16px 12px}
+      .header{padding:24px 20px}
+      .btn{width:100%;justify-content:center}
+      .btn-group{flex-direction:column-reverse}
+      .progress-step div{font-size:.7em}
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>🥗 台灣食品營養標示製作工具</h1>
-      <div class="muted">v1.4（格式2/3依族群 DV 計算＋列示；格式3 A/D/E 的 IU 必填）</div>
+      <h1>🏷️ 台灣食品營養標示製作工具</h1>
+      <div class="muted">v1.42 &nbsp;·&nbsp; 符合衛福部食品標示法規 &nbsp;·&nbsp; 格式1／2／3</div>
     </div>
 
     <div class="progress-bar">
@@ -88,21 +479,21 @@
     <div class="content">
       <!-- 步驟 1 -->
       <div class="step-content active" id="step1">
-        <h2>步驟 1：選擇產品型態</h2>
+        <h2>選擇產品型態</h2>
         <div class="form-group">
-          <label>請選擇您的產品型態：</label>
+          <label>產品物理狀態</label>
           <div class="radio-group">
             <div class="radio-option">
               <input type="radio" name="productType" value="solid" id="solid">
-              <label class="radio-label" for="solid">固體（單位：公克）</label>
+              <label class="radio-label" for="solid">🧂 固體（單位：公克）</label>
             </div>
             <div class="radio-option">
               <input type="radio" name="productType" value="liquid" id="liquid">
-              <label class="radio-label" for="liquid">液體（單位：毫升）</label>
+              <label class="radio-label" for="liquid">💧 液體（單位：毫升）</label>
             </div>
             <div class="radio-option">
               <input type="radio" name="productType" value="mixed" id="mixed">
-              <label class="radio-label" for="mixed">固液混合（可選擇單位）</label>
+              <label class="radio-label" for="mixed">🫙 固液混合（可選擇單位）</label>
             </div>
           </div>
         </div>
@@ -114,21 +505,21 @@
 
       <!-- 步驟 1-2 -->
       <div class="step-content" id="step1-2">
-        <h2>步驟 1-2：選擇特定產品型態</h2>
+        <h2>選擇特定產品型態</h2>
         <div class="form-group">
-          <label>您的產品是否為以下特定型態？</label>
+          <label>產品分類（決定對應的標示格式）</label>
           <div class="radio-group" id="specificTypeOptions">
             <div class="radio-option">
               <input type="radio" name="specificType" value="capsule" id="capsule">
-              <label class="radio-label" for="capsule">膠囊錠狀（使用格式2：每日參考百分比格式）</label>
+              <label class="radio-label" for="capsule">💊 膠囊錠狀 <span style="color:var(--gray-400);font-weight:400;font-size:.88em;margin-left:8px">→ 格式2（每日參考值百分比）</span></label>
             </div>
             <div class="radio-option">
               <input type="radio" name="specificType" value="vitaminCapsule" id="vitaminCapsule">
-              <label class="radio-label" for="vitaminCapsule">維生素礦物質膠囊錠狀（使用格式3：維生素礦物質專用格式）</label>
+              <label class="radio-label" for="vitaminCapsule">🧬 維生素礦物質膠囊錠狀 <span style="color:var(--gray-400);font-weight:400;font-size:.88em;margin-left:8px">→ 格式3（維生素礦物質專用）</span></label>
             </div>
             <div class="radio-option">
               <input type="radio" name="specificType" value="normal" id="normal">
-              <label class="radio-label" for="normal">一般產品（可選擇格式1或格式2）</label>
+              <label class="radio-label" for="normal">🍱 一般食品 <span style="color:var(--gray-400);font-weight:400;font-size:.88em;margin-left:8px">→ 格式1 或 格式2</span></label>
             </div>
           </div>
         </div>
@@ -140,29 +531,29 @@
 
       <!-- 步驟 1-3 -->
       <div class="step-content" id="step1-3">
-        <h2>步驟 1-3：選擇適用年齡</h2>
+        <h2>選擇適用年齡族群</h2>
         <div class="form-group">
-          <label>請選擇產品的適用對象：</label>
+          <label>目標消費族群（影響每日參考值 DV 計算）</label>
           <div class="radio-group">
-            <div class="radio-option"><input type="radio" name="ageGroup" value="under1" id="under1"><label class="radio-label" for="under1">未滿一歲（僅格式1）</label></div>
-            <div class="radio-option"><input type="radio" name="ageGroup" value="1to3" id="1to3"><label class="radio-label" for="1to3">一歲到三歲</label></div>
-            <div class="radio-option"><input type="radio" name="ageGroup" value="over4" id="over4"><label class="radio-label" for="over4">非特定對象（四歲以上）</label></div>
-            <div class="radio-option"><input type="radio" name="ageGroup" value="pregnant" id="pregnant"><label class="radio-label" for="pregnant">孕乳婦</label></div>
+            <div class="radio-option"><input type="radio" name="ageGroup" value="under1" id="under1"><label class="radio-label" for="under1">👶 未滿一歲 <span style="color:var(--gray-400);font-weight:400;font-size:.88em;margin-left:8px">僅格式1</span></label></div>
+            <div class="radio-option"><input type="radio" name="ageGroup" value="1to3" id="1to3"><label class="radio-label" for="1to3">🧒 一歲至三歲</label></div>
+            <div class="radio-option"><input type="radio" name="ageGroup" value="over4" id="over4"><label class="radio-label" for="over4">🧑 四歲以上（非特定對象）</label></div>
+            <div class="radio-option"><input type="radio" name="ageGroup" value="pregnant" id="pregnant"><label class="radio-label" for="pregnant">🤰 孕婦及哺乳婦</label></div>
           </div>
         </div>
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="prevStep(2)">← 上一步</button>
-          <button class="btn btn-primary" onclick="toDataEntry()">下一步：填寫數據 →</button>
+          <button class="btn btn-primary" onclick="toDataEntry()">進入填寫數據 →</button>
         </div>
       </div>
 
       <!-- 步驟 2 -->
       <div class="step-content" id="step2">
-        <h2>步驟 2：填寫營養數據</h2>
+        <h2>填寫營養數據</h2>
 
         <!-- 一般產品 基本資訊 -->
         <div class="form-group" id="basicInfoBox">
-          <label>基本資訊</label>
+          <label>份量基本資訊</label>
           <div class="input-grid">
             <div class="nutrient-item">
               <label>每一份量</label>
@@ -234,9 +625,10 @@
 
         <!-- 八大營養素（每100單位） -->
         <div class="form-group" id="basicNutrients">
-          <label>八大營養素（每 100 <span id="per100Unit">公克</span>）</label>
+          <label>八大必標營養素 <span style="font-weight:400;color:var(--gray-400)">（每 100 <span id="per100Unit">公克</span>）</span></label>
+          <div class="info-box" style="font-size:.85em;margin-bottom:4px">⚠️ 熱量欄位可留空，系統將依三大營養素自動計算；如需覆蓋請填入數值。</div>
           <div class="input-grid">
-		<div class="nutrient-item"><label>熱量（大卡）</label><input type="number" class="input-field" data-nutrient="caloriesUser" placeholder="0" step="0.1"></div>
+            <div class="nutrient-item"><label>熱量（大卡）</label><input type="number" class="input-field" data-nutrient="caloriesUser" placeholder="自動計算" step="0.1"></div>
             <div class="nutrient-item"><label>蛋白質（公克）</label><input type="number" class="input-field" data-nutrient="protein" placeholder="0" step="0.1"></div>
             <div class="nutrient-item"><label>脂肪（公克）</label><input type="number" class="input-field" data-nutrient="fat" placeholder="0" step="0.1"></div>
             <div class="nutrient-item"><label>飽和脂肪（公克）</label><input type="number" class="input-field" data-nutrient="saturatedFat" placeholder="0" step="0.1"></div>
@@ -268,11 +660,11 @@
 
         <!-- 其他營養素 -->
         <div class="form-group">
-          <h3>新增其他營養素</h3>
-          <div class="input-grid">
-            <div>
-              <label>類別</label>
-              <select id="nutrientCategory">
+          <h3>新增選擇性標示營養素</h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:4px">
+            <div style="flex:1;min-width:150px">
+              <label style="font-size:.85em;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px">類別</label>
+              <select id="nutrientCategory" style="margin-top:0">
                 <option value="">選擇營養素類別</option>
                 <option value="protein">蛋白質類（含胺基酸）</option>
                 <option value="fat">脂肪類</option>
@@ -283,18 +675,18 @@
                 <option value="other">其他類別</option>
               </select>
             </div>
-            <div>
-              <label>營養素</label>
-              <select id="specificNutrient" disabled>
+            <div style="flex:1;min-width:150px">
+              <label style="font-size:.85em;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px">營養素</label>
+              <select id="specificNutrient" disabled style="margin-top:0">
                 <option value="">先選擇類別</option>
               </select>
             </div>
-            <div style="align-self:end;">
-              <button class="btn btn-primary" onclick="addNutrient()">+ 新增營養素</button>
+            <div>
+              <button class="btn btn-primary" onclick="addNutrient()" style="margin:0">＋ 新增</button>
             </div>
           </div>
-          <div id="additionalNutrients" class="input-grid" style="margin-top:10px;"></div>
-          <div class="muted" style="margin-top:6px;">* 其他營養素單位：固定或下拉（公克／毫克／微克，預設微克）。在格式3中不提供「維生素」「礦物質」選項。</div>
+          <div id="additionalNutrients" class="input-grid" style="margin-top:12px;"></div>
+          <p style="margin-top:8px;font-size:.82em;color:var(--gray-400)">※ 單位：固定或下拉（公克／毫克／微克，預設微克）。格式3不提供維生素、礦物質選項。</p>
         </div>
 
         <div class="btn-group">
@@ -305,28 +697,28 @@
 
       <!-- 步驟 3 -->
       <div class="step-content" id="step3">
-        <h2>步驟 3：選擇營養標示格式</h2>
-        <div class="info-box"><strong>請選擇標示格式：</strong></div>
+        <h2>選擇營養標示格式</h2>
+        <div class="info-box">請根據產品類型與法規需求選擇適合的標示格式。選定後可在下一步預覽實際外觀。</div>
         <div class="form-group" id="formatOptions"></div>
         <div class="btn-group">
           <button class="btn btn-secondary" onclick="backToDataEntry()">← 返回數據填寫</button>
-          <button class="btn btn-primary" onclick="generatePreview()">生成預覽 →</button>
+          <button class="btn btn-primary" onclick="generatePreview()">生成標示預覽 →</button>
         </div>
       </div>
 
       <!-- 步驟 4 -->
       <div class="step-content" id="step4">
-        <h2>步驟 4：預覽與下載</h2>
+        <h2>預覽與下載</h2>
         <div class="preview-section">
-  <div style="display:flex; align-items:center; justify-content:space-between;">
-    <h3>營養標示預覽</h3>
-    <div>
-      <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
-      <button id="btnExportJson" class="btn btn-primary" type="button" onclick="exportDataToJson()">📥 匯出 JSON</button>
-    </div>
-  </div>
-  <div class="preview-grid" id="previewArea"></div>
-</div>
+          <div>
+            <h3>🏷️ 營養標示預覽</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
+              <button id="btnExportJson" class="btn btn-primary" type="button" onclick="exportDataToJson()">📥 匯出 JSON</button>
+            </div>
+          </div>
+          <div class="preview-grid" id="previewArea"></div>
+        </div>
 
 
       </div>
