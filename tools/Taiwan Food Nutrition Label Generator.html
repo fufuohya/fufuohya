@@ -1926,24 +1926,36 @@
       document.getElementById('step3').classList.add('active'); updateProgressBar(3);
     }
 
-    function generatePreview() {
-      const sel = document.querySelector('input[name="format"]:checked');
-      if (!sel) { alert('請選擇營養標示格式'); return; }
-      formData.selectedFormat = sel.value;
+      const verticalHTML = generateFormat1();
+      const horizontalHTML = generateFormat1Horizontal();
 
-      const area = document.getElementById('previewArea'); area.innerHTML = '';
-      if (formData.selectedFormat === 'format1') { area.innerHTML = generateFormat1() + generateFormat1Horizontal(); }
-      else if (formData.selectedFormat === 'format2') { area.innerHTML = generateFormat2() + generateFormat2Horizontal(); }
-      else { area.innerHTML = generateFormat3() + generateFormat3Horizontal(); }
+      return `
+    <div class="preview-card">
+      <div class="preview-card-title">📝 直式標示（正式格式）</div>
+      ${verticalHTML}
+      <div class="download-group">
+        <button class="btn btn-download btn-pdf" onclick="downloadSinglePDF('format1Table','營養標示_直式.pdf')">📄 下載 PDF</button>
+        <button class="btn btn-download btn-html" onclick="downloadSingleHTML('format1Table','營養標示_直式.html')">🌐 下載 HTML</button>
+        <button class="btn btn-download btn-excel" onclick="downloadSingleExcel('format1Table','營養標示_直式.xls')">📊 下載 Excel</button>
+      </div>
+    </div>
 
-      document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
-      document.getElementById('step4').classList.add('active'); updateProgressBar(4);
+    <div class="preview-card">
+      <div class="preview-card-title">📝 橫式標示（適用小面積包裝）</div>
+      ${horizontalHTML}
+      <div class="download-group">
+        <button class="btn btn-download btn-pdf" onclick="downloadSinglePDF('format1Horizontal','營養標示_橫式.pdf')">📄 下載 PDF</button>
+        <button class="btn btn-download btn-html" onclick="downloadSingleHTML('format1Horizontal','營養標示_橫式.html')">🌐 下載 HTML</button>
+        <button class="btn btn-download btn-excel" onclick="downloadSingleExcel('format1Horizontal','營養標示_橫式.xls')">📊 下載 Excel</button>
+      </div>
+    </div>
+  `;
     }
 
     function generateFormat1() {
       const unit = formData.unit;
       return `
-  <div class="nutrition-table" id="format1Table" style="border: 2px solid #000; padding: 2px;">
+  <div class="nutrition-table" id="format1Table" style="max-width:320px; border:2px solid #000; padding:2px;">
     <table style="border-bottom: 2px solid #000;">
       <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.2em;padding:8px;border-bottom:2px solid #000;">營養標示</th></tr></thead>
       <tbody>
@@ -1993,9 +2005,9 @@
       });
 
       return `
-  <div class="horizontal-label" id="format1Horizontal">
-    <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
-    <p>
+  <div class="horizontal-label" id="format1Horizontal" style="max-width:600px; margin:0 auto;">
+    <p style="text-align:center;font-size:1.1em; margin-bottom:10px;"><strong>營養標示</strong></p>
+    <p style="margin:0;">
       每一份量${(formData.servingSize || 0).toFixed(2)}${unit}，本包裝含${formData.servingsPerContainer}份。
       每份（每100${unit}）：
       熱量${fmt(formData.perServing.calories)}大卡（${fmt(formData.nutrients.calories)}大卡）、
@@ -2008,12 +2020,7 @@
       鈉${fmt(formData.perServing.sodium)}毫克（${fmt(formData.nutrients.sodium || 0)}毫克）
       ${add}。
     </p>
-  </div>
-  <div class="note" data-nodownload="true" style="margin-top:10px;">適用於總表面積小於100平方公分以下的產品。</div>
-  <div class="local-download">
-    <button class="btn-mini" onclick="downloadSinglePDF('format1Horizontal','營養標示_橫式.pdf')">📄 下載橫式 PDF</button>
-    <button class="btn-mini" onclick="downloadSingleHTML('format1Horizontal','營養標示_橫式.html')">🌐 下載橫式 HTML</button>
-    <button class="btn-mini" onclick="downloadSingleExcel('format1Horizontal','營養標示_橫式.xlsx')">📊 下載橫式 Excel</button>
+    <div class="note" data-nodownload="true" style="margin-top:10px; font-size: 0.8em; color: #666; text-align:center; border-top: 1px dotted #ccc; padding-top: 5px;">*適用於總表面積小於100平方公分的小型包裝。</div>
   </div>`;
     }
 
@@ -2061,8 +2068,8 @@
         return `<tr><td>${r.name}</td><td class="text-right">${valTxt}</td><td class="text-right">${r.percentText}</td></tr>`;
       }).join('');
 
-      return `
-    <div class="nutrition-table" id="format2Table" style="border: 2px solid #000; padding: 2px;">
+      const verticalHTML = `
+    <div class="nutrition-table" id="format2Table" style="max-width:320px; border: 2px solid #000; padding: 2px;">
       <table style="border-bottom: 2px solid #000;">
         <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.2em;padding:8px;border-bottom:2px solid #000;">營養標示</th></tr></thead>
         <tbody>
@@ -2084,10 +2091,29 @@
       </table>
       ${dvText ? `<p class="dv-text" style="white-space:pre-line; padding: 10px; font-size: 0.8em; border-top: 1px solid #000;">${dvText}</p>` : ''}
     </div>
-    <div class="local-download">
-      <button class="btn-mini" onclick="downloadSinglePDF('format2Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
-      <button class="btn-mini" onclick="downloadSingleHTML('format2Table','營養標示_直式.html')">🌐 下載直式 HTML</button>
-      <button class="btn-mini" onclick="downloadSingleExcel('format2Table','營養標示_直式.xlsx')">📊 下載直式 Excel</button>
+  `;
+
+      const horizontalHTML = generateFormat2Horizontal();
+
+      return `
+    <div class="preview-card">
+      <div class="preview-card-title">📝 直式標示（每日參考值百分比）</div>
+      ${verticalHTML}
+      <div class="download-group">
+        <button class="btn btn-download btn-pdf" onclick="downloadSinglePDF('format2Table','營養標示_直式.pdf')">📄 下載 PDF</button>
+        <button class="btn btn-download btn-html" onclick="downloadSingleHTML('format2Table','營養標示_直式.html')">🌐 下載 HTML</button>
+        <button class="btn btn-download btn-excel" onclick="downloadSingleExcel('format2Table','營養標示_直式.xls')">📊 下載 Excel</button>
+      </div>
+    </div>
+
+    <div class="preview-card">
+      <div class="preview-card-title">📝 橫式標示（適用小面積包裝）</div>
+      ${horizontalHTML}
+      <div class="download-group">
+        <button class="btn btn-download btn-pdf" onclick="downloadSinglePDF('format2Horizontal','營養標示_橫式.pdf')">📄 下載 PDF</button>
+        <button class="btn btn-download btn-html" onclick="downloadSingleHTML('format2Horizontal','營養標示_橫式.html')">🌐 下載 HTML</button>
+        <button class="btn btn-download btn-excel" onclick="downloadSingleExcel('format2Horizontal','營養標示_橫式.xls')">📊 下載 Excel</button>
+      </div>
     </div>
   `;
     }
@@ -2142,18 +2168,12 @@
       if (line) dvText += line;
 
       return `
-    <div class="horizontal-label" id="format2Horizontal">
-      <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
-      <p>每一份量${formData.servingSize}${unit}，本包裝含${formData.servingsPerContainer}份。每份：${items.join('、')}。</p>
-      ${dvText ? `<p class="dv-text" style="white-space:pre-line">${dvText}</p>` : ''}
-    </div>
-    <div class="note" data-nodownload="true" style="margin-top:10px;">適用於總表面積小於100平方公分以下的產品。</div>
-    <div class="local-download">
-      <button class="btn-mini" onclick="downloadSinglePDF('format2Horizontal','營養標示_橫式.pdf')">📄 下載橫式 PDF</button>
-      <button class="btn-mini" onclick="downloadSingleHTML('format2Horizontal','營養標示_橫式.html')">🌐 下載橫式 HTML</button>
-      <button class="btn-mini" onclick="downloadSingleExcel('format2Horizontal','營養標示_橫式.xlsx')">📊 下載橫式 Excel</button>
-    </div>
-  `;
+    <div class="horizontal-label" id="format2Horizontal" style="max-width:600px; margin:0 auto;">
+      <p style="text-align:center;font-size:1.1em; margin-bottom:10px;"><strong>營養標示</strong></p>
+      <p style="margin:0;">每一份量${formData.servingSize}${unit}，本包裝含${formData.servingsPerContainer}份。每份：${items.join('、')}。</p>
+      ${dvText ? `<p class="dv-text" style="white-space:pre-line; font-size: 0.8em; margin-top:10px; border-top: 1px dotted #ccc; padding-top:5px;">${dvText}</p>` : ''}
+      <div class="note" data-nodownload="true" style="margin-top:10px; font-size: 0.8em; color: #666; text-align:center;">*適用於總表面積小於100平方公分的小型包裝。</div>
+    </div>`;
     }
 
 
@@ -2185,42 +2205,25 @@
       });
 
 
-      // 其他（含有機酸／熱量等自願標示；有 DV 的就計 %，沒有就顯示 ＊）
       formData.additionalNutrients.forEach(n => {
-        const dvKey = nutrientNameToDVKey(n.name); // 可能為 null（如「糖」等）
+        const dvKey = nutrientNameToDVKey(n.name);
         const dvVal = dvKey ? getDailyReference()?.[dvKey] : undefined;
-
-        // 名稱顯示（有機酸以使用者填的名稱為主）
         const dispName = (typeof getDisplayedNutrientName === 'function')
           ? getDisplayedNutrientName(n)
           : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
-
-        // 數值顯示（維/礦用 fmtSig3，其餘用 fmt；熱量用「大卡」）
         const isVM = isVitaminMineralName(n.name);
         const f = isVM ? fmtSig3 : fmt;
         const display = (String(n.unit).toLowerCase() === 'kcal')
           ? `${fmt(n.value)} 大卡`
           : `${f(n.value)} ${getUnitText(n.unit)}`;
-
-        // 百分比（有 DV 就計算，沒有就 ＊）
         const percentObj = dvKey
           ? withDVPercent(n.value, n.unit, dvVal, dvKey)
           : { text: '＊', starred: true };
-
-        // 若有算出 %（不是 ＊），把 dvKey 記入 presentDVKeys 用於頁尾「每日參考值：」
         if (dvKey && !percentObj.starred) presentDVKeys.push(dvKey);
-
-        rows.push({
-          name: dispName,
-          displayValue: display,
-          percentText: percentObj.text,
-          starred: percentObj.starred,
-          dvKey
-        });
+        rows.push({ name: dispName, displayValue: display, percentText: percentObj.text, starred: percentObj.starred, dvKey });
       });
 
 
-      // 註記行與 DV 行
       const anyStar = rows.some(r => r.starred);
       let dvText = '';
       if (anyStar) dvText += '＊參考值未訂定\n';
@@ -2234,8 +2237,8 @@
       <td class="text-right">${r.percentText}</td>
     </tr>`).join('');
 
-      return `
-    <div class="nutrition-table" id="format3Table" style="border: 2px solid #000; padding: 2px;">
+      const verticalHTML = `
+    <div class="nutrition-table" id="format3Table" style="max-width:320px; border: 2px solid #000; padding: 2px;">
       <table style="border-bottom: 2px solid #000;">
         <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.2em;padding:8px;border-bottom:2px solid #000;">營養標示</th></tr></thead>
         <tbody>
@@ -2257,10 +2260,29 @@
       </table>
       ${dvText ? `<p class="dv-text" style="white-space:pre-line; padding: 10px; font-size: 0.8em; border-top: 1px solid #000;">${dvText}</p>` : ''}
     </div>
-    <div class="local-download">
-      <button class="btn-mini" onclick="downloadSinglePDF('format3Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
-      <button class="btn-mini" onclick="downloadSingleHTML('format3Table','營養標示_直式.html')">🌐 下載直式 HTML</button>
-      <button class="btn-mini" onclick="downloadSingleExcel('format3Table','營養標示_直式.xls')">📊 下載直式 Excel</button>
+  `;
+
+      const horizontalHTML = generateFormat3Horizontal();
+
+      return `
+    <div class="preview-card">
+      <div class="preview-card-title">📝 直式標示（維生素礦物質專用）</div>
+      ${verticalHTML}
+      <div class="download-group">
+        <button class="btn btn-download btn-pdf" onclick="downloadSinglePDF('format3Table','營養標示_直式.pdf')">📄 下載 PDF</button>
+        <button class="btn btn-download btn-html" onclick="downloadSingleHTML('format3Table','營養標示_直式.html')">🌐 下載 HTML</button>
+        <button class="btn btn-download btn-excel" onclick="downloadSingleExcel('format3Table','營養標示_直式.xls')">📊 下載 Excel</button>
+      </div>
+    </div>
+
+    <div class="preview-card">
+      <div class="preview-card-title">📝 橫式標示（適用小面積包裝）</div>
+      ${horizontalHTML}
+      <div class="download-group">
+        <button class="btn btn-download btn-pdf" onclick="downloadSinglePDF('format3Horizontal','營養標示_橫式.pdf')">📄 下載 PDF</button>
+        <button class="btn btn-download btn-html" onclick="downloadSingleHTML('format3Horizontal','營養標示_橫式.html')">🌐 下載 HTML</button>
+        <button class="btn btn-download btn-excel" onclick="downloadSingleExcel('format3Horizontal','營養標示_橫式.xls')">📊 下載 Excel</button>
+      </div>
     </div>
   `;
     }
@@ -2292,27 +2314,18 @@
         const dispName = (typeof getDisplayedNutrientName === 'function')
           ? getDisplayedNutrientName(n)
           : (n.isOrganicAcid && n.organicAcidName ? n.organicAcidName : n.name);
-
         const dvKey = nutrientNameToDVKey(n.name);
         const dvVal = dvKey ? dailyRef[dvKey] : undefined;
-
         const isVM = isVitaminMineralName(n.name);
         const f = isVM ? fmtSig3 : fmt;
-
         const valueTxt = (String(n.unit).toLowerCase() === 'kcal')
           ? `${fmt(n.value)}${getUnitText(n.unit)}`
           : `${f(n.value)}${getUnitText(n.unit)}`;
-
-        const res = dvKey
-          ? withDVPercent(n.value, n.unit, dvVal, dvKey)
-          : { text: '＊', starred: true };
-
+        const res = dvKey ? withDVPercent(n.value, n.unit, dvVal, dvKey) : { text: '＊', starred: true };
         if (dvKey && !res.starred) presentDVKeys.push(dvKey);
         if (res.starred) anyStar = true;
-
         items.push(`${dispName}${valueTxt}（${res.text}）`);
       });
-
 
       let dvText = '';
       if (anyStar) dvText += '＊參考值未訂定\n';
@@ -2320,23 +2333,30 @@
       if (line) dvText += line;
 
       return `
-    <div class="horizontal-label" id="format3Horizontal">
-      <p style="text-align:center;font-size:1.1em;"><strong>營養標示</strong></p>
-      <p>
+    <div class="horizontal-label" id="format3Horizontal" style="max-width:600px; margin:0 auto;">
+      <p style="text-align:center;font-size:1.1em; margin-bottom:10px;"><strong>營養標示</strong></p>
+      <p style="margin:0;">
         每一份量${getCapsuleServingContent()}，本包裝含${formData.servingsPerContainer}份。
         每份：${items.join('、')}。
       </p>
-      ${dvText ? `<p class="dv-text" style="white-space:pre-line">${dvText}</p>` : ''}
-    </div>
-    <div class="note" data-nodownload="true" style="margin-top:10px;">
-      適用於總表面積小於100平方公分以下的產品。
-    </div>
-    <div class="local-download">
-      <button class="btn-mini" onclick="downloadSinglePDF('format3Horizontal','營養標示_橫式.pdf')">📄 下載橫式 PDF</button>
-      <button class="btn-mini" onclick="downloadSingleHTML('format3Horizontal','營養標示_橫式.html')">🌐 下載橫式 HTML</button>
-      <button class="btn-mini" onclick="downloadSingleExcel('format3Horizontal','營養標示_橫式.xls')">📊 下載橫式 Excel</button>
-    </div>
-  `;
+      ${dvText ? `<p class="dv-text" style="white-space:pre-line; font-size:0.8em; margin-top:10px; border-top:1px dotted #ccc; padding-top:5px;">${dvText}</p>` : ''}
+      <div class="note" data-nodownload="true" style="margin-top:10px; font-size: 0.8em; color: #666; text-align:center;">*適用於總表面積小於100平方公分的小型包裝。</div>
+    </div>`;
+    }
+
+    function generatePreview() {
+      const sel = document.querySelector('input[name="format"]:checked');
+      if (!sel) { alert('請選擇營養標示格式'); return; }
+      formData.selectedFormat = sel.value;
+
+      const area = document.getElementById('previewArea'); area.innerHTML = '';
+      if (formData.selectedFormat === 'format1') { area.innerHTML = generateFormat1(); }
+      else if (formData.selectedFormat === 'format2') { area.innerHTML = generateFormat2(); }
+      else { area.innerHTML = generateFormat3(); }
+
+      document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+      document.getElementById('step4').classList.add('active'); 
+      updateProgressBar(4);
     }
 
     function renderCapsuleServingLine() {
