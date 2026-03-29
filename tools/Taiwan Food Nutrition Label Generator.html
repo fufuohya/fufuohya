@@ -302,9 +302,14 @@
     }
 
     .nutrition-table td {
-      padding: 10px;
-      border-bottom: 1px solid #dee2e6
+      padding: 6px 10px;
+      border-bottom: none; /* 移除預設橫線 */
     }
+
+    .border-top-bold { border-top: 2px solid #000; }
+    .border-bottom-bold { border-bottom: 2px solid #000; }
+    .border-bottom-light { border-bottom: 1px solid #000; }
+    .border-top-light { border-top: 1px solid #000; }
 
     .text-right {
       text-align: right
@@ -381,6 +386,63 @@
       background: #218838;
       transform: translateY(-1px)
     }
+    .dv-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .dv-modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .dv-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 0.9em;
+    }
+    .dv-table th, .dv-table td {
+      border: 1px solid #dee2e6;
+      padding: 10px;
+      text-align: center;
+    }
+    .dv-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+    .close-modal {
+      float: right;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: #666;
+    }
+    .close-modal:hover { color: #000; }
+    .dv-btn-info {
+      background: #17a2b8;
+      color: #fff;
+      font-size: 0.85em;
+      padding: 6px 12px;
+      margin-left: 10px;
+    }
+    .dv-btn-info:hover {
+      background: #138496;
+    }
   </style>
 </head>
 
@@ -422,10 +484,18 @@
               <label class="radio-label" for="liquid">液體（單位：毫升）</label>
             </div>
             <div class="radio-option">
-              <input type="radio" name="productType" value="mixed" id="mixed">
+              <input type="radio" name="productType" value="mixed" id="mixed" onchange="this.checked && (document.getElementById('mixedUnit').style.display='block')">
               <label class="radio-label" for="mixed">固液混合（可選擇單位）</label>
             </div>
           </div>
+        </div>
+        <div class="form-group" id="mixedUnit" style="display:none; margin-top:20px;">
+          <label>請選擇營養標示要使用的單位：</label>
+          <div class="note">建議參考原本產品食用方式及營養標示檢測單位。</div>
+          <select id="mixedUnitSelect" class="input-field">
+            <option value="g">公克</option>
+            <option value="ml">毫升</option>
+          </select>
         </div>
         <div class="btn-group">
           <div></div>
@@ -448,8 +518,12 @@
               <label class="radio-label" for="vitaminCapsule">維生素礦物質膠囊錠狀（使用格式3：維生素礦物質專用格式）</label>
             </div>
             <div class="radio-option">
-              <input type="radio" name="specificType" value="normal" id="normal">
-              <label class="radio-label" for="normal">一般產品（可選擇格式1或格式2）</label>
+              <input type="radio" name="specificType" value="normalFormat1" id="normalFormat1">
+              <label class="radio-label" for="normalFormat1">一般產品 - 格式 1（無每日參考百分比）</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" name="specificType" value="normalFormat2" id="normalFormat2">
+              <label class="radio-label" for="normalFormat2">一般產品 - 格式 2（含每日參考百分比）</label>
             </div>
           </div>
         </div>
@@ -483,7 +557,10 @@
 
       <!-- 步驟 2 -->
       <div class="step-content" id="step2">
-        <h2>步驟 2：填寫營養數據</h2>
+        <div style="display:flex; align-items:center; margin-bottom: 20px;">
+          <h2 style="margin:0;">步驟 2：填寫營養數據</h2>
+          <button class="btn dv-btn-info" onclick="toggleDVModal(true)">📋 查看每日參考值表</button>
+        </div>
 
         <!-- 一般產品 基本資訊 -->
         <div class="form-group" id="basicInfoBox">
@@ -656,10 +733,33 @@
             <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
           </div>
           <div class="preview-grid" id="previewArea"></div>
+          <div class="btn-group" style="justify-content:center; margin-top:30px;">
+            <button class="btn btn-secondary" onclick="resetTool()" style="background:#dc3545; color:white;">🔄 重新開始 (清除所有資料)</button>
+          </div>
         </div>
 
 
       </div>
+    </div>
+  </div>
+
+  <div class="dv-modal" id="dvModal">
+    <div class="dv-modal-content">
+      <span class="close-modal" aria-label="Close" onclick="toggleDVModal(false)">&times;</span>
+      <h2>每日參考值 對照表 (DV Reference)</h2>
+      <div class="note">數值單位為「每日攝取量之百分比基準值」，依據衛福部最新規範設定。</div>
+      <table class="dv-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>單位</th>
+            <th>1-3 歲</th>
+            <th>4 歲以上</th>
+            <th>孕乳婦</th>
+          </tr>
+        </thead>
+        <tbody id="dvTableBody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -940,6 +1040,58 @@
     };
     let additionalNutrientCount = 0, vitaminCount = 0, mineralCount = 0;
 
+    /* ===== 每日參考值表格功能 ===== */
+    const dvNutrientNames = {
+      calories: "熱量", protein: "蛋白質", fat: "脂肪", carbs: "碳水化合物",
+      sodium: "鈉", saturatedFat: "飽和脂肪", cholesterol: "膽固醇", fiber: "膳食纖維",
+      vitaminA: "維生素 A", vitaminB1: "維生素 B1", vitaminB2: "維生素 B2", vitaminB6: "維生素 B6",
+      vitaminB12: "維生素 B12", vitaminC: "維生素 C", vitaminD: "維生素 D", vitaminE: "維生素 E",
+      vitaminK: "維生素 K", niacin: "菸鹼素", folate: "葉酸", pantothenicAcid: "泛酸",
+      biotin: "生物素", choline: "膽素", calcium: "鈣", phosphorus: "磷",
+      iron: "鐵", iodine: "碘", magnesium: "鎂", zinc: "鋅", fluorine: "氟", selenium: "硒"
+    };
+
+    const dvUnits = {
+      calories: "大卡", protein: "公克", fat: "公克", carbs: "公克",
+      sodium: "毫克", saturatedFat: "公克", cholesterol: "毫克", fiber: "公克",
+      vitaminA: "微克 RE", vitaminB1: "毫克", vitaminB2: "毫克", vitaminB6: "毫克",
+      vitaminB12: "微克", vitaminC: "毫克", vitaminD: "微克", vitaminE: "毫克 α-TE",
+      vitaminK: "微克", niacin: "毫克 NE", folate: "微克", pantothenicAcid: "毫克",
+      biotin: "微克", choline: "毫克", calcium: "毫克", phosphorus: "毫克",
+      iron: "毫克", iodine: "微克", magnesium: "毫克", zinc: "毫克", fluorine: "毫克", selenium: "微克"
+    };
+
+    function toggleDVModal(show) {
+      const modal = document.getElementById('dvModal');
+      if (show) {
+        initDVTable();
+        modal.style.display = 'flex';
+      } else {
+        modal.style.display = 'none';
+      }
+    }
+
+    function initDVTable() {
+      const tbody = document.getElementById('dvTableBody');
+      if (tbody.innerHTML !== "") return; // 已初始化
+
+      for (const key in dvNutrientNames) {
+        const tr = document.createElement('tr');
+        const v13 = dailyValues['1to3'][key] !== undefined ? dailyValues['1to3'][key] : "＊";
+        const v4 = dailyValues['over4'][key] !== undefined ? dailyValues['over4'][key] : "＊";
+        const vP = dailyValues['pregnant'][key] !== undefined ? dailyValues['pregnant'][key] : "＊";
+
+        tr.innerHTML = `
+          <td style="text-align:left; padding-left:20px;">${dvNutrientNames[key]}</td>
+          <td>${dvUnits[key]}</td>
+          <td>${v13}</td>
+          <td>${v4}</td>
+          <td>${vP}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
     /* ===== 導覽 ===== */
     function nextStep(currentStep) {
       const steps = ['step1', 'step1-2', 'step1-3'];
@@ -1034,7 +1186,8 @@
     function determineAvailableFormats() {
       formData.availableFormats = [];
       if (formData.specificType === 'vitaminCapsule') formData.availableFormats = ['format3'];
-      else if (formData.specificType === 'capsule') formData.availableFormats = ['format2'];
+      else if (formData.specificType === 'capsule' || formData.specificType === 'normalFormat2') formData.availableFormats = ['format2'];
+      else if (formData.specificType === 'normalFormat1') formData.availableFormats = ['format1'];
       else if (formData.ageGroup === 'under1') formData.availableFormats = ['format1'];
       else formData.availableFormats = ['format1', 'format2'];
     }
@@ -1790,17 +1943,23 @@
     function generateFormat1() {
       const unit = formData.unit;
       return `
-  <div class="nutrition-table" id="format1Table">
-    <table>
-      <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
+  <div class="nutrition-table" id="format1Table" style="border: 2px solid #000; padding: 2px;">
+    <table style="border-bottom: 2px solid #000;">
+      <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.2em;padding:8px;border-bottom:2px solid #000;">營養標示</th></tr></thead>
       <tbody>
-        <tr><td colspan="2">每一份量</td><td>${(formData.servingSize || 0).toFixed(2)} ${unit}</td></tr>
-        <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
+        <tr><td colspan="2" style="padding-top:10px;">每一份量</td><td class="text-right" style="padding-top:10px;">${(formData.servingSize || 0).toFixed(2)} ${unit}</td></tr>
+        <tr class="border-top-light"><td colspan="2" style="padding-bottom:10px;">本包裝含</td><td class="text-right" style="padding-bottom:10px;">${formData.servingsPerContainer} 份</td></tr>
       </tbody>
     </table>
-    <table>
+    <table class="border-bottom-bold">
+      <thead>
+        <tr class="border-bottom-light">
+          <th style="background:#fff; color:#000; width:40%;"></th>
+          <th class="text-right" style="background:#fff; color:#000; width:30%;">每份</th>
+          <th class="text-right" style="background:#fff; color:#000; width:30%;">每 100 ${unit}</th>
+        </tr>
+      </thead>
       <tbody>
-        <tr><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每 100 ${unit}</strong></td></tr>
         <tr><td>熱量</td><td class="text-right">${fmt(formData.perServing.calories)} 大卡</td><td class="text-right">${fmt(formData.nutrients.calories)} 大卡</td></tr>
         <tr><td>蛋白質</td><td class="text-right">${fmt(formData.perServing.protein)} 公克</td><td class="text-right">${fmt(formData.nutrients.protein || 0)} 公克</td></tr>
         <tr><td>脂肪</td><td class="text-right">${fmt(formData.perServing.fat)} 公克</td><td class="text-right">${fmt(formData.nutrients.fat || 0)} 公克</td></tr>
@@ -1903,21 +2062,27 @@
       }).join('');
 
       return `
-    <div class="nutrition-table" id="format2Table">
-      <table>
-        <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
+    <div class="nutrition-table" id="format2Table" style="border: 2px solid #000; padding: 2px;">
+      <table style="border-bottom: 2px solid #000;">
+        <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.2em;padding:8px;border-bottom:2px solid #000;">營養標示</th></tr></thead>
         <tbody>
-          <tr><td colspan="2">每一份量</td><td>${formData.servingSize} ${unit}</td></tr>
-          <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
+          <tr><td colspan="2" style="padding-top:10px;">每一份量</td><td class="text-right" style="padding-top:10px;">${formData.servingSize} ${unit}</td></tr>
+          <tr class="border-top-light"><td colspan="2" style="padding-bottom:10px;">本包裝含</td><td class="text-right" style="padding-bottom:10px;">${formData.servingsPerContainer} 份</td></tr>
         </tbody>
       </table>
-      <table>
+      <table class="border-bottom-bold">
+        <thead>
+          <tr class="border-bottom-light">
+            <th style="background:#fff; color:#000; width:40%;"></th>
+            <th class="text-right" style="background:#fff; color:#000; width:30%;">每份</th>
+            <th class="text-right" style="background:#fff; color:#000; width:30%;">每日參考值百分比</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每日參考值百分比</strong></td></tr>
           ${body}
         </tbody>
       </table>
-      ${dvText ? `<p class="dv-text" style="white-space:pre-line">${dvText}</p>` : ''}
+      ${dvText ? `<p class="dv-text" style="white-space:pre-line; padding: 10px; font-size: 0.8em; border-top: 1px solid #000;">${dvText}</p>` : ''}
     </div>
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format2Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
@@ -2070,21 +2235,27 @@
     </tr>`).join('');
 
       return `
-    <div class="nutrition-table" id="format3Table">
-      <table>
-        <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.1em;">營養標示</th></tr></thead>
+    <div class="nutrition-table" id="format3Table" style="border: 2px solid #000; padding: 2px;">
+      <table style="border-bottom: 2px solid #000;">
+        <thead><tr><th colspan="3" style="background:#fff;color:#333;text-align:center;font-size:1.2em;padding:8px;border-bottom:2px solid #000;">營養標示</th></tr></thead>
         <tbody>
-          <tr><td colspan="2">每一份量</td><td>${getCapsuleServingContent()}</td></tr>
-          <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
+          <tr><td colspan="2" style="padding-top:10px;">每一份量</td><td class="text-right" style="padding-top:10px;">${getCapsuleServingContent()}</td></tr>
+          <tr class="border-top-light"><td colspan="2" style="padding-bottom:10px;">本包裝含</td><td class="text-right" style="padding-bottom:10px;">${formData.servingsPerContainer} 份</td></tr>
         </tbody>
       </table>
-      <table>
+      <table class="border-bottom-bold">
+        <thead>
+          <tr class="border-bottom-light">
+            <th style="background:#fff; color:#000; width:40%;"></th>
+            <th class="text-right" style="background:#fff; color:#000; width:30%;">每份</th>
+            <th class="text-right" style="background:#fff; color:#000; width:30%;">每日參考值百分比</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每日參考值百分比</strong></td></tr>
           ${body}
         </tbody>
       </table>
-      ${dvText ? `<p class="dv-text" style="white-space:pre-line">${dvText}</p>` : ''}
+      ${dvText ? `<p class="dv-text" style="white-space:pre-line; padding: 10px; font-size: 0.8em; border-top: 1px solid #000;">${dvText}</p>` : ''}
     </div>
     <div class="local-download">
       <button class="btn-mini" onclick="downloadSinglePDF('format3Table','營養標示_直式.pdf')">📄 下載直式 PDF</button>
@@ -2513,18 +2684,54 @@
 
 
     /* ===== 返回/重置 ===== */
-    function backToSelection() { document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active')); document.getElementById('step1-3').classList.add('active'); updateProgressBar(1); }
+    function backToSelection() {
+      document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+      const prev = (formData.specificType === 'normalFormat1') ? 'step1-2' : 'step1-3';
+      document.getElementById(prev).classList.add('active');
+      updateProgressBar(1);
+    }
     function backToDataEntry() { document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active')); document.getElementById('step2').classList.add('active'); updateProgressBar(2); }
     function backToFormatSelection() { document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active')); document.getElementById('step3').classList.add('active'); updateProgressBar(3); }
-    function resetTool() { if (confirm('確定要重新開始嗎？所有資料將被清除。')) location.reload(); }
+    function resetTool() {
+      if (!confirm('確定要重新開始嗎？所有資料將被清除。')) return;
+
+      // 1. 重設 formData
+      formData = {
+        productType: '', specificType: '', ageGroup: '', unit: '公克',
+        servingSize: 0, servingsPerContainer: 0, capsuleUnitLabel: '顆',
+        nutrients: {}, vitamins: [], minerals: [], additionalNutrients: [],
+        selectedFormat: '', availableFormats: []
+      };
+      additionalNutrientCount = 0; vitaminCount = 0; mineralCount = 0;
+
+      // 2. 清除所有輸入欄位
+      document.querySelectorAll('input').forEach(input => {
+        if (input.type === 'radio' || input.type === 'checkbox') input.checked = false;
+        else input.value = '';
+      });
+      document.querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+      document.getElementById('additionalNutrients').innerHTML = '';
+      document.getElementById('vitaminInputs').innerHTML = '';
+      document.getElementById('mineralInputs').innerHTML = '';
+      document.getElementById('previewArea').innerHTML = '';
+      document.getElementById('formatOptions').innerHTML = '';
+
+      // 3. 回到第一步
+      document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+      document.getElementById('step1').classList.add('active');
+      updateProgressBar(1);
+
+      // 4. 重設特殊顯示
+      document.querySelectorAll('#specificTypeOptions .radio-option').forEach(el => el.style.display = 'block');
+      document.getElementById('under1').parentElement.style.display = 'block';
+    }
 
     /* ===== 初始化 ===== */
     document.addEventListener('DOMContentLoaded', function () {
-      document.getElementById('mixed').addEventListener('change', function () {
-        if (this.checked) {
-          const unitChoice = prompt('請選擇單位（輸入 1=公克，2=毫升）：');
-          formData.unit = unitChoice === '2' ? '毫升' : '公克';
-        }
+      document.querySelectorAll('input[name="productType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          document.getElementById('mixedUnit').style.display = (this.value === 'mixed') ? 'block' : 'none';
+        });
       });
       document.addEventListener('change', function (e) {
         if (e.target && e.target.name === 'capsuleMode') {
