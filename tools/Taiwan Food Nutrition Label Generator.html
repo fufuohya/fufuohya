@@ -385,6 +385,7 @@
       font-family:'Microsoft JhengHei','Noto Sans TC',sans-serif;
       color:#000;
     }
+    /* 營養標示表格定式：移除中間橫線，僅保留分隔線 */
     .nutrition-table table{width:100%;border-collapse:collapse}
     .nutrition-table th{
       background:#fff;
@@ -394,14 +395,18 @@
       font-size:1.3em;
       font-weight:900;
       letter-spacing:2px;
-      border-bottom:2px solid #000;
+      border-bottom:2px solid #000; /* 標題下方橫線 */
     }
+    /* 預設移除所有 td 橫線 */
     .nutrition-table td{
       padding:6px 8px;
-      border-bottom:1px solid #000;
+      border-bottom:none;
       font-size:.95em;
       font-weight:600;
     }
+    /* 「本包裝含」那行下方加粗線，分隔份量資訊與營養素內容 */
+    .nutrition-table .divider-row td{ border-bottom:2px solid #000; }
+    /* 最後一行（最底而不是塔 tr:last-child 因為外装 div 有 border）不加線 */
     .nutrition-table tr:last-child td{border-bottom:none}
     .text-right{text-align:right}
     .horizontal-label{
@@ -493,10 +498,21 @@
             </div>
             <div class="radio-option">
               <input type="radio" name="productType" value="mixed" id="mixed">
-              <label class="radio-label" for="mixed">🫙 固液混合（可選擇單位）</label>
+              <label class="radio-label" for="mixed">🫙 固液混合</label>
             </div>
           </div>
         </div>
+
+        <!-- 固液混合單位選擇（默認隱藏）-->
+        <div id="mixedUnitBox" style="display:none;margin-bottom:16px;padding:14px;background:var(--primary-light);border:1.5px solid var(--primary);border-radius:var(--radius-md)">
+          <label style="display:block;font-weight:600;font-size:.9em;color:var(--primary);margin-bottom:8px">📄 單位選擇</label>
+          <select id="mixedUnitSelect" class="input-field" style="margin-top:0">
+            <option value="g">公克（g）</option>
+            <option value="ml">毫升（mL）</option>
+          </select>
+          <p style="margin-top:8px;font-size:.83em;color:var(--gray-600)">ℹ️ 請選擇營養標示要使用的單位，建議參考原本產品食用方式及營養標示檢測單位。</p>
+        </div>
+
         <div class="btn-group">
           <div></div>
           <button class="btn btn-primary" onclick="nextStep(1)">下一步 →</button>
@@ -509,11 +525,11 @@
         <div class="form-group">
           <label>產品分類（決定對應的標示格式）</label>
           <div class="radio-group" id="specificTypeOptions">
-            <div class="radio-option">
+            <div class="radio-option" id="optCapsule">
               <input type="radio" name="specificType" value="capsule" id="capsule">
               <label class="radio-label" for="capsule">💊 膠囊錠狀 <span style="color:var(--gray-400);font-weight:400;font-size:.88em;margin-left:8px">→ 格式2（每日參考值百分比）</span></label>
             </div>
-            <div class="radio-option">
+            <div class="radio-option" id="optVitaminCapsule">
               <input type="radio" name="specificType" value="vitaminCapsule" id="vitaminCapsule">
               <label class="radio-label" for="vitaminCapsule">🧬 維生素礦物質膠囊錠狀 <span style="color:var(--gray-400);font-weight:400;font-size:.88em;margin-left:8px">→ 格式3（維生素礦物質專用）</span></label>
             </div>
@@ -715,6 +731,7 @@
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
               <button id="btnExportJson" class="btn btn-primary" type="button" onclick="exportDataToJson()">📥 匯出 JSON</button>
+              <button class="btn btn-secondary" type="button" onclick="if(confirm('確定要重新開始嗎？所有資料將被清除。')) location.reload()">🔄 重新開始</button>
             </div>
           </div>
           <div class="preview-grid" id="previewArea"></div>
@@ -1842,12 +1859,12 @@ const dvOrderFormat3 = [
       <thead><tr><th colspan="3">營養標示</th></tr></thead>
       <tbody>
         <tr><td colspan="2">每一份量</td><td>${(formData.servingSize || 0).toFixed(2)} ${unit}</td></tr>
-        <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
+        <tr class="divider-row"><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
       </tbody>
     </table>
     <table>
       <tbody>
-        <tr><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每 100 ${unit}</strong></td></tr>
+        <tr class="divider-row"><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每 100 ${unit}</strong></td></tr>
         <tr><td>熱量</td><td class="text-right">${fmt(formData.perServing.calories)} 大卡</td><td class="text-right">${fmt(formData.nutrients.calories)} 大卡</td></tr>
         <tr><td>蛋白質</td><td class="text-right">${fmt(formData.perServing.protein)} 公克</td><td class="text-right">${fmt(formData.nutrients.protein || 0)} 公克</td></tr>
         <tr><td>脂肪</td><td class="text-right">${fmt(formData.perServing.fat)} 公克</td><td class="text-right">${fmt(formData.nutrients.fat || 0)} 公克</td></tr>
@@ -2568,11 +2585,18 @@ function downloadExcel(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
 
     /* ===== 初始化 ===== */
     document.addEventListener('DOMContentLoaded', function(){
-      document.getElementById('mixed').addEventListener('change', function(){
-        if (this.checked){
-          const unitChoice=prompt('請選擇單位（輸入 1=公克，2=毫升）：');
-          formData.unit = unitChoice==='2' ? '毫升' : '公克';
-        }
+      // 固液混合：選下拉時即時更新 formData.unit
+      document.getElementById('mixedUnitSelect').addEventListener('change', function(){
+        const sel = this.value;
+        formData.unit = (sel==='ml') ? '毫升' : '公克';
+        formData.productType = (sel==='ml') ? 'liquid' : 'solid';
+      });
+      // 選擇產品类型 radio 時，顯示或隱藏混合區塊
+      document.querySelectorAll('input[name="productType"]').forEach(r => {
+        r.addEventListener('change', function(){
+          document.getElementById('mixedUnitBox').style.display =
+            this.value === 'mixed' ? 'block' : 'none';
+        });
       });
       document.addEventListener('change', function(e){
         if (e.target && e.target.name==='capsuleMode'){
