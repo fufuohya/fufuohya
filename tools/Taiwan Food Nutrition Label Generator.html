@@ -731,7 +731,7 @@
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button id="btnRegen" class="btn btn-secondary" type="button">🔁 重新評估</button>
               <button id="btnExportJson" class="btn btn-primary" type="button" onclick="exportDataToJson()">📥 匯出 JSON</button>
-              <button class="btn btn-secondary" type="button" onclick="if(confirm('確定要重新開始嗎？所有資料將被清除。')) location.reload()">🔄 重新開始</button>
+              <button class="btn btn-secondary" type="button" onclick="resetTool()">🔄 重新開始</button>
             </div>
           </div>
           <div class="preview-grid" id="previewArea"></div>
@@ -1008,32 +1008,32 @@ function downloadSingleHTML(nodeId, filename='營養標示.html'){
     function nextStep(currentStep){
       const steps=['step1','step1-2','step1-3'];
       if (currentStep===1){
-  const productType=document.querySelector('input[name="productType"]:checked');
-  if(!productType){ alert('請選擇產品型態'); return; }
-  formData.productType=productType.value;
-  
-  if (productType.value==='solid'){ 
-    formData.unit='公克'; 
-  }
-  else if (productType.value==='liquid'){ 
-    formData.unit='毫升'; 
-    document.getElementById('capsule').style.display='none'; 
-    document.getElementById('vitaminCapsule').style.display='none'; 
-  }
-  else { 
-    // 固液混合：讓使用者選擇
-    const unitChoice=prompt('請選擇單位（輸入 1=公克，2=毫升）：');
-    if (unitChoice==='2') {
-      formData.unit='毫升';
-      formData.productType='liquid'; // 改為液體邏輯
-      document.getElementById('capsule').closest('.radio-option').style.display='none'; 
-      document.getElementById('vitaminCapsule').closest('.radio-option').style.display='none';
-    } else {
-      formData.unit='公克';
-      formData.productType='solid'; // 改為固體邏輯
-    }
-  }
-}
+        const productType=document.querySelector('input[name="productType"]:checked');
+        if(!productType){ alert('請選擇產品型態'); return; }
+        formData.productType=productType.value;
+
+        // 膠囊類選項只對固體產品顯示
+        const isSolid = (productType.value==='solid');
+        document.getElementById('optCapsule').style.display = isSolid ? 'block' : 'none';
+        document.getElementById('optVitaminCapsule').style.display = isSolid ? 'block' : 'none';
+        // 若目前選取了膠囊選項但換成非固體，自動清除
+        if (!isSolid) {
+          const cur = document.querySelector('input[name="specificType"]:checked');
+          if (cur && (cur.value==='capsule' || cur.value==='vitaminCapsule')) cur.checked = false;
+        }
+
+        if (productType.value==='solid'){
+          formData.unit='公克';
+        } else if (productType.value==='liquid'){
+          formData.unit='毫升';
+          formData.productType='liquid';
+        } else {
+          // 固液混合：從下拉選單讀取，不再彈窗
+          const sel = document.getElementById('mixedUnitSelect').value;
+          formData.unit = (sel==='ml') ? '毫升' : '公克';
+          formData.productType = (sel==='ml') ? 'liquid' : 'solid';
+        }
+      }
       if (currentStep===2){
   const sp=document.querySelector('input[name="specificType"]:checked');
   if(!sp){ alert('請選擇產品型態'); return; }
@@ -1972,12 +1972,12 @@ function generateFormat2(){
         <thead><tr><th colspan="3">營養標示</th></tr></thead>
         <tbody>
           <tr><td colspan="2">每一份量</td><td>${formData.servingSize} ${unit}</td></tr>
-          <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
+          <tr class="divider-row"><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
         </tbody>
       </table>
       <table>
         <tbody>
-          <tr><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每日參考值百分比</strong></td></tr>
+          <tr class="divider-row"><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每日參考值百分比</strong></td></tr>
           ${body}
         </tbody>
       </table>
@@ -2139,12 +2139,12 @@ formData.additionalNutrients.forEach(n=>{
         <thead><tr><th colspan="3">營養標示</th></tr></thead>
         <tbody>
           <tr><td colspan="2">每一份量</td><td>${getCapsuleServingContent()}</td></tr>
-          <tr><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
+          <tr class="divider-row"><td colspan="2">本包裝含</td><td>${formData.servingsPerContainer} 份</td></tr>
         </tbody>
       </table>
       <table>
         <tbody>
-          <tr><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每日參考值百分比</strong></td></tr>
+          <tr class="divider-row"><td></td><td class="text-right"><strong>每份</strong></td><td class="text-right"><strong>每日參考值百分比</strong></td></tr>
           ${body}
         </tbody>
       </table>
@@ -2581,7 +2581,17 @@ function downloadExcel(mode /* 'vertical' | 'horizontal' */ = 'vertical'){
     function backToSelection(){ document.querySelectorAll('.step-content').forEach(s=>s.classList.remove('active')); document.getElementById('step1-3').classList.add('active'); updateProgressBar(1); }
     function backToDataEntry(){ document.querySelectorAll('.step-content').forEach(s=>s.classList.remove('active')); document.getElementById('step2').classList.add('active'); updateProgressBar(2); }
     function backToFormatSelection(){ document.querySelectorAll('.step-content').forEach(s=>s.classList.remove('active')); document.getElementById('step3').classList.add('active'); updateProgressBar(3); }
-    function resetTool(){ if (confirm('確定要重新開始嗎？所有資料將被清除。')) location.reload(); }
+    function resetTool(){
+      if (!confirm('確定要重新開始嗎？所有資料將被清除。')) return;
+      formData = { productType:'', specificType:'', ageGroup:'', unit:'公克', servingSize:0, servingsPerContainer:0, capsuleUnitLabel:'顆', nutrients:{}, vitamins:[], minerals:[], additionalNutrients:[], selectedFormat:'', availableFormats:[] };
+      additionalNutrientCount=0; vitaminCount=0; mineralCount=0;
+      document.querySelectorAll('.input-field').forEach(i => { if(i.type==='number' || i.type==='text') i.value=''; });
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked=false);
+      document.getElementById('vitaminInputs').innerHTML=''; document.getElementById('mineralInputs').innerHTML=''; document.getElementById('additionalNutrients').innerHTML=''; document.getElementById('mixedUnitBox').style.display='none';
+      document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+      document.getElementById('step1').classList.add('active'); updateProgressBar(1);
+      window.scrollTo(0,0);
+    }
 
     /* ===== 初始化 ===== */
     document.addEventListener('DOMContentLoaded', function(){
