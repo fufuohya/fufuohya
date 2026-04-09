@@ -4,6 +4,7 @@ import re
 import time
 import csv
 import difflib
+from urllib.parse import urljoin
 import pandas as pd
 import streamlit as st
 
@@ -215,9 +216,18 @@ def scrape_one(driver, ingredient: str, wait_sec: int = 25, strict_exact: bool =
         cells = r.find_elements(By.TAG_NAME, "td")
         if len(cells) >= 5:
             inci = cells[1].text.strip()
+            details_link = ""
+            try:
+                link_el = cells[1].find_element(By.TAG_NAME, "a")
+                href = (link_el.get_attribute("href") or "").strip()
+                if href:
+                    details_link = urljoin("https://ec.europa.eu", href)
+                    inci = link_el.text.strip() or inci
+            except Exception:
+                pass
             cas = cells[2].text.strip()
             annex = cells[4].text.strip()
-            candidates.append((inci, cas, annex))
+            candidates.append((inci, cas, annex, details_link))
 
     if not candidates:
         return {
@@ -225,19 +235,21 @@ def scrape_one(driver, ingredient: str, wait_sec: int = 25, strict_exact: bool =
             "INCI Name": "No Results",
             "CAS Number": "No Results",
             "Annex / Ref": "No Results",
+            "Details Link": "",
             "Match Type": "none",
             "Similarity": ""
         }
 
     # 先嘗試完全相符（忽略大小寫與多重空白）
     ing_norm = norm(ingredient)
-    for inci, cas, annex in candidates:
+    for inci, cas, annex, details_link in candidates:
         if norm(inci) == ing_norm:
             return {
                 "Ingredient": ingredient,
                 "INCI Name": inci,
                 "CAS Number": cas,
                 "Annex / Ref": annex,
+                "Details Link": details_link,
                 "Match Type": "exact",
                 "Similarity": 1.0
             }
@@ -249,6 +261,7 @@ def scrape_one(driver, ingredient: str, wait_sec: int = 25, strict_exact: bool =
             "INCI Name": "No Exact Match",
             "CAS Number": "",
             "Annex / Ref": "",
+            "Details Link": "",
             "Match Type": "no_exact",
             "Similarity": ""
         }
@@ -256,18 +269,19 @@ def scrape_one(driver, ingredient: str, wait_sec: int = 25, strict_exact: bool =
     # 否則進入近似匹配：回傳相似度最高的一筆
     best = None
     best_ratio = -1.0
-    for inci, cas, annex in candidates:
+    for inci, cas, annex, details_link in candidates:
         ratio = difflib.SequenceMatcher(None, ing_norm, norm(inci)).ratio()
         if ratio > best_ratio:
             best_ratio = ratio
-            best = (inci, cas, annex)
+            best = (inci, cas, annex, details_link)
 
-    inci, cas, annex = best
+    inci, cas, annex, details_link = best
     return {
         "Ingredient": ingredient,
         "INCI Name": inci,
         "CAS Number": cas,
         "Annex / Ref": annex,
+        "Details Link": details_link,
         "Match Type": "fuzzy",
         "Similarity": round(best_ratio, 4)
     }
@@ -319,18 +333,37 @@ if start:
                     "INCI Name": "Error",
                     "CAS Number": "Error",
                     "Annex / Ref": f"Error: {e}",
+                    "Details Link": "",
                     "Match Type": "error",
                     "Similarity": ""
                 }
             collected.append(data)
 
             progress.progress(int(idx * 100 / total))
-            table_ph.dataframe(pd.DataFrame(collected), use_container_width=True)
+            table_ph.dataframe(
+                pd.DataFrame(collected),
+                use_container_width=True,
+                column_config={
+                    "Details Link": st.column_config.LinkColumn(
+                        "Details Link",
+                        display_text="Open"
+                    )
+                }
+            )
             time.sleep(delay)
 
         results_df = pd.DataFrame(collected)
         st.success("完成！")
-        st.dataframe(results_df, use_container_width=True)
+        st.dataframe(
+            results_df,
+            use_container_width=True,
+            column_config={
+                "Details Link": st.column_config.LinkColumn(
+                    "Details Link",
+                    display_text="Open"
+                )
+            }
+        )
 
         # 下載 CSV
         csv_buf = io.StringIO()
