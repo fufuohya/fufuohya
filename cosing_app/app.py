@@ -2,7 +2,6 @@
 import io
 import re
 import time
-import csv
 import difflib
 from urllib.parse import urljoin
 import pandas as pd
@@ -27,11 +26,16 @@ try:
 except Exception:
     HAS_WDM = False
 
+
 APP_TITLE = "🔎 COSING 成分搜尋工具（Streamlit 雲端版 / 支援完全相符與近似比對）"
+
+BASE_URL = "https://ec.europa.eu"
+SEARCH_URL = "https://ec.europa.eu/growth/tools-databases/cosing/"
+
 
 st.set_page_config(page_title="COSING Helper", layout="wide")
 st.title(APP_TITLE)
-st.caption("把 Selenium 腳本封裝到 Streamlit，支援上傳／貼上／網址／Google Sheet。新增：完全相符（exact）與近似比對（fuzzy）開關，並輸出比對型態與相似度。")
+st.caption("把 Selenium 腳本封裝到 Streamlit，支援上傳／貼上／網址／Google Sheet。新增：完全相符（exact）與近似比對（fuzzy）開關，並可進入詳細頁抓取 Function。")
 
 with st.expander("⚠️ 使用前注意事項", expanded=False):
     st.markdown(
@@ -66,10 +70,12 @@ with col1:
 with col2:
     data_url = st.text_input("遠端資料檔網址（.txt 或 .csv）", placeholder="https://.../ingredients.txt 或 ingredients.csv")
 
+
 def parse_ingredients_from_upload(file) -> List[str]:
     items: List[str] = []
     if file is None:
         return items
+
     name = file.name.lower()
     try:
         if name.endswith(".txt"):
@@ -87,17 +93,20 @@ def parse_ingredients_from_upload(file) -> List[str]:
         st.error(f"讀取上傳檔案失敗：{e}")
     return items
 
+
 def gsheet_to_csv_url(url: str) -> str:
-    # 轉換 Google Sheet 檢視連結為 CSV 匯出連結
     m = re.match(r"https://docs\.google\.com/spreadsheets/d/([^/]+)/(?:edit|view).*?[#&]gid=(\d+)", url)
     if m:
         file_id, gid = m.group(1), m.group(2)
         return f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=csv&gid={gid}"
+
     m2 = re.match(r"https://docs\.google\.com/spreadsheets/d/([^/]+)", url)
     if m2:
         file_id = m2.group(1)
         return f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=csv"
+
     raise ValueError("無法解析此 Google Sheet 連結")
+
 
 def parse_ingredients_from_gsheet(url: str) -> List[str]:
     if not url.strip():
@@ -111,6 +120,7 @@ def parse_ingredients_from_gsheet(url: str) -> List[str]:
         st.error(f"讀取 Google Sheet 失敗：{e}")
         return []
 
+
 def parse_ingredients_from_url(url: str) -> List[str]:
     if not url.strip():
         return []
@@ -120,13 +130,14 @@ def parse_ingredients_from_url(url: str) -> List[str]:
             with urllib.request.urlopen(url) as resp:
                 content = resp.read().decode("utf-8", errors="ignore")
             return [ln.strip() for ln in content.splitlines() if ln.strip()]
-        else:  # 假設 csv
+        else:
             df = pd.read_csv(url)
             col = "Ingredient" if "Ingredient" in df.columns else df.columns[0]
             return [str(v).strip() for v in df[col].dropna().tolist()]
     except Exception as e:
         st.error(f"讀取網址失敗：{e}")
         return []
+
 
 def merge_dedup(*lists: List[str]) -> List[str]:
     seen = set()
@@ -138,6 +149,7 @@ def merge_dedup(*lists: List[str]) -> List[str]:
                 out.append(it)
     return out
 
+
 ingredients = merge_dedup(
     parse_ingredients_from_upload(uploaded),
     [ln.strip() for ln in text_input.splitlines() if ln.strip()] if text_input else [],
@@ -146,6 +158,7 @@ ingredients = merge_dedup(
 )
 
 st.write(f"已載入 **{len(ingredients)}** 個成分。")
+
 
 # ---------------------------------
 # Driver 建置（雲端相容）
@@ -163,138 +176,248 @@ def build_driver(headless: bool = True, proxy_url: str = "", custom_path: Option
     if proxy_url.strip():
         options.add_argument(f"--proxy-server={proxy_url.strip()}")
 
-    # 優先：apt 安裝的 chromium/chromedriver（Streamlit Cloud）
     chromium_bin = which("chromium") or which("chromium-browser") or which("google-chrome")
     if chromium_bin:
         options.binary_location = chromium_bin
+
     chromedriver_bin = which("chromedriver")
 
     try:
-        if custom_path:  # 使用者指定
+        if custom_path:
             service = Service(executable_path=custom_path)
             return webdriver.Chrome(service=service, options=options)
-        if chromedriver_bin:  # 系統已有 driver
+
+        if chromedriver_bin:
             service = Service(executable_path=chromedriver_bin)
             return webdriver.Chrome(service=service, options=options)
-        # 後備：webdriver-manager 下載對應驅動（以 CHROMIUM 類型優先）
+
         if HAS_WDM:
             service = Service(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install())
             return webdriver.Chrome(service=service, options=options)
-        # 最後：Selenium Manager（Selenium 4.6+）
+
         return webdriver.Chrome(options=options)
+
     except Exception as e:
         raise RuntimeError(f"啟動 Chrome 失敗：{e}")
 
+
 # ---------------------------------
-# Scraper（支援 exact / fuzzy）
+# 共用工具
 # ---------------------------------
-def scrape_one(driver, ingredient: str, wait_sec: int = 25, strict_exact: bool = False):
-    def norm(s: str) -> str:
-        # 標準化：去頭尾空白、合併多重空白為單一、英文小寫
-        return re.sub(r"\s+", " ", s or "").strip().casefold()
+def norm(s: str) -> str:
+    return re.sub(r"\s+", " ", s or "").strip().casefold()
 
-    wait = WebDriverWait(driver, wait_sec)
 
-    # 等搜尋框出現並輸入
-    search_box = wait.until(EC.presence_of_element_located((By.ID, "keyword")))
-    search_box.clear()
-    search_box.send_keys(ingredient)
+def try_close_cookie_banner(driver):
+    try:
+        btn = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable(
+                (By.XPATH, "//button[contains(., 'Accept') or contains(., '同意') or contains(., '接受')]")
+            )
+        )
+        btn.click()
+    except Exception:
+        pass
 
-    # 點擊搜尋
-    search_button = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//button[@type='submit' and contains(@class, 'ecl-button--primary')]"))
+
+def open_search_home(driver, wait_sec: int = 20):
+    driver.get(SEARCH_URL)
+    try_close_cookie_banner(driver)
+    WebDriverWait(driver, wait_sec).until(
+        EC.presence_of_element_located((By.ID, "keyword"))
     )
-    driver.execute_script("arguments[0].click();", search_button)
 
-    # 等表格渲染
-    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table")))
 
-    # 解析所有列
+def scrape_functions_from_details(driver, details_url: str, wait_sec: int = 20) -> str:
+    if not details_url:
+        return ""
+
+    try:
+        driver.get(details_url)
+        wait = WebDriverWait(driver, wait_sec)
+
+        # 等詳細頁主表格出現
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table")))
+
+        rows = driver.find_elements(By.CSS_SELECTOR, "table tr")
+        for row in rows:
+            row_text = row.text.strip()
+            if "Function" not in row_text:
+                continue
+
+            # 優先抓 ul > li > a
+            links = row.find_elements(By.CSS_SELECTOR, "ul li a")
+            vals = [x.text.strip() for x in links if x.text.strip()]
+            if vals:
+                return " | ".join(vals)
+
+            # 備援：抓 li
+            items = row.find_elements(By.CSS_SELECTOR, "ul li")
+            vals = [x.text.strip() for x in items if x.text.strip()]
+            if vals:
+                return " | ".join(vals)
+
+            # 再備援：抓第 2 個 td
+            cells = row.find_elements(By.TAG_NAME, "td")
+            if len(cells) >= 2:
+                txt = cells[1].text.strip()
+                if txt:
+                    # 多行時轉成 |
+                    parts = [p.strip() for p in txt.splitlines() if p.strip()]
+                    return " | ".join(parts)
+
+        return ""
+
+    except Exception as e:
+        return f"Error: {e}"
+
+
+# ---------------------------------
+# 搜尋與抓取
+# ---------------------------------
+def parse_search_candidates(driver):
     rows = driver.find_elements(By.CSS_SELECTOR, "table tr")
     candidates = []
+
     for r in rows[1:]:
         cells = r.find_elements(By.TAG_NAME, "td")
         if len(cells) >= 5:
             inci = cells[1].text.strip()
             details_link = ""
+
             try:
                 link_el = cells[1].find_element(By.TAG_NAME, "a")
                 href = (link_el.get_attribute("href") or "").strip()
                 if href:
-                    details_link = urljoin("https://ec.europa.eu", href)
+                    details_link = urljoin(BASE_URL, href)
                     inci = link_el.text.strip() or inci
             except Exception:
                 pass
+
             cas = cells[2].text.strip()
             annex = cells[4].text.strip()
-            candidates.append((inci, cas, annex, details_link))
 
-    if not candidates:
-        return {
-            "Ingredient": ingredient,
-            "INCI Name": "No Results",
-            "CAS Number": "No Results",
-            "Annex / Ref": "No Results",
-            "Details Link": "",
-            "Match Type": "none",
-            "Similarity": ""
-        }
+            candidates.append({
+                "inci": inci,
+                "cas": cas,
+                "annex": annex,
+                "details_link": details_link,
+            })
 
-    # 先嘗試完全相符（忽略大小寫與多重空白）
+    return candidates
+
+
+def search_ingredient(driver, ingredient: str, wait_sec: int = 25):
+    wait = WebDriverWait(driver, wait_sec)
+
+    search_box = wait.until(EC.presence_of_element_located((By.ID, "keyword")))
+    search_box.clear()
+    search_box.send_keys(ingredient)
+
+    search_button = wait.until(
+        EC.element_to_be_clickable(
+            (By.XPATH, "//button[@type='submit' and contains(@class, 'ecl-button--primary')]")
+        )
+    )
+    driver.execute_script("arguments[0].click();", search_button)
+
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "table")))
+    return parse_search_candidates(driver)
+
+
+def choose_best_candidate(ingredient: str, candidates: list, strict_exact: bool = False):
     ing_norm = norm(ingredient)
-    for inci, cas, annex, details_link in candidates:
-        if norm(inci) == ing_norm:
-            return {
-                "Ingredient": ingredient,
-                "INCI Name": inci,
-                "CAS Number": cas,
-                "Annex / Ref": annex,
-                "Details Link": details_link,
-                "Match Type": "exact",
-                "Similarity": 1.0
-            }
+
+    for c in candidates:
+        if norm(c["inci"]) == ing_norm:
+            c["match_type"] = "exact"
+            c["similarity"] = 1.0
+            return c
 
     if strict_exact:
-        # 使用者要求只收完全相符 → 找不到就回報
+        return {
+            "inci": "No Exact Match",
+            "cas": "",
+            "annex": "",
+            "details_link": "",
+            "match_type": "no_exact",
+            "similarity": "",
+        }
+
+    best = None
+    best_ratio = -1.0
+    for c in candidates:
+        ratio = difflib.SequenceMatcher(None, ing_norm, norm(c["inci"])).ratio()
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best = c
+
+    if best is None:
+        return {
+            "inci": "No Results",
+            "cas": "No Results",
+            "annex": "No Results",
+            "details_link": "",
+            "match_type": "none",
+            "similarity": "",
+        }
+
+    best["match_type"] = "fuzzy"
+    best["similarity"] = round(best_ratio, 4)
+    return best
+
+
+def scrape_one(driver, ingredient: str, wait_sec: int = 25, strict_exact: bool = False):
+    try:
+        # 每次都回首頁重新查，穩定性較高
+        open_search_home(driver, wait_sec=wait_sec)
+
+        candidates = search_ingredient(driver, ingredient, wait_sec=wait_sec)
+
+        if not candidates:
+            return {
+                "Ingredient": ingredient,
+                "INCI Name": "No Results",
+                "CAS Number": "No Results",
+                "Annex / Ref": "No Results",
+                "Details Link": "",
+                "Function": "",
+                "Match Type": "none",
+                "Similarity": ""
+            }
+
+        selected = choose_best_candidate(ingredient, candidates, strict_exact=strict_exact)
+
+        details_link = selected.get("details_link", "")
+        functions_text = ""
+
+        # 只有真的有詳細頁連結時才去抓 Function
+        if details_link and selected.get("match_type") in ("exact", "fuzzy"):
+            functions_text = scrape_functions_from_details(driver, details_link, wait_sec=wait_sec)
+
         return {
             "Ingredient": ingredient,
-            "INCI Name": "No Exact Match",
-            "CAS Number": "",
-            "Annex / Ref": "",
+            "INCI Name": selected.get("inci", ""),
+            "CAS Number": selected.get("cas", ""),
+            "Annex / Ref": selected.get("annex", ""),
+            "Details Link": details_link,
+            "Function": functions_text,
+            "Match Type": selected.get("match_type", ""),
+            "Similarity": selected.get("similarity", "")
+        }
+
+    except Exception as e:
+        return {
+            "Ingredient": ingredient,
+            "INCI Name": "Error",
+            "CAS Number": "Error",
+            "Annex / Ref": f"Error: {e}",
             "Details Link": "",
-            "Match Type": "no_exact",
+            "Function": "",
+            "Match Type": "error",
             "Similarity": ""
         }
 
-    # 否則進入近似匹配：回傳相似度最高的一筆
-    best = None
-    best_ratio = -1.0
-    for inci, cas, annex, details_link in candidates:
-        ratio = difflib.SequenceMatcher(None, ing_norm, norm(inci)).ratio()
-        if ratio > best_ratio:
-            best_ratio = ratio
-            best = (inci, cas, annex, details_link)
-
-    inci, cas, annex, details_link = best
-    return {
-        "Ingredient": ingredient,
-        "INCI Name": inci,
-        "CAS Number": cas,
-        "Annex / Ref": annex,
-        "Details Link": details_link,
-        "Match Type": "fuzzy",
-        "Similarity": round(best_ratio, 4)
-    }
-
-def try_close_cookie_banner(driver):
-    # 嘗試關閉常見的同意彈窗
-    try:
-        btn = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Accept') or contains(., '同意') or contains(., '接受')]"))
-        )
-        btn.click()
-    except Exception:
-        pass
 
 # ---------------------------------
 # 主流程
@@ -311,32 +434,20 @@ if start:
     progress = st.progress(0)
     table_ph = st.empty()
 
+    driver = None
+
     try:
         driver = build_driver(headless=headless, proxy_url=proxy)
         driver.set_page_load_timeout(60)
 
-        url = "https://ec.europa.eu/growth/tools-databases/cosing/"
-        driver.get(url)
-
-        try_close_cookie_banner(driver)
+        open_search_home(driver)
 
         collected = []
         total = len(ingredients)
 
         for idx, ing in enumerate(ingredients, start=1):
             status.info(f"搜尋第 {idx}/{total} 個：**{ing}**")
-            try:
-                data = scrape_one(driver, ing, strict_exact=strict_exact)
-            except Exception as e:
-                data = {
-                    "Ingredient": ing,
-                    "INCI Name": "Error",
-                    "CAS Number": "Error",
-                    "Annex / Ref": f"Error: {e}",
-                    "Details Link": "",
-                    "Match Type": "error",
-                    "Similarity": ""
-                }
+            data = scrape_one(driver, ing, strict_exact=strict_exact)
             collected.append(data)
 
             progress.progress(int(idx * 100 / total))
@@ -365,19 +476,24 @@ if start:
             }
         )
 
-        # 下載 CSV
         csv_buf = io.StringIO()
         results_df.to_csv(csv_buf, index=False, encoding="utf-8-sig")
-        st.download_button("⬇️ 下載 CSV", csv_buf.getvalue(), file_name="cosing_results.csv", mime="text/csv")
+        st.download_button(
+            "⬇️ 下載 CSV",
+            csv_buf.getvalue(),
+            file_name="cosing_results.csv",
+            mime="text/csv"
+        )
 
     except Exception as e:
         st.error(f"啟動瀏覽器或抓取時發生錯誤：{e}")
 
     finally:
         try:
-            driver.quit()
+            if driver:
+                driver.quit()
         except Exception:
             pass
 
 st.markdown("---")
-st.markdown("© 2025 COSING Helper — Selenium + Streamlit（Community Cloud 相容版，含 exact/fuzzy 比對）")
+st.markdown("© 2025 COSING Helper — Selenium + Streamlit（Community Cloud 相容版，含 exact/fuzzy 比對與 Function 抓取）")
