@@ -249,13 +249,13 @@ def scrape_functions_from_details(driver, details_url: str, wait_sec: int = 20) 
             links = row.find_elements(By.CSS_SELECTOR, "ul li a")
             vals = [x.text.strip() for x in links if x.text.strip()]
             if vals:
-                return "\n".join(vals)
+                return ", \n".join(vals)
 
             # 備援：抓 li
             items = row.find_elements(By.CSS_SELECTOR, "ul li")
             vals = [x.text.strip() for x in items if x.text.strip()]
             if vals:
-                return "\n".join(vals)
+                return ", \n".join(vals)
 
             # 再備援：抓第 2 個 td
             cells = row.find_elements(By.TAG_NAME, "td")
