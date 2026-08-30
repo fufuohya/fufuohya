@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 400" role="img" aria-label="橫幅規格圖：以 4800 乘 3200 的照片為基準，頂端橫幅高 353 像素，橫幅內的編號文字水平置中後再向左偏移 136 像素">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#1a1f28"/>
+    </marker>
+    <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#e4322b"/>
+    </marker>
+  </defs>
+
+  <!-- 固定白底：這張圖會放在 <img> 裡，無法繼承頁面主題變數 -->
+  <rect x="0" y="0" width="620" height="400" fill="#ffffff"/>
+
+  <rect x="90" y="60" width="440" height="293" fill="none" stroke="#1a1f28" stroke-width="1.5"/>
+  <rect x="90" y="60" width="440" height="32" fill="#edeff3" stroke="#1a1f28" stroke-width="1.5"/>
+  <text x="297" y="82" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1f28" font-family="Tahoma, sans-serif">PUB26800001</text>
+  <text x="310" y="230" text-anchor="middle" font-size="12" fill="#1a1f28" opacity=".45" font-family="'Noto Sans TC', sans-serif">照片內容不動</text>
+
+  <line x1="310" y1="44" x2="310" y2="112" stroke="#1a1f28" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>
+  <text x="316" y="40" font-size="11" fill="#1a1f28" opacity=".7" font-family="'Noto Sans TC', sans-serif">圖片中心</text>
+  <line x1="297" y1="44" x2="297" y2="112" stroke="#e4322b" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="292" y="40" font-size="11" text-anchor="end" fill="#e4322b" font-weight="600" font-family="'Noto Sans TC', sans-serif">文字中心</text>
+
+  <line x1="297" y1="106" x2="310" y2="106" stroke="#e4322b" stroke-width="1.5" marker-start="url(#ar-a)" marker-end="url(#ar-a)"/>
+  <text x="322" y="110" font-size="12" fill="#e4322b" font-weight="600" font-family="'Noto Sans TC', sans-serif">左偏 136px</text>
+
+  <line x1="74" y1="60" x2="74" y2="92" stroke="#1a1f28" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/>
+  <text x="66" y="80" font-size="11" text-anchor="end" fill="#1a1f28" font-family="'Noto Sans TC', sans-serif">353px</text>
+
+  <line x1="90" y1="372" x2="530" y2="372" stroke="#1a1f28" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)" opacity=".6"/>
+  <text x="310" y="388" font-size="11" text-anchor="middle" fill="#1a1f28" opacity=".7" font-family="'Noto Sans TC', sans-serif">4800px</text>
+
+  <line x1="548" y1="60" x2="548" y2="353" stroke="#1a1f28" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)" opacity=".6"/>
+  <text x="558" y="210" font-size="11" fill="#1a1f28" opacity=".7" font-family="'Noto Sans TC', sans-serif">3200px</text>
+
+  <text x="90" y="120" font-size="11" fill="#1a1f28" opacity=".7" font-family="'Noto Sans TC', sans-serif">Tahoma 粗體 · 字級 280px · 垂直置中於橫幅內</text>
+</svg>

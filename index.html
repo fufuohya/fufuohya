@@ -3,1583 +3,1760 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FuSheng｜AI 驅動的智能工具集</title>
-  <meta name="description" content="FuSheng 的 AI 作品集：食品法規自動化、智能文件處理、AI 效率工具。探索如何用 AI 解決真實問題。" />
+  <title>法規 × AI 自動化｜作品集</title>
+  <meta name="description" content="9 年以上食品與化妝品法規經驗，專長將複雜法規轉譯為 AI 與程式可執行的檢核邏輯。作品集含營養標示製作、法規查詢平台、PDF 文件處理等 12 件實戰工具。" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <script>
+    // 提早套用主題，避免載入時的亮暗閃爍
+    (function () {
+      try {
+        var stored = localStorage.getItem('portfolio_theme') || 'auto';
+        var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', stored === 'auto' ? (isDark ? 'dark' : 'light') : stored);
+      } catch (e) {}
+    })();
+  </script>
+
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
 
   <style>
     :root{
-      --bg-dark: #0a0e1a;
-      --bg-card: #0f1420;
-      --bg-card-hover: #141824;
-      --text-primary: #e8edf5;
-      --text-secondary: #a0aec0;
-      --text-muted: #6b7280;
-      --accent-purple: #a855f7;
-      --accent-blue: #3b82f6;
-      --accent-cyan: #06b6d4;
-      --accent-green: #10b981;
-      --border: rgba(255,255,255,.08);
-      --border-hover: rgba(168,85,247,.3);
-      --shadow-sm: 0 2px 8px rgba(0,0,0,.2);
-      --shadow-md: 0 8px 24px rgba(0,0,0,.3);
-      --shadow-lg: 0 20px 50px rgba(0,0,0,.4);
-      --shadow-glow: 0 0 30px rgba(168,85,247,.15);
-      --radius-sm: 12px;
-      --radius-md: 16px;
-      --radius-lg: 20px;
-      --max-width: 1280px;
-      --spacing: clamp(16px, 3vw, 24px);
+      --bg: #ffffff;
+      --fg: #0a0a0a;
+      --muted: #767676;
+      --faint: #a8a8a8;
+      --rule: rgba(10,10,10,.13);
+      --rule-strong: rgba(10,10,10,.85);
+      --accent: #e4322b;
+      --hover-bg: rgba(10,10,10,.03);
+
+      --max: 1360px;
+      --gutter: clamp(20px, 5vw, 64px);
+      --sans: 'Inter', 'Noto Sans TC', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
     }
 
-    [data-theme="light"]{
-      --bg-dark: #f8fafc;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f1f5f9;
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --text-muted: #94a3b8;
-      --border: rgba(15,23,42,.1);
-      --border-hover: rgba(168,85,247,.25);
-      --shadow-sm: 0 2px 8px rgba(15,23,42,.08);
-      --shadow-md: 0 8px 24px rgba(15,23,42,.12);
-      --shadow-lg: 0 20px 50px rgba(15,23,42,.15);
-      --shadow-glow: 0 0 30px rgba(168,85,247,.08);
+    [data-theme="dark"]{
+      --bg: #0b0b0b;
+      --fg: #f4f4f4;
+      --muted: #8e8e8e;
+      --faint: #5f5f5f;
+      --rule: rgba(244,244,244,.15);
+      --rule-strong: rgba(244,244,244,.85);
+      --accent: #ff4b3e;
+      --hover-bg: rgba(244,244,244,.04);
     }
 
-    *{ box-sizing:border-box; margin:0; padding:0; }
-
-    html{
-      scroll-behavior: smooth;
-      overflow-x: hidden;
-    }
+    *{ box-sizing: border-box; margin: 0; padding: 0; }
+    html{ scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
     body{
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-      color: var(--text-primary);
-      background: var(--bg-dark);
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--sans);
+      font-size: 15px;
       line-height: 1.6;
-      min-height: 100vh;
-      position: relative;
+      -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
 
-    /* Animated Background */
-    .bg-animated{
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(168,85,247,.15), transparent 50%),
-        radial-gradient(circle at 80% 60%, rgba(59,130,246,.12), transparent 50%),
-        radial-gradient(circle at 40% 80%, rgba(16,185,129,.1), transparent 50%);
-      animation: bgShift 20s ease-in-out infinite;
-    }
+    ::selection{ background: var(--accent); color: #fff; }
 
-    @keyframes bgShift {
-      0%, 100% { transform: scale(1) rotate(0deg); }
-      50% { transform: scale(1.1) rotate(2deg); }
-    }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
 
-    .bg-grid{
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      background-image:
-        linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
-      background-size: 50px 50px;
-      opacity: .3;
-      pointer-events: none;
-    }
-
-    /* Container */
-    .container{
-      position: relative;
-      z-index: 2;
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 0 var(--spacing);
-    }
-
-    /* Header */
-    .header{
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(20px) saturate(180%);
-      background: rgba(10,14,26,.85);
-      border-bottom: 1px solid var(--border);
-      transition: all .3s ease;
-    }
-
-    .header-inner{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px var(--spacing);
-      gap: 20px;
-    }
-
-    .logo{
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      color: var(--text-primary);
-      transition: transform .2s ease;
-    }
-
-    .logo:hover{ transform: translateY(-2px); }
-
-    .logo-icon{
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
-      display: grid;
-      place-items: center;
-      box-shadow: var(--shadow-glow);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .logo-icon::before{
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,.1), transparent);
-      animation: shimmer 3s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-
-    .logo-icon i{
-      color: white;
-      font-size: 22px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .logo-text{
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .logo-title{
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: -.5px;
-      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .logo-subtitle{
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .header-actions{
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .btn{
-      padding: 10px 16px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--bg-card);
-      color: var(--text-primary);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all .2s ease;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .btn:hover{
-      transform: translateY(-2px);
-      border-color: var(--border-hover);
-      box-shadow: var(--shadow-md);
-      background: var(--bg-card-hover);
-    }
-
-    .btn i{ font-size: 16px; }
-
-    .theme-label{
+    .label{
       font-size: 11px;
-      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: .14em;
       text-transform: uppercase;
-      letter-spacing: .5px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
     }
 
-    /* Hero */
+    .accent{ color: var(--accent); }
+
+    /* ---------- Masthead ---------- */
+
+    .masthead{
+      position: sticky; top: 0; z-index: 60;
+      background: var(--bg);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .masthead-inner{
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 24px; padding: 18px 0 16px;
+    }
+
+    .wordmark{
+      font-size: 15px; font-weight: 800; letter-spacing: .16em;
+      text-transform: uppercase; color: var(--fg);
+      text-decoration: none; white-space: nowrap;
+    }
+
+    .masthead-nav{ display: flex; align-items: baseline; gap: clamp(12px, 2.2vw, 30px); }
+
+    .navlink{
+      background: none; border: 0; padding: 0; cursor: pointer;
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      transition: color .15s ease; white-space: nowrap;
+    }
+
+    .navlink:hover{ color: var(--accent); }
+
+    @media (max-width: 760px){
+      .navlink[data-optional="true"]{ display: none; }
+    }
+
+    /* ---------- Colophon ---------- */
+
+    .colophon{
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+      padding: 10px 0; border-bottom: 1px solid var(--rule);
+    }
+    .colophon span{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .colophon span:last-child{ text-align: right; }
+
+    /* ---------- Sections ---------- */
+
+    .section{ padding: clamp(52px, 8vw, 112px) 0; border-top: 1px solid var(--rule-strong); }
+
+    .sectionhead{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr);
+      gap: clamp(20px, 4vw, 56px);
+      align-items: baseline;
+      margin-bottom: clamp(32px, 5vw, 64px);
+    }
+
+    .sectionhead h2{
+      font-size: clamp(25px, 3.6vw, 46px);
+      font-weight: 600; letter-spacing: -.03em; line-height: 1.15;
+    }
+
+    .sectionhead p{
+      grid-column: 2; margin-top: 14px;
+      color: var(--muted); max-width: 48ch; font-size: 15px;
+    }
+
+    /* ---------- Hero ---------- */
+
     .hero{
-      padding: clamp(60px, 10vw, 100px) 0 clamp(40px, 6vw, 60px);
-    }
-
-    .hero-content{
+      padding: clamp(44px, 8vw, 104px) 0 clamp(40px, 6vw, 76px);
       display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: clamp(30px, 5vw, 50px);
-      align-items: center;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: clamp(32px, 6vw, 80px);
+      align-items: start;
     }
 
-    .hero-text h1{
-      font-size: clamp(32px, 5vw, 56px);
-      font-weight: 900;
-      line-height: 1.1;
-      letter-spacing: -1px;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .hero-eyebrow{ display: block; margin-bottom: clamp(18px, 3vw, 30px); color: var(--accent); }
+
+    .hero h1{
+      font-size: clamp(42px, 8.4vw, 112px);
+      font-weight: 800; line-height: 1.0; letter-spacing: -.04em;
+      margin-bottom: 10px;
     }
 
-    .hero-text .highlight{
-      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      position: relative;
+    .hero-nameen{
+      font-size: clamp(13px, 1.6vw, 17px); font-weight: 500;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--faint); margin-bottom: clamp(24px, 4vw, 40px);
     }
 
-    .hero-text p{
-      font-size: clamp(16px, 2vw, 18px);
-      color: var(--text-secondary);
-      line-height: 1.7;
-      max-width: 60ch;
-      margin-bottom: 30px;
+    .hero-role{
+      font-size: clamp(17px, 2.2vw, 26px);
+      font-weight: 600; letter-spacing: -.02em; line-height: 1.4;
+      padding-top: 22px; border-top: 1px solid var(--rule-strong);
+      margin-bottom: 18px;
     }
 
-    .hero-cta{
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
+    .hero-tagline{
+      font-size: clamp(15px, 1.5vw, 17px); line-height: 1.65;
+      color: var(--muted); max-width: 44ch; margin-bottom: 32px;
     }
 
-    .btn-primary{
-      padding: 14px 28px;
-      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
-      border: none;
-      color: white;
-      font-weight: 700;
-      box-shadow: var(--shadow-glow);
+    .actions{ display: flex; flex-wrap: wrap; gap: 14px 30px; align-items: center; }
+
+    .openlink{
+      display: inline-flex; align-items: center; gap: 12px;
+      font-size: 13px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--fg); text-decoration: none;
+      border-bottom: 2px solid var(--accent); padding-bottom: 5px;
+      background: none; border-left: 0; border-right: 0; border-top: 0;
+      cursor: pointer; font-family: inherit;
+      transition: color .15s ease, gap .2s ease;
+    }
+    .openlink:hover{ color: var(--accent); gap: 18px; }
+
+    .openlink.quiet{ border-bottom-color: var(--rule); }
+    .openlink.quiet:hover{ border-bottom-color: var(--accent); }
+
+    /* Portrait */
+    .portrait{ margin: 0; }
+
+    .portrait img{
+      width: 100%; display: block; aspect-ratio: 4 / 5;
+      object-fit: cover; border: 1px solid var(--rule);
     }
 
-    .btn-primary:hover{
-      box-shadow: 0 0 40px rgba(168,85,247,.3);
-      transform: translateY(-3px);
+    .portrait-fallback{
+      width: 100%; aspect-ratio: 4 / 5;
+      border: 1px dashed var(--rule); display: grid; place-items: center;
+      text-align: center; padding: 20px; color: var(--faint);
+      font-size: 11px; letter-spacing: .12em; text-transform: uppercase; line-height: 2;
     }
 
-    .stats{
+    .portrait figcaption{
+      margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule);
+      font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
+    }
+
+    /* ---------- Metrics band ---------- */
+
+    /* auto-fit：METRICS 增減幾筆都不會跑版 */
+    .metrics{
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 28px clamp(16px, 2.5vw, 36px);
+      border-top: 1px solid var(--rule-strong);
+      padding-top: clamp(20px, 3vw, 32px);
+    }
+
+    .metric{ padding-bottom: 6px; }
+
+    .metric-value{
+      font-size: clamp(30px, 5vw, 60px); font-weight: 800;
+      letter-spacing: -.045em; line-height: 1;
+      font-variant-numeric: tabular-nums; color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .metric-label{ font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+
+    .metric-note{
+      margin-top: 4px; font-size: 11px; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--faint);
+    }
+
+    /* ---------- Data / fact blocks ---------- */
+
+    .datablock{ display: grid; border-top: 1px solid var(--rule-strong); }
+
+    .datarow{
+      display: grid; grid-template-columns: 96px 1fr; gap: 16px;
+      padding: 11px 0; border-bottom: 1px solid var(--rule); align-items: baseline;
+    }
+
+    .datarow dd{ font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ---------- About ---------- */
+
+    .about-grid{
       display: grid;
-      gap: 16px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr);
+      gap: clamp(24px, 4vw, 56px);
     }
 
-    .stat-card{
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all .3s ease;
-      box-shadow: var(--shadow-sm);
+    .about-body{ grid-column: 2; }
+
+    .about-body p{
+      font-size: clamp(16px, 1.7vw, 19px); line-height: 1.75;
+      max-width: 56ch; margin-bottom: 22px;
+    }
+    .about-body p:last-of-type{ margin-bottom: 34px; }
+
+    /* ---------- Skills ---------- */
+
+    .skillgrid{
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(24px, 4vw, 52px);
     }
 
-    .stat-card:hover{
-      border-color: var(--border-hover);
-      transform: translateX(-5px);
-      box-shadow: var(--shadow-md);
+    .skillcol > .label{
+      display: block; padding-bottom: 12px;
+      border-bottom: 1px solid var(--rule-strong); margin-bottom: 0;
     }
 
-    .stat-info{
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .skillcol ul{ list-style: none; }
+
+    .skillcol li{
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--rule);
     }
 
-    .stat-number{
-      font-size: 28px;
-      font-weight: 900;
-      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .skillname{ font-size: 15px; font-weight: 500; }
+
+    .skillnote{
+      font-size: 11px; letter-spacing: .06em; color: var(--faint);
+      text-align: right; white-space: nowrap;
     }
 
-    .stat-label{
-      font-size: 13px;
-      color: var(--text-muted);
-    }
+    /* ---------- Timeline ---------- */
 
-    .stat-icon{
-      width: 50px;
-      height: 50px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(168,85,247,.1), rgba(6,182,212,.1));
+    .timeline{ display: grid; }
+
+    .tlrow{
       display: grid;
-      place-items: center;
-      font-size: 22px;
-      color: var(--accent-cyan);
+      grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1.5fr);
+      gap: 12px clamp(20px, 4vw, 52px);
+      padding: clamp(22px, 3vw, 34px) 0;
+      border-top: 1px solid var(--rule);
+      align-items: start;
+    }
+    .tlrow:last-child{ border-bottom: 1px solid var(--rule); }
+
+    .tlperiod{ font-variant-numeric: tabular-nums; }
+
+    .tlrole{ font-size: clamp(17px, 2vw, 22px); font-weight: 600; letter-spacing: -.02em; line-height: 1.3; }
+    .tlorg{ margin-top: 6px; font-size: 14px; color: var(--muted); }
+
+    .tlpoints{ list-style: none; display: grid; }
+
+    .tlpoints li{
+      display: grid; grid-template-columns: 24px 1fr; gap: 8px;
+      font-size: 14.5px; line-height: 1.65; color: var(--muted);
+      padding: 5px 0;
+    }
+    .tlpoints li span:first-child{ color: var(--accent); font-size: 11px; font-weight: 600; padding-top: 4px; }
+
+    /* ---------- Credentials ---------- */
+
+    .credgrid{
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(24px, 4vw, 52px); margin-bottom: clamp(32px, 4vw, 48px);
     }
 
-    /* Controls */
-    .controls{
-      padding: 30px 0;
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
+    .credcol > .label{ display: block; padding-bottom: 12px; border-bottom: 1px solid var(--rule-strong); }
+
+    .credcol ul{ list-style: none; }
+    .credcol li{ padding: 14px 0; border-bottom: 1px solid var(--rule); }
+    .credmain{ font-size: 15.5px; font-weight: 500; }
+    .credsub{ margin-top: 4px; font-size: 13px; color: var(--muted); }
+
+    /* ---------- Filter bar ---------- */
+
+    .filterbar{
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px; padding: 16px 0; flex-wrap: wrap;
+      border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule);
+      margin-bottom: 4px;
     }
 
-    .search-box{
-      flex: 1 1 300px;
-      max-width: 500px;
-      position: relative;
+    .filterset{ display: flex; align-items: baseline; gap: clamp(14px, 2.4vw, 30px); flex-wrap: wrap; }
+
+    .filterbtn{
+      background: none; border: 0; padding: 0 0 3px; cursor: pointer;
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid transparent;
+      transition: color .15s ease, border-color .15s ease;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .filterbtn:hover{ color: var(--fg); }
+    .filterbtn[aria-pressed="true"]{ color: var(--fg); border-bottom-color: var(--accent); }
+    .filterbtn sup{ font-size: 9px; margin-left: 3px; color: var(--faint); vertical-align: super; }
+    .filterbtn[aria-pressed="true"] sup{ color: var(--accent); }
+
+    .searchfield{
+      flex: 0 1 260px; display: flex; align-items: baseline; gap: 10px;
+      border-bottom: 1px solid var(--rule); padding-bottom: 3px;
+      transition: border-color .15s ease;
+    }
+    .searchfield:focus-within{ border-bottom-color: var(--accent); }
+    .searchfield input{
+      flex: 1; min-width: 0; border: 0; background: none;
+      font-family: inherit; font-size: 13px; color: var(--fg); padding: 0;
+    }
+    .searchfield input:focus{ outline: none; }
+    .searchfield input::placeholder{ color: var(--faint); }
+
+    .clearbtn{
+      background: none; border: 0; padding: 0; cursor: pointer;
+      font-family: inherit; font-size: 15px; line-height: 1; color: var(--faint);
+    }
+    .clearbtn:hover{ color: var(--accent); }
+
+    /* ---------- Work index ---------- */
+
+    .workrow{
+      border-bottom: 1px solid var(--rule);
+      opacity: 0; transform: translateY(8px);
+      animation: rowIn .5s cubic-bezier(.22,1,.36,1) forwards;
+      animation-delay: calc(var(--i) * 45ms);
     }
 
-    .search-input{
-      width: 100%;
-      padding: 14px 20px 14px 48px;
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      background: var(--bg-card);
-      color: var(--text-primary);
-      font-size: 15px;
-      transition: all .3s ease;
+    @keyframes rowIn{ to{ opacity: 1; transform: none; } }
+
+    .workhead{
+      width: 100%; background: none; border: 0; cursor: pointer;
+      font-family: inherit; color: inherit; text-align: left;
+      display: grid; grid-template-columns: 56px minmax(0, 1fr) auto 40px;
+      gap: 16px; align-items: baseline;
+      padding: clamp(16px, 2.2vw, 27px) 8px; margin: 0 -8px;
+      transition: background-color .18s ease;
+    }
+    .workhead:hover{ background: var(--hover-bg); }
+
+    .worknum{
+      font-size: 12px; font-weight: 600; letter-spacing: .08em;
+      color: var(--faint); font-variant-numeric: tabular-nums;
+      transition: color .18s ease;
+    }
+    .workhead:hover .worknum, .workrow.open .worknum{ color: var(--accent); }
+
+    .worktitle{
+      font-size: clamp(18px, 2.3vw, 29px); font-weight: 600;
+      letter-spacing: -.022em; line-height: 1.22; transition: color .18s ease;
+    }
+    .workhead:hover .worktitle{ color: var(--accent); }
+
+    .workcat{
+      font-size: 11px; font-weight: 600; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted); white-space: nowrap;
     }
 
-    .search-input:focus{
-      outline: none;
-      border-color: var(--accent-purple);
-      box-shadow: 0 0 0 3px rgba(168,85,247,.1);
+    .workarrow{
+      font-size: 18px; line-height: 1; color: var(--faint); justify-self: end;
+      transition: transform .22s cubic-bezier(.22,1,.36,1), color .18s ease;
     }
+    .workhead:hover .workarrow{ color: var(--accent); transform: translateX(5px); }
+    .workrow.open .workarrow{ color: var(--accent); transform: rotate(90deg); }
 
-    .search-icon{
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 18px;
-      pointer-events: none;
-    }
-
-    .filters{
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .filter-chip{
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: var(--bg-card);
-      color: var(--text-secondary);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      user-select: none;
-    }
-
-    .filter-chip:hover{
-      border-color: var(--border-hover);
-      transform: translateY(-2px);
-    }
-
-    .filter-chip.active{
-      background: linear-gradient(135deg, rgba(168,85,247,.15), rgba(6,182,212,.15));
-      border-color: var(--accent-purple);
-      color: var(--text-primary);
-    }
-
-    .filter-chip i{ font-size: 14px; }
-
-    /* Grid */
-    .works{
-      padding: 20px 0 60px;
-    }
-
-    .grid{
+    .workpanel{
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 24px;
+      grid-template-columns: 56px minmax(0, 1fr) minmax(0, .85fr);
+      gap: 16px clamp(24px, 4vw, 56px);
+      padding: 4px 0 clamp(30px, 4vw, 50px);
+      animation: panelIn .35s cubic-bezier(.22,1,.36,1);
     }
 
-    .card{
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      transition: all .4s cubic-bezier(.4,0,.2,1);
-      box-shadow: var(--shadow-sm);
-      position: relative;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeInUp .6s ease forwards;
-      animation-delay: calc(var(--index) * 50ms);
+    @keyframes panelIn{ from{ opacity: 0; transform: translateY(-6px); } to{ opacity: 1; transform: none; } }
+
+    .panel-body{ grid-column: 2; }
+    .panel-media{ grid-column: 3; }
+
+    .panel-desc{ font-size: 15.5px; line-height: 1.7; max-width: 52ch; margin-bottom: 26px; }
+
+    .panel-section{ margin-bottom: 26px; }
+    .panel-section > .label{ display: block; margin-bottom: 12px; }
+
+    .featurelist{ list-style: none; display: grid; }
+    .featurelist li{
+      display: grid; grid-template-columns: 26px 1fr; gap: 8px;
+      padding: 9px 0; border-top: 1px solid var(--rule);
+      font-size: 14px; line-height: 1.6; color: var(--muted);
+    }
+    .featurelist li:last-child{ border-bottom: 1px solid var(--rule); }
+    .featurelist li span:first-child{
+      color: var(--accent); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
     }
 
-    @keyframes fadeInUp {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+    /* 系統組成：名稱 / 技術 / 說明 三欄 */
+    .complist{ list-style: none; display: grid; }
 
-    .card.hidden{ display: none; }
-
-    .card::before{
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan), var(--accent-green));
-      opacity: 0;
-      transition: opacity .3s ease;
-    }
-
-    .card:hover{
-      transform: translateY(-8px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--border-hover);
-    }
-
-    .card:hover::before{ opacity: 1; }
-
-    .card-cover{
-      width: 100%;
-      height: 200px;
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(135deg, rgba(168,85,247,.08), rgba(6,182,212,.08));
-    }
-
-    .card-img{
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform .5s ease;
-      display: block; /* 確保預設可見 */
-    }
-
-    .card:hover .card-img{
-      transform: scale(1.05);
-    }
-
-    /* 預設先顯示 placeholder，圖片載入成功後由 JS 隱藏 */
-    .card-placeholder{
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-      color: var(--text-muted);
-      font-size: 13px;
-      background:
-        radial-gradient(circle at 30% 30%, rgba(168,85,247,.05), transparent 60%),
-        radial-gradient(circle at 70% 70%, rgba(6,182,212,.05), transparent 60%),
-        var(--bg-card);
-      position: absolute;
-      inset: 0;
-    }
-
-    .card-placeholder i{
-      font-size: 32px;
-      opacity: .5;
-    }
-
-    .card-body{
-      padding: 24px;
-    }
-
-    .card-header{
-      display: flex;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .card-icon{
-      width: 52px;
-      height: 52px;
-      min-width: 52px;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, rgba(168,85,247,.1), rgba(6,182,212,.1));
+    .complist li{
       display: grid;
-      place-items: center;
-      font-size: 22px;
-      color: var(--accent-purple);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 2px 16px;
+      padding: 11px 0;
+      border-top: 1px solid var(--rule);
+    }
+    .complist li:last-child{ border-bottom: 1px solid var(--rule); }
+
+    .comp-name{ font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
+
+    .comp-tech{
+      font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--accent); text-align: right; align-self: baseline;
     }
 
-    .card-title{
-      font-size: 19px;
-      font-weight: 800;
-      letter-spacing: -.3px;
-      margin-bottom: 8px;
-      color: var(--text-primary);
+    .comp-note{
+      grid-column: 1 / -1;
+      font-size: 13px; color: var(--muted); line-height: 1.5;
     }
 
-    .card-desc{
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-      margin-bottom: 16px;
+    @media (max-width: 620px){
+      .complist li{ grid-template-columns: 1fr; }
+      .comp-tech{ text-align: left; }
     }
 
-    .card-tags{
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
+    .taglist{ display: flex; flex-wrap: wrap; gap: 8px 20px; }
+    .taglist li{
+      list-style: none; font-size: 11px; font-weight: 600;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
     }
 
-    .tag{
-      padding: 6px 12px;
-      border-radius: 6px;
-      background: rgba(168,85,247,.08);
-      color: var(--text-secondary);
-      font-size: 12px;
-      font-weight: 600;
-      border: 1px solid rgba(168,85,247,.15);
+    .panel-media figure{ margin: 0; }
+    .panel-media img{
+      width: 100%; display: block;
+      border: 1px solid var(--rule); background: var(--hover-bg);
     }
 
-    .card-details{
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-      margin-bottom: 16px;
-      background: rgba(0,0,0,.1);
+    .media-fallback{
+      aspect-ratio: 4 / 3; border: 1px solid var(--rule);
+      display: grid; place-items: center; color: var(--faint);
+      font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
     }
 
-    .details-toggle{
-      width: 100%;
-      padding: 12px 16px;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all .2s ease;
+    .panel-media figcaption{
+      margin-top: 10px; font-size: 11px; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--faint);
     }
 
-    .details-toggle:hover{
-      background: rgba(168,85,247,.05);
-      color: var(--text-primary);
+    .cursorpreview{
+      position: fixed; top: 0; left: 0; z-index: 40; width: 300px;
+      pointer-events: none; opacity: 0; transition: opacity .22s ease;
+      will-change: transform; border: 1px solid var(--rule); background: var(--bg);
+    }
+    .cursorpreview.show{ opacity: 1; }
+    .cursorpreview img{ width: 100%; display: block; }
+
+    .emptystate{ padding: clamp(50px, 10vw, 110px) 0; border-bottom: 1px solid var(--rule); }
+    .emptystate h3{
+      font-size: clamp(22px, 3.4vw, 36px); font-weight: 600;
+      letter-spacing: -.03em; margin: 14px 0 12px;
+    }
+    .emptystate p{ color: var(--muted); max-width: 40ch; }
+
+    /* ---------- Contact ---------- */
+
+    .contact-lines{ display: grid; }
+
+    .contactrow{
+      display: grid; grid-template-columns: 110px minmax(0, 1fr) auto;
+      gap: 12px 24px; align-items: baseline;
+      padding: clamp(16px, 2.2vw, 26px) 0;
+      border-top: 1px solid var(--rule);
+      text-decoration: none; color: var(--fg);
+      transition: color .15s ease;
+    }
+    .contactrow:last-child{ border-bottom: 1px solid var(--rule); }
+    .contactrow:hover{ color: var(--accent); }
+
+    .contactvalue{
+      font-size: clamp(18px, 2.6vw, 32px); font-weight: 600;
+      letter-spacing: -.025em; word-break: break-all;
     }
 
-    .details-toggle i{
-      transition: transform .3s ease;
+    .contactarrow{ font-size: 16px; color: var(--faint); justify-self: end; transition: transform .2s ease; }
+    .contactrow:hover .contactarrow{ color: var(--accent); transform: translateX(5px); }
+
+    /* ---------- Footer ---------- */
+
+    .footer{ border-top: 1px solid var(--rule-strong); padding: clamp(30px, 4vw, 48px) 0; }
+    .footer-base{ display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+    /* ---------- Draft reminder (自動偵測未填內容) ---------- */
+
+    .draftbar{
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
+      background: var(--accent); color: #fff;
+      padding: 10px var(--gutter);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      font-size: 12px; letter-spacing: .04em;
+    }
+    .draftbar button{
+      background: none; border: 1px solid rgba(255,255,255,.6); color: #fff;
+      font-family: inherit; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+      padding: 5px 12px; cursor: pointer;
+    }
+    .draftbar button:hover{ background: rgba(255,255,255,.15); }
+
+    /* ---------- Responsive ---------- */
+
+    @media (max-width: 900px){
+      .hero{ grid-template-columns: 1fr; }
+      .hero .portrait{ max-width: 340px; }
+      .colophon{ grid-template-columns: repeat(2, 1fr); gap: 6px 20px; }
+      .colophon span:nth-child(2){ text-align: right; }
+      .sectionhead{ grid-template-columns: 1fr; }
+      .sectionhead h2, .sectionhead p{ grid-column: 1; }
+      .about-grid{ grid-template-columns: 1fr; }
+      .about-body{ grid-column: 1; }
+      .skillgrid{ grid-template-columns: 1fr; }
+      .tlrow{ grid-template-columns: 1fr; }
+      .credgrid{ grid-template-columns: 1fr; }
+      .metric-value{ font-size: clamp(28px, 8vw, 44px); }
+      .workpanel{ grid-template-columns: 1fr; }
+      .panel-body, .panel-media{ grid-column: 1; }
+      .panel-media{ margin-top: 8px; }
+      .contactrow{ grid-template-columns: 1fr auto; }
+      .contactrow .label{ grid-column: 1 / -1; }
     }
 
-    .card-details[open] .details-toggle i{
-      transform: rotate(180deg);
-    }
-
-    .details-content{
-      padding: 16px;
-      border-top: 1px solid var(--border);
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.7;
-      animation: none;
-    }
-
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .details-content ul{
-      padding-left: 20px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .card-footer{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .card-link{
-      padding: 12px 20px;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, rgba(168,85,247,.15), rgba(6,182,212,.15));
-      border: 1px solid rgba(168,85,247,.3);
-      color: var(--text-primary);
-      font-weight: 700;
-      font-size: 14px;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all .2s ease;
-    }
-
-    .card-link:hover{
-      background: linear-gradient(135deg, rgba(168,85,247,.25), rgba(6,182,212,.25));
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .card-meta{
-      font-size: 12px;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* Empty State */
-    .empty{
-      display: none;
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-secondary);
-    }
-
-    .empty i{
-      font-size: 48px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    .empty h3{
-      font-size: 20px;
-      margin-bottom: 8px;
-    }
-
-    /* Footer */
-    .footer{
-      border-top: 1px solid var(--border);
-      padding: 40px 0;
-      margin-top: 60px;
-    }
-
-    .footer-content{
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 20px;
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    .footer-links{
-      display: flex;
-      gap: 24px;
-    }
-
-    .footer-link{
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color .2s ease;
-    }
-
-    .footer-link:hover{
-      color: var(--accent-purple);
-    }
-
-    /* Responsive */
-    @media (max-width: 1024px){
-      .hero-content{
-        grid-template-columns: 1fr;
-      }
-
-      .stats{
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 768px){
-      .grid{
-        grid-template-columns: 1fr;
-      }
-
-      .logo-subtitle{ display: none; }
-
-      .controls{
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .search-box{
-        max-width: 100%;
-      }
-
-      .filters{
-        justify-content: flex-start;
-      }
-
-      .card-footer{
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .card-link{
-        justify-content: center;
-      }
-
-      .card-meta{
-        display: none;
-      }
+    @media (max-width: 620px){
+      .workhead{ grid-template-columns: 38px minmax(0, 1fr) 24px; row-gap: 6px; }
+      .workcat{ grid-column: 2; grid-row: 2; }
+      .workarrow{ grid-row: 1; }
+      .searchfield{ flex: 1 1 100%; }
+      .datarow{ grid-template-columns: 80px 1fr; }
     }
 
     @media (prefers-reduced-motion: reduce){
-      *{
-        animation: none !important;
-        transition: none !important;
-      }
+      *{ animation: none !important; transition: none !important; }
+      .workrow{ opacity: 1; transform: none; }
     }
   </style>
 </head>
 
 <body>
-  <div class="bg-animated"></div>
-  <div class="bg-grid"></div>
+  <div id="root"></div>
 
-  <header class="header">
-    <div class="container">
-      <div class="header-inner">
-        <a href="#" class="logo">
-          <div class="logo-icon">
-            <i class="fa-solid fa-brain"></i>
-          </div>
-          <div class="logo-text">
-            <div class="logo-title">FuSheng AI Lab</div>
-            <div class="logo-subtitle">智能工具創作者</div>
-          </div>
-        </a>
-
-        <div class="header-actions">
-          <button class="btn" id="themeBtn" type="button" aria-label="切換主題">
-            <i class="fa-solid fa-circle-half-stroke"></i>
-            <span class="theme-label" id="themeLabel">Auto</span>
-          </button>
-          <a class="btn" href="#works">
-            <i class="fa-solid fa-rocket"></i>
-            <span>探索作品</span>
-          </a>
-        </div>
-      </div>
+  <noscript>
+    <div class="wrap" style="padding-top:64px">
+      <h1 style="font-size:40px;letter-spacing:-.03em">法規 × AI 自動化</h1>
+      <p style="color:#767676;margin-top:16px">
+        這個網站需要啟用 JavaScript 才能顯示內容，請在瀏覽器設定中開啟後重新整理。
+      </p>
     </div>
-  </header>
+  </noscript>
 
-  <main class="container">
-    <section class="hero">
-      <div class="hero-content">
-        <div class="hero-text">
-          <h1>用 <span class="highlight">AI</span> 把複雜流程<br>變成一鍵工具</h1>
-          <p>
-            從食品法規自動化到智能文件處理，這裡展示我如何用 AI 技術解決真實世界的問題。
-            每個工具都經過實戰驗證，專注於提升效率、降低錯誤、讓專業工作更簡單。
-          </p>
-          <div class="hero-cta">
-            <a href="#works" class="btn btn-primary">
-              <i class="fa-solid fa-compass"></i>
-              開始探索
-            </a>
-            <a href="https://github.com/your-username" class="btn" target="_blank" rel="noopener">
-              <i class="fa-brands fa-github"></i>
-              GitHub
-            </a>
-          </div>
-        </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 
-        <div class="stats">
-          <div class="stat-card">
-            <div class="stat-info">
-              <div class="stat-number" id="totalCount">—</div>
-              <div class="stat-label">智能工具</div>
-            </div>
-            <div class="stat-icon">
-              <i class="fa-solid fa-cube"></i>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <div class="stat-number" id="visibleCount">—</div>
-              <div class="stat-label">符合篩選</div>
-            </div>
-            <div class="stat-icon">
-              <i class="fa-solid fa-filter"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-    <section class="controls">
-      <div class="search-box">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input
-          type="search"
-          class="search-input"
-          id="searchInput"
-          placeholder="搜尋工具：營養標示、PDF 處理、AI 自動化..."
-          autocomplete="off"
-        />
-      </div>
+    /* ==========================================================
+       ▼▼▼ 個人資料：只要改這一區，版面不用動 ▼▼▼
 
-      <div class="filters">
-        <button class="filter-chip active" data-filter="all">
-          <i class="fa-solid fa-grid"></i>
-          全部
-        </button>
-        <button class="filter-chip" data-filter="food">
-          <i class="fa-solid fa-leaf"></i>
-          食品法規
-        </button>
-        <button class="filter-chip" data-filter="docs">
-          <i class="fa-solid fa-file-lines"></i>
-          文件處理
-        </button>
-        <button class="filter-chip" data-filter="ai">
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-          AI 自動化
-        </button>
-        <button class="filter-chip" data-filter="utility">
-          <i class="fa-solid fa-bolt"></i>
-          效率工具
-        </button>
-      </div>
-    </section>
+       凡是含有 ✎ 符號的都是待填寫欄位。
+       全部填完後，畫面底部的紅色提醒條會自動消失。
+       ========================================================== */
 
-    <div class="empty" id="emptyState">
-      <i class="fa-solid fa-search"></i>
-      <h3>找不到符合的工具</h3>
-      <p>試試調整搜尋關鍵字或切換分類篩選</p>
-    </div>
+    const TODO = '✎';
 
-    <section id="works" class="works">
-      <div class="grid">
-        <!-- Card 1 -->
-        <article class="card" data-category="utility" data-tags="HTML,前端,編輯器,預覽,live preview" data-slug="html-live-preview" style="--index:0">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/cover-preview-html.png" alt="即時 HTML 編輯與預覽" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-code"></i></div>
-              <div><h3 class="card-title">即時 HTML 編輯與預覽</h3></div>
-            </div>
-            <p class="card-desc">同一頁面完成撰寫與預覽，適合快速測試範例、教學展示與原型驗證。</p>
-            <div class="card-tags">
-              <span class="tag">HTML</span>
-              <span class="tag">Live Preview</span>
-              <span class="tag">前端工具</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>即時編輯與預覽：所見即所得，縮短試錯時間</li>
-                  <li>程式碼搜尋：快速定位段落與標記</li>
-                  <li>可調整編輯/預覽比例：更符合閱讀習慣</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="./tools/preview_html.html" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-bolt"></i> 快速原型</div>
-            </div>
-          </div>
-        </article>
+    /* ----------------------------------------------------------
+       身分公開開關
 
-        <!-- Card 2 -->
-        <article class="card" data-category="food" data-tags="食品法規,營養標示,台灣,PDF,Excel,HTML,v1.42" data-slug="tw-nutrition-label" style="--index:1">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/營養標示製作.GIF" alt="台灣食品營養標示製作工具" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-seedling"></i></div>
-              <div><h3 class="card-title">台灣食品營養標示製作工具</h3></div>
-            </div>
-            <p class="card-desc">依產品型態與族群條件建立符合台灣規範的營養標示，支援多格式匯出。</p>
-            <div class="card-tags">
-              <span class="tag">v1.42</span>
-              <span class="tag">繁中</span>
-              <span class="tag">PDF/HTML/Excel</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>分步式引導：降低使用門檻，快速產出標示</li>
-                  <li>多格式支援：一般食品、膠囊錠狀、維礦添加等</li>
-                  <li>多元匯出：PDF / HTML / Excel，便於交付與留存</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="https://fufuohya.github.io/fufuohya/tools/Taiwan%20Food%20Nutrition%20Label%20Generator.html" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-scale-balanced"></i> 法規導向</div>
-            </div>
-          </div>
-        </article>
+       ⚠ 重要：這個網站是單一 HTML 檔，程式碼直接內嵌在裡面。
+       任何寫進這個檔案的資料，就算畫面上沒顯示，
+       訪客按「檢視原始碼」一樣看得到。
 
-        <!-- Card 3 -->
-        <article class="card" data-category="food" data-tags="營養計算,核對,每日參考值,每份,每100克" data-slug="nutrition-checker" style="--index:2">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/營養標示檢查工具.GIF" alt="一般營養標示計算器" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-calculator"></i></div>
-              <div><h3 class="card-title">一般營養標示計算器</h3></div>
-            </div>
-            <p class="card-desc">快速換算每份/每 100 公克數值，協助複核標示計算的合理性。</p>
-            <div class="card-tags">
-              <span class="tag">換算</span>
-              <span class="tag">驗證</span>
-              <span class="tag">食品</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>輸入重量與營養素，立即得到每份/每 100 公克換算值</li>
-                  <li>可作為交付前複核、內部品管自查工具</li>
-                  <li>降低人工計算失誤與溝通成本</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="./tools/NutritionCheck-1.html" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-circle-check"></i> 快速核對</div>
-            </div>
-          </div>
-        </article>
+       所以姓名與 email 目前是「空的」，不是被隱藏而已。
+       等你決定要公開時，再把下面三個欄位填上、
+       並把 show 改成 true —— 在那之前不要先填。
+       ---------------------------------------------------------- */
+    const IDENTITY = {
+      show:   false,
+      nameZh: '',      // ✎ 例：王小明（決定公開時再填）
+      nameEn: '',      // ✎ 例：Hsiao-Ming Wang
+      email:  '',      // ✎ 求職用信箱（決定公開時再填）
+      handle: 'fufuohya',   // GitHub 帳號，本來就是公開的
+    };
 
-        <!-- Card 4 -->
-        <article class="card" data-category="utility" data-tags="錄音,重複播放,loop,audio" data-slug="voice-loop" style="--index:3">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/錄音應用程式.GIF" alt="錄音重複撥放器" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-microphone"></i></div>
-              <div><h3 class="card-title">錄音重複撥放器</h3></div>
-            </div>
-            <p class="card-desc">錄下訊息並循環播放，減少重複講解的負擔，簡單直接好上手。</p>
-            <div class="card-tags">
-              <span class="tag">錄音</span>
-              <span class="tag">Loop</span>
-              <span class="tag">效率</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>一鍵錄音、停止、播放</li>
-                  <li>支援循環播放，適合固定提醒或教學語句</li>
-                  <li>降低重複說明與嗓音消耗</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="./tools/recordvoice.html" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-headphones"></i> 語音小幫手</div>
-            </div>
-          </div>
-        </article>
+    const PROFILE = {
+      role:       '食品與化妝品法規顧問',
+      roleSecond: 'GenAI 導入 × 流程自動化',
+      tagline:    '把複雜的法規條文，轉譯成 AI 與程式能自動執行的檢核邏輯。',
+      location:   'New Taipei City, TW',
+      years:      '9 年以上',
 
-        <!-- Card 5 -->
-        <article class="card" data-category="ai" data-tags="Gemini,標籤,擷取,AI,成分,規格,警語" data-slug="label-extract-ai" style="--index:4">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/智能抓取標籤資料.GIF" alt="標籤智能抓取" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-cubes"></i></div>
-              <div><h3 class="card-title">標籤智能抓取</h3></div>
-            </div>
-            <p class="card-desc">透過 AI 從標籤文字抓出重點，讓整理成分、規格與警語更快速。</p>
-            <div class="card-tags">
-              <span class="tag">AI</span>
-              <span class="tag">萃取</span>
-              <span class="tag">效率</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>快速萃取主要欄位：成分、規格、警語等</li>
-                  <li>降低人工逐字閱讀與整理時間成本</li>
-                  <li>適合作為資料庫建檔與初稿整理工具</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="./tools/labelcheck.html" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-wand-magic"></i> 自動萃取</div>
-            </div>
-          </div>
-        </article>
+      github:   'https://github.com/fufuohya',
+      linkedin: '',        // 有的話填網址，留空該列就不顯示
+      phone:    '',        // 公開網站建議留空
 
-        <!-- Card 6 -->
-        <article class="card" data-category="utility" data-tags="證件照,裁切,排版,列印,photo" data-slug="id-photo-crop" style="--index:5">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/證件照裁切.GIF" alt="證件照裁切工具" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-id-card"></i></div>
-              <div><h3 class="card-title">證件照裁切工具</h3></div>
-            </div>
-            <p class="card-desc">協助裁切與排版證件照，對應常見尺寸需求，並可輸出列印版面。</p>
-            <div class="card-tags">
-              <span class="tag">影像處理</span>
-              <span class="tag">排版</span>
-              <span class="tag">列印</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>快速裁切：按常見規範調整頭部與背景比例</li>
-                  <li>多尺寸：支援不同證件需求的尺寸配置</li>
-                  <li>合併排版：一次輸出多張，方便列印</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="./tools/ID%20Photo%20Crop%20%26%20Layout%20Tool.html" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-scissors"></i> 裁切排版</div>
-            </div>
-          </div>
-        </article>
+      // 大頭照：放到 assets/img/portrait.jpg（建議 4:5 直式）
+      portrait: 'assets/img/portrait.jpg',
 
-        <!-- Card 7 -->
-        <article class="card" data-category="food" data-tags="食品法規,營養計算,平台,Apps Script,安全" data-slug="food-reg-nutrition-platform" style="--index:6">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/食品標籤法規平台.GIF" alt="一站式食品法規與營養計算平台" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-microchip"></i></div>
-              <div><h3 class="card-title">一站式食品法規與營養計算平台</h3></div>
-            </div>
-            <p class="card-desc">把法規查詢與營養計算整合成一個入口，降低跨工具切換與資料散落成本。</p>
-            <div class="card-tags">
-              <span class="tag">平台化</span>
-              <span class="tag">法規</span>
-              <span class="tag">計算</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>集中入口：法規查詢與計算工具整合</li>
-                  <li>降低重複作業：減少資料搬運與版本混亂</li>
-                  <li>可納入既有流程：適合個人與團隊使用</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="https://script.google.com/macros/s/AKfycbyQuToVFBuenWsuB5T3dsIMWqDTavSp0Dem6NBQwOKQwXtwRduCkDhumN0sEYQ8IBGO/exec" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟平台
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-diagram-project"></i> 整合入口</div>
-            </div>
-          </div>
-        </article>
+      // 履歷 PDF：放進專案後填路徑，留空則不顯示下載按鈕
+      resume:   '',
 
-        <!-- Card 8 -->
-        <article class="card" data-category="ai" data-tags="COSING,INCI,化妝品,查詢,歐盟" data-slug="cosing-inci" style="--index:7">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/COSing_INCI 成分狀態.GIF" alt="COSing INCI 成分快查" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-flask-vial"></i></div>
-              <div><h3 class="card-title">COSing INCI 成分快查</h3></div>
-            </div>
-            <p class="card-desc">快速查詢 INCI 成分的用途分類與限制資訊，便於補齊成分資料庫缺口。</p>
-            <div class="card-tags">
-              <span class="tag">化妝品</span>
-              <span class="tag">資料查詢</span>
-              <span class="tag">Streamlit</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>查詢 COSING：快速取得資料庫資訊</li>
-                  <li>顯示用途分類與限制：便於後續評估與建檔</li>
-                  <li>適合資料補全：把查到的資訊回填你的成分庫</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="https://fufuohya-kyfwip2et6auoltptkj9mv.streamlit.app/" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-magnifying-glass"></i> INCI 快查</div>
-            </div>
-          </div>
-        </article>
+      about: [
+        '9 年以上食品與化妝品法規經驗，現任第三方檢驗認證機構資深專案經理，並擔任部門流程優化專員，負責 GenAI 與自動化轉型。專長是把複雜的法規需求，翻譯成技術團隊做得出來、業務端用得下去的解決方案。',
+        '今年的主軸是三條並行的線：讓客戶自己完成申請、讓 AI 先把文件整理好、讓部門有能力自己用起來。具體成果包含 PIF 文件萃取（單件蒐集工時減半、欄位準確率 91.9%）、商品照片分組流水線（邊界準確率 95.03%）、收信觸發的案件狀態自動更新（週工時 120 → 40 分鐘），以及一系列自製桌面與瀏覽器工具。',
+        '這些系統有個共同的設計原則：AI 不做判定，只負責找到與排好。找不到的欄位一律標示「未找到」、絕不推測補值——這是讓覆核者敢用的前提，也是我在法規領域養成的職業習慣。',
+        '同時擔任內部 AI 講師：舉辦 6 場 Microsoft 365 Copilot 教育訓練，並為 40 位以上同仁設計生成式 AI 課程，涵蓋 Prompt 工程、流程設計與資訊安全；另以技術導師身分輔導 5 個以上跨部門小組，從手動 Excel 轉向 Python / GAS 自動化。',
+        '更早前開發 LLM 法規審查工具，將合規指導的往返時間縮短 40%；自主研發成分審核自動化系統，讓每年 400 餘件案例的審核時間減少 66%。',
+        '更早之前在食品藥物管理署參與「食品過敏原標示」、「重組肉食品標示」等國家法規起草，並執行違規案例大數據分析。目前於 AI 資料科學家養成班進修，持續往數據驅動決策深化。',
+      ],
+    };
 
-        <!-- Card 9 -->
-        <article class="card" data-category="ai" data-tags="新聞,爬蟲,關鍵字,彙整,Apps Script,定時" data-slug="news-digest" style="--index:8">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/新聞抓取並顯示網頁.GIF" alt="智能新聞彙整工具" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-newspaper"></i></div>
-              <div><h3 class="card-title">智能新聞彙整工具</h3></div>
-            </div>
-            <p class="card-desc">定時抓取多來源新聞，依關鍵字整理重點，讓資訊追蹤更省時。</p>
-            <div class="card-tags">
-              <span class="tag">彙整</span>
-              <span class="tag">關鍵字</span>
-              <span class="tag">定時更新</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>自動抓取：集中各來源最新內容</li>
-                  <li>關鍵字分類：快速掌握特定領域動態</li>
-                  <li>一站式瀏覽：減少手動收藏與跳頁</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="https://script.google.com/macros/s/AKfycbxFRzxfsaMICxJiRUCG1G__fwbjVK-DLZmrGOEc9Sws0YxYIdA3AimYKx7YdjNFeP0K/exec" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 查看彙整
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-rss"></i> 資訊追蹤</div>
-            </div>
-          </div>
-        </article>
+    // 關鍵數字 —— 面試官掃過一眼就知道規模
+    const METRICS = [
+      { value: '50%',   label: '文件蒐集工時',   note: '240 → 120 分鐘 / 件' },
+      { value: '91.9%', label: '欄位萃取準確率', note: '未達標由人工複核' },
+      { value: '95.0%', label: '照片分組準確率', note: '521 組 / 12 組測試集' },
+      { value: '67%',   label: '案件維護工時',   note: '120 → 40 分鐘 / 週' },
+      { value: '66%',   label: '成分審核時間',   note: '年 400+ 件一致性' },
+      { value: '6',     label: '場 Copilot 課程', note: '40+ 位同仁受訓' },
+    ];
 
-        <!-- Card 10 -->
-        <article class="card" data-category="docs" data-tags="PDF,遮罩,隱私,關鍵字,redaction" data-slug="pdf-redaction" style="--index:9">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/screenshot-pdf-redactor.png" alt="PDF 關鍵字遮罩工具" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-file-contract"></i></div>
-              <div><h3 class="card-title">PDF 關鍵字遮罩工具</h3></div>
-            </div>
-            <p class="card-desc">自動掃描並遮蔽 PDF 中指定關鍵字，適合個資、合約與內部文件外發前處理。</p>
-            <div class="card-tags">
-              <span class="tag">資安/隱私</span>
-              <span class="tag">PDF</span>
-              <span class="tag">自動化</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>關鍵字搜尋與遮罩：降低敏感資訊外洩風險</li>
-                  <li>適用情境：法務文件、個資處理、內部報告分享</li>
-                  <li>可搭配關鍵字清單：提高處理一致性</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="https://fufuohya-jr54g4yhtv2az4z3mk7b4k.streamlit.app/" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-shield-halved"></i> 遮罩保護</div>
-            </div>
-          </div>
-        </article>
+    const SKILLS = [
+      {
+        group: '法規與稽核', en: 'Domain',
+        items: [
+          { name: '食品 / 化妝品法規',   note: '9 年以上' },
+          { name: '食品標示 · 營養標示', note: '參與國家法規起草' },
+          { name: '國際成分資料庫',      note: 'PCPC · EU COSING' },
+          { name: '食品安全稽核',        note: '100+ 場' },
+          { name: '法規邏輯化',          note: '轉為自動檢核清單' },
+        ],
+      },
+      {
+        group: 'AI 與 LLM', en: 'AI / LLM',
+        items: [
+          { name: '多代理編排',          note: '主控 / 子代理 / 格式化' },
+          { name: 'RAG 架構與 LLM 應用', note: '法規審查工具' },
+          { name: 'GPTs 客製化',         note: '標示初審自動化' },
+          { name: 'Prompt Engineering', note: '內部講師 40+ 人' },
+          { name: 'Microsoft 365 Copilot', note: '導入與教學 · 6 堂' },
+          { name: 'AI 資訊安全',         note: '導入規範制定' },
+        ],
+      },
+      {
+        group: '程式與平台', en: 'Engineering',
+        items: [
+          { name: 'Python',              note: '主力語言' },
+          { name: 'Selenium',            note: 'PCPC / COSING 爬蟲' },
+          { name: 'PySide6 / Tkinter',   note: '桌面應用開發' },
+          { name: 'PyMuPDF / OCR',       note: 'PDF 與影像處理' },
+          { name: 'Chrome Extension MV3', note: '瀏覽器擴充' },
+          { name: 'Power Automate',      note: '事件驅動流程' },
+          { name: 'Excel VBA',           note: '自動寄信 · 批次處理' },
+          { name: 'Google Apps Script',  note: '內部平台 2 件' },
+          { name: 'SQL / GitHub Pages',  note: '資料查詢與部署' },
+        ],
+      },
+    ];
 
-        <!-- Card 11 -->
-        <article class="card" data-category="docs" data-tags="PDF,比對,版本,差異,diff" data-slug="pdf-diff" style="--index:10">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/cover-pdf-diff.png" alt="PDF 差異比對工具" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>封面圖片準備中</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-file-code"></i></div>
-              <div><h3 class="card-title">PDF 差異比對工具</h3></div>
-            </div>
-            <p class="card-desc">上傳兩份 PDF 即可比對差異並標示變動，適合合約審閱與版本追蹤。</p>
-            <div class="card-tags">
-              <span class="tag">版本控管</span>
-              <span class="tag">審閱</span>
-              <span class="tag">PDF</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 特色亮點</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>快速定位差異：節省逐字比對的時間</li>
-                  <li>適用：合約、技術文件、SOP 更新追蹤</li>
-                  <li>降低人為疏漏：提升審閱可靠性</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="https://fufuohya-8p3dbalpbnurkkcuufjuod.streamlit.app/" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟工具
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-code-compare"></i> 差異標示</div>
-            </div>
-          </div>
-        </article>
+    // 工作經歷 —— 由新到舊
+    const EXPERIENCE = [
+      {
+        period: '2019.01 — 至今',
+        role:   '資深專案經理｜部門流程優化專員（GenAI 與自動化轉型負責人）',
+        org:    'SGS 台灣檢驗科技 · 新北市',
+        points: [
+          '擔任部門流程優化專員，協助同仁盤點並重建工作流程，將重複性作業系統化。',
+          '主導 PIF 專案系統開發：整合 PCPC / COSING 成分爬蟲、PDF 報告摘錄工具、離線分析桌面應用（PySide6）與表單自動填寫瀏覽器擴充（Chrome MV3），並以多代理架構搭配九類稽核規則完成文件萃取，將單件資料蒐集時間由 240 分鐘降至 120 分鐘，欄位萃取準確率 91.9%。',
+          '開發商品照片分組與標示擷取流水線，分組邊界準確率 95.03%（521 組 / 12 組測試集），並訂出「不猜值、缺漏留空」的資料品質硬規則。',
+          '推動送測流程線上化，把客服代打的作業改成客戶自助完成的七步驟申請旅程，解除人力天花板。',
+          '以 Power Automate 建立收信事件觸發的案件狀態自動更新，每週人工維護由 120 分鐘降至 40 分鐘，解析準確率 95%。',
+          '自行開發桌面工具：案件編號照片複製工具（規格由真實截圖反推校準）與 Excel VBA 自動寄信工具。',
+          '開發法規審查 GPTs 工具，實現食品與化妝品文案第一線合規初審，將合規指導往返時間縮短 40%。',
+          '自主研發成分審核自動化系統，縮短 66% 審核時間，確保每年 400 餘件案例的一致性與可追溯性。',
+          '規劃並授課 6 堂 Microsoft 365 Copilot 教育訓練，對象為一般同仁，每堂 20 分鐘、以實際工作檔案為教材，並備妥無授權者的替代路徑。',
+          '擔任內部 AI 講師，為 40 位以上同仁設計生成式 AI 培訓，涵蓋 Prompt 工程、流程設計與資訊安全規範。',
+          '擔任技術導師，輔導 5 個以上跨部門小組，運用 Python、Excel VBA 與 GAS 完成加速專案。',
+          '建置 Web 版數據儀表板與文件範本推薦擴充工具，優化管理決策效率並降低文件缺漏率。',
+        ],
+      },
+      {
+        period: '2021.10 — 至今',
+        role:   '兼任稽核員',
+        org:    'NSF International 美商恩士埃',
+        points: [
+          '執行台灣北部百餘家連鎖餐廳之食品安全稽核，確保符合國際標準與作業規範。',
+        ],
+      },
+      {
+        period: '2020 — 2022',
+        role:   '受邀講師',
+        org:    '台北市進出口商業同業公會（IEAT）',
+        points: [
+          '講題「台灣食品法規與實務」，為進出口貿易商提供法規合規與產業趨勢分析。',
+        ],
+      },
+      {
+        period: '2015.10 — 2018.09',
+        role:   '研發替代役（法規與政策支援）',
+        org:    '衛生福利部食品藥物管理署（TFDA）',
+        points: [
+          '協助起草與修訂「食品過敏原標示」、「重組肉食品標示」等國家法規。',
+          '參與違規案例大數據分析，找出違規熱點與成因，為政府政策提供改善建議。',
+        ],
+      },
+    ];
 
-        <!-- Card 12 -->
-        <article class="card" data-category="utility" data-tags="開發中,待續,wip,roadmap" data-slug="wip" style="--index:11">
-          <div class="card-cover">
-            <img class="card-img" data-cover="assets/img/cover-coming-soon-v2.png" alt="未完待續" loading="lazy">
-            <div class="card-placeholder">
-              <i class="fa-regular fa-image"></i>
-              <span>更多工具開發中...</span>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="card-header">
-              <div class="card-icon"><i class="fa-solid fa-hourglass-half"></i></div>
-              <div><h3 class="card-title">未完待續</h3></div>
-            </div>
-            <p class="card-desc">更多作品正在打磨中：一看就懂、一用就順，完成後再上線。</p>
-            <div class="card-tags">
-              <span class="tag">WIP</span>
-              <span class="tag">Roadmap</span>
-            </div>
-            <details class="card-details">
-              <summary class="details-toggle">
-                <span><i class="fa-solid fa-sparkles"></i> 目前規劃</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </summary>
-              <div class="details-content">
-                <ul>
-                  <li>持續新增：把高頻、重複流程工具化</li>
-                  <li>優先原則：可交付、可重用、可維護</li>
-                </ul>
-              </div>
-            </details>
-            <div class="card-footer">
-              <a class="card-link" href="./tools/invoice-organizer.xlsm" target="_blank" rel="noopener">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> 先看雛形
-              </a>
-              <div class="card-meta"><i class="fa-solid fa-person-digging"></i> 開發中</div>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-  </main>
+    const EDUCATION = [
+      {
+        main: '國立臺灣海洋大學 · 食品科學系 碩士',
+        sub:  '2013 – 2015 · 論文：節能環保之幾丁質生產方法開發（已獲國家專利）',
+      },
+      {
+        main: '國立臺灣海洋大學 · 食品科學系 學士',
+        sub:  '2009 – 2013',
+      },
+    ];
 
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-content">
-        <div>
-          © <span id="currentYear"></span> FuSheng ・ 用 AI 解決真實問題
-        </div>
-        <div class="footer-links">
-          <a href="https://github.com/your-username" class="footer-link" target="_blank" rel="noopener">
-            <i class="fa-brands fa-github"></i> GitHub
-          </a>
-          <a href="mailto:your.email@example.com" class="footer-link">
-            <i class="fa-solid fa-envelope"></i> 聯絡我
-          </a>
-        </div>
-      </div>
-    </div>
-  </footer>
+    const CERTIFICATES = [
+      { main: '食品技師',                       sub: '國家考試及格' },
+      { main: 'FSSC 22000 主導稽核員',           sub: '食品安全管理系統' },
+      { main: 'HACCP 60-A 基礎班',               sub: '危害分析重要管制點' },
+      { main: 'ISO 14064-1 & 14067 主導核查員',  sub: '溫室氣體 / 碳足跡 · 2024' },
+      { main: '中華民國發明專利',                 sub: '蝦蟹外殼預處理之幾丁質生產方法' },
+      { main: 'TFDA 食品稽查專業訓練',            sub: '標示稽查、GHP、膠囊錠狀、特殊營養食品等 7 班' },
+    ];
 
-  <script>
-    (function() {
-      // Theme Toggle
-      const root = document.documentElement;
-      const themeBtn = document.getElementById('themeBtn');
-      const themeLabel = document.getElementById('themeLabel');
-      const THEME_KEY = 'portfolio_theme';
+    const AI_EDUCATION = [
+      { main: 'AI 資料科學家養成班',        sub: 'TibaMe · 18 週精修 · 2025.09 – 2025.12' },
+      { main: 'LLM 應用開發實務',           sub: 'RAG 與 API 整合 · ihower / TibaMe · 2024 – 2025' },
+      { main: 'ChatGPT 精修：Prompt 工程',  sub: 'TibaMe · 2025.07' },
+    ];
 
-      function getSystemTheme() {
-        return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    /* ==========================================================
+       ▲▲▲ 個人資料結束，以下是版面程式碼 ▲▲▲
+       新增作品請往下找 WORKS 陣列。
+       ========================================================== */
+
+    const CATEGORY_META = {
+      system:  { label: '內部專案',  en: 'Internal' },
+      food:    { label: '食品法規',  en: 'Food Reg' },
+      docs:    { label: '文件處理',  en: 'Documents' },
+      ai:      { label: 'AI 自動化', en: 'AI Automation' },
+      utility: { label: '效率工具',  en: 'Utilities' },
+    };
+
+    const WORKS = [
+      {
+        slug: 'pif-system', category: 'system',
+        cover: 'assets/img/shot-pif-extraction.webp',
+        title: 'PIF 專案系統',
+        desc: '送進來的是 PDF、掃描檔、Word 與各式原始資料，格式雜、量又大。整套系統把一條龍的作業拆成五個元件：爬蟲補齊外部成分資料、摘錄工具把 PDF 讀出來、多代理流程萃取欄位、桌面應用做分析與檢核、瀏覽器擴充把結果填回目標系統。做法不是讓 AI 直接下判斷，而是讓 AI 先把散落的欄位整理成重點列表，人只負責最後確認——降低查找成本與誤繕風險，責任仍留在人身上。',
+        tags: ['多代理編排', 'Selenium', 'PySide6', 'Chrome MV3', 'OCR', '2026'],
+        components: [
+          { name: 'PCPC / COSING 成分爬蟲', tech: 'Python · Selenium',      note: '自動擷取國際法規資料庫的成分狀態與限制' },
+          { name: 'PDF 報告摘錄工具',       tech: 'Python · 文字層 + OCR 備援', note: '已打包為免安裝執行檔' },
+          { name: '文件萃取與報告檢核',     tech: '多代理編排 · OCR',        note: '九類稽核規則依文件類型路由' },
+          { name: '離線分析桌面應用',       tech: 'Python · PySide6',        note: '服務層與資料庫層分離，檢核表匯出' },
+          { name: '表單自動填寫擴充',       tech: 'Chrome Extension MV3',    note: '處理框架表單與 debounce 輸入' },
+        ],
+        features: [
+          '資料蒐集時間由 240 分鐘降至 120 分鐘 / 件（含人工複核）',
+          '欄位萃取準確率 91.9%，未達標者由人工複核補正',
+          '單份文件自進入到列表輸出平均低於 2 分鐘',
+          '爬蟲自動查詢 PCPC 與歐盟 COSING 資料庫，補齊成分的用途分類與限制條件，免去逐筆手動查找',
+          '檢核規則寫成九類獨立稽核文件（GMP、安定性、微生物、重金屬、防腐效能、包裝相容性、不純物殘留等），由主控代理依文件類型路由至子代理，再交格式化代理統一輸出中文固定格式',
+          'PDF 優先讀文字層，文字層被遮蓋時自動改用 OCR，兼顧速度與涵蓋率',
+          '缺漏欄位一律標示「未找到」，不允許推測補值——這是讓覆核者敢用的前提',
+        ],
+        link: null,
+        note: '公司內部系統 · 不對外開放',
+      },
+      {
+        slug: 'photo-grouping', category: 'system',
+        cover: 'assets/img/shot-photo-grouping.webp',
+        title: '商品照片分組與標示擷取',
+        desc: '現場拍一整批商品照，同一個產品會拍正面、背面、成分面、營養標示特寫好幾張。要把這堆連續照片切成一個個產品，再把每個產品的標示讀成結構化欄位。整條流水線做成兩個可獨立使用的模組，中間用固定檔名格式銜接。',
+        tags: ['特徵工程', 'union-find', '影像處理', '2026'],
+        features: [
+          '分組邊界準確率 95.03%：1,106 個相鄰邊界中判錯 55 次',
+          '驗證規模 521 個產品分組 / 12 組測試集，上線門檻設在 0.94',
+          '七特徵邊界分類器（色彩、形狀、紋理、亮度、飽和度、局部特徵、拍攝時間差），最重要的特徵是拍攝時間相近',
+          '同一組照片必須在同一次讀取中一起看完才寫入欄位，避免一張一張讀造成欄位殘缺或互相矛盾',
+          '硬規則：看不到的欄位一律留空，不寫 N/A、不推測、不外查；模糊或被遮擋標為 needs-review 並寫明原因',
+        ],
+        link: null,
+        note: '公司內部系統 · 不對外開放',
+      },
+      {
+        slug: 'online-application', category: 'system',
+        cover: 'assets/img/shot-online-application.webp',
+        title: '線上申請旅程',
+        desc: '把原本需要客服打單的送測流程，改成客戶自己走完的七步驟線上旅程。客戶可自行查看報告製作進度，客服不再是流程瓶頸。',
+        tags: ['流程再造', '客戶自助', '已上線', '2026'],
+        features: [
+          '七步驟：註冊審核 → 線上申請 → 報價 → 送測 → 電子簽名 → 進度檢視 → 報告下載',
+          '進度列固定於頁首，讓客戶隨時知道自己走到哪一步',
+          '必填欄位收斂在同一頁，減少來回補件',
+          '解決的核心問題：過去每張單都要客服代打、代確認、代回報，單量成長時人力就是天花板',
+          '下半年持續擴展服務品項與後台體驗',
+        ],
+        link: null,
+        note: '公司內部系統 · 不對外開放',
+      },
+      {
+        slug: 'case-status-automation', category: 'system',
+        cover: 'assets/img/shot-case-status.webp',
+        title: '案件狀態自動更新',
+        desc: '原本每次新開案、改案、結案都要人工回頭更新 Excel。改成由收信事件觸發：郵件一進來，案件編號、產品名稱、負責人與回覆期限就自動寫入案件表。',
+        tags: ['Power Automate', '事件驅動', '2026'],
+        features: [
+          '每週人工維護時間由 120 分鐘降至 40 分鐘，剩餘時間用於資料正確性複核',
+          '信件解析準確率 95%，單封平均處理時間減少 70%',
+          '自動解析案件編號、產品名稱、狀態、負責人與首次回覆期限',
+          '選擇從郵件下手，是因為分案通知本來就有固定表格格式，是流程中唯一「一定會發生且結構穩定」的訊號',
+          '不需改變任何人的既有習慣就能接上自動化',
+        ],
+        link: null,
+        note: '公司內部系統 · 不對外開放',
+      },
+      {
+        slug: 'photo-relabel-tool', category: 'system',
+        cover: 'assets/img/shot-photo-relabel.svg',
+        title: '案件編號照片複製工具',
+        desc: '案件照片的檔名帶案件編號，照片上方還印著一條白底黑字的編號橫幅。要把一批照片複製成新案件編號時，檔名與橫幅文字都得換，但照片內容與解析度一個像素都不能動。原本這件事只能一張一張手工處理。',
+        tags: ['桌面應用', 'Pillow', '逆向校準', '2026'],
+        features: [
+          '拿不到原始規格文件，改從真實案件截圖反推：截圖本身是縮圖、絕對像素不可信，所以先量高度與中心點的比例，再換算回 4800 × 3200 的設計基準',
+          '第一輪疊圖比對文字中心完全一致、寬高誤差 2.9%；第二輪換一張更貼近橫幅邊界的截圖，等比修正字級 290 → 280px、橫幅高 365 → 353px 後，誤差收斂到量測雜訊範圍內',
+          '關鍵發現：橫幅文字不是正中央，而是水平置中後再左偏 136px——理論置中會對不上',
+          '校準後參數：橫幅左上角滿版高 353px 白底黑字、Tahoma 粗體 280px；其他解析度依比例換算，畫布永遠用原圖實際尺寸建立，不縮放、不裁切',
+          '批次模式與自動監看模式並存，因為同一案件的照片會陸續進來，不會一次到齊',
+          '安全規則：不刪原檔、檔名衝突先詢問（支援全部套用）、相同檔名不重複處理',
+        ],
+        link: null,
+        note: '公司內部工具 · 不對外開放',
+      },
+      {
+        slug: 'copilot-training', category: 'system',
+        cover: 'assets/img/shot-copilot-training.webp',
+        title: 'Microsoft 365 Copilot 教育訓練',
+        desc: '對象是一般同仁，不是工程師。六堂課每堂控制在 20 分鐘內，一律用實際工作情境的檔案當教材，並且每堂都準備「沒有 M365 授權怎麼辦」的替代路徑，讓沒授權的人也帶得走東西。',
+        tags: ['教育訓練', 'M365 Copilot', '6 堂課', '2026'],
+        features: [
+          '課程順序從最熟悉的 Excel 起手，最後才進到 Prompt 與簡報製作',
+          'Excel 明細與日曆聯動、Word 小範圍精準改寫、Excel 進階處理與 KPI 儀表板',
+          'Outlook 查信寫信建規則（以模擬收件匣練習）、Prompt 四要素、PowerPoint 先架構後內容',
+          '教材設計：每堂開場 30 秒成果預覽、練習檔成對提供、操作示範錄影內嵌講義供缺席自學',
+          '推展策略：示範 → 試用 → 回饋 → 優化 → 擴散，由已上手的人帶動',
+        ],
+        link: null,
+        note: '公司內部課程',
+      },
+      {
+        slug: 'vba-mailer', category: 'system',
+        cover: null,
+        title: 'Excel VBA 自動寄信工具',
+        desc: '從 Excel 清單自動產生並寄送信件，把重複的通知與催辦作業一鍵完成。',
+        tags: ['Excel VBA', '自動化', '2026'],
+        features: [
+          '由清單自動帶入收件者與內容，減少漏寄與寄錯',
+          '批次寄送重複性通知，釋放人力',
+          '同仁可直接沿用，不需額外環境建置',
+        ],
+        link: null,
+        note: '公司內部工具 · 不對外開放',
+      },
+      {
+        slug: 'tw-nutrition-label', category: 'food',
+        cover: 'assets/img/營養標示製作.GIF',
+        title: '台灣食品營養標示製作工具',
+        desc: '依產品型態與族群條件建立符合台灣規範的營養標示，支援多格式匯出。',
+        tags: ['v1.42', '繁中', 'PDF / HTML / Excel'],
+        features: [
+          '分步式引導：降低使用門檻，快速產出標示',
+          '多格式支援：一般食品、膠囊錠狀、維礦添加等',
+          '多元匯出：PDF / HTML / Excel，便於交付與留存',
+        ],
+        link: 'https://fufuohya.github.io/fufuohya/tools/Taiwan%20Food%20Nutrition%20Label%20Generator.html',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'food-reg-nutrition-platform', category: 'food',
+        cover: 'assets/img/食品標籤法規平台.GIF',
+        title: '一站式食品法規與營養計算平台',
+        desc: '把法規查詢與營養計算整合成一個入口，降低跨工具切換與資料散落成本。',
+        tags: ['平台化', '法規', '計算'],
+        features: [
+          '集中入口：法規查詢與計算工具整合',
+          '降低重複作業：減少資料搬運與版本混亂',
+          '可納入既有流程：適合個人與團隊使用',
+        ],
+        link: 'https://script.google.com/macros/s/AKfycbyQuToVFBuenWsuB5T3dsIMWqDTavSp0Dem6NBQwOKQwXtwRduCkDhumN0sEYQ8IBGO/exec',
+        linkLabel: '開啟平台',
+      },
+      {
+        slug: 'nutrition-checker', category: 'food',
+        cover: 'assets/img/營養標示檢查工具.GIF',
+        title: '一般營養標示計算器',
+        desc: '快速換算每份/每 100 公克數值，協助複核標示計算的合理性。',
+        tags: ['換算', '驗證', '食品'],
+        features: [
+          '輸入重量與營養素，立即得到每份/每 100 公克換算值',
+          '可作為交付前複核、內部品管自查工具',
+          '降低人工計算失誤與溝通成本',
+        ],
+        link: './tools/NutritionCheck-1.html',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'pdf-redaction', category: 'docs',
+        cover: 'assets/img/screenshot-pdf-redactor.png',
+        title: 'PDF 關鍵字遮罩工具',
+        desc: '自動掃描並遮蔽 PDF 中指定關鍵字，適合個資、合約與內部文件外發前處理。',
+        tags: ['資安 / 隱私', 'PDF', '自動化'],
+        features: [
+          '關鍵字搜尋與遮罩：降低敏感資訊外洩風險',
+          '適用情境：法務文件、個資處理、內部報告分享',
+          '可搭配關鍵字清單：提高處理一致性',
+        ],
+        link: 'https://fufuohya-jr54g4yhtv2az4z3mk7b4k.streamlit.app/',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'pdf-diff', category: 'docs',
+        cover: 'assets/img/cover-pdf-diff.png',
+        title: 'PDF 差異比對工具',
+        desc: '上傳兩份 PDF 即可比對差異並標示變動，適合合約審閱與版本追蹤。',
+        tags: ['版本控管', '審閱', 'PDF'],
+        features: [
+          '快速定位差異：節省逐字比對的時間',
+          '適用：合約、技術文件、SOP 更新追蹤',
+          '降低人為疏漏：提升審閱可靠性',
+        ],
+        link: 'https://fufuohya-8p3dbalpbnurkkcuufjuod.streamlit.app/',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'label-extract-ai', category: 'ai',
+        cover: 'assets/img/智能抓取標籤資料.GIF',
+        title: '標籤智能抓取',
+        desc: '透過 AI 從標籤文字抓出重點，讓整理成分、規格與警語更快速。',
+        tags: ['AI', '萃取', '效率'],
+        features: [
+          '快速萃取主要欄位：成分、規格、警語等',
+          '降低人工逐字閱讀與整理時間成本',
+          '適合作為資料庫建檔與初稿整理工具',
+        ],
+        link: './tools/labelcheck.html',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'cosing-inci', category: 'ai',
+        cover: 'assets/img/COSing INCI 成分快查.GIF',
+        title: 'COSing INCI 成分快查',
+        desc: '快速查詢 INCI 成分的用途分類與限制資訊，便於補齊成分資料庫缺口。',
+        tags: ['化妝品', '資料查詢', 'Streamlit'],
+        features: [
+          '查詢 COSING：快速取得資料庫資訊',
+          '顯示用途分類與限制：便於後續評估與建檔',
+          '適合資料補全：把查到的資訊回填你的成分庫',
+        ],
+        link: 'https://fufuohya-kyfwip2et6auoltptkj9mv.streamlit.app/',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'news-digest', category: 'ai',
+        cover: 'assets/img/新聞抓取並顯示網頁.GIF',
+        title: '智能新聞彙整工具',
+        desc: '定時抓取多來源新聞，依關鍵字整理重點，讓資訊追蹤更省時。',
+        tags: ['彙整', '關鍵字', '定時更新'],
+        features: [
+          '自動抓取：集中各來源最新內容',
+          '關鍵字分類：快速掌握特定領域動態',
+          '一站式瀏覽：減少手動收藏與跳頁',
+        ],
+        link: 'https://script.google.com/macros/s/AKfycbxFRzxfsaMICxJiRUCG1G__fwbjVK-DLZmrGOEc9Sws0YxYIdA3AimYKx7YdjNFeP0K/exec',
+        linkLabel: '查看彙整',
+      },
+      {
+        slug: 'html-live-preview', category: 'utility',
+        cover: 'assets/img/網頁展示.GIF',
+        title: '即時 HTML 編輯與預覽',
+        desc: '同一頁面完成撰寫與預覽，適合快速測試範例、教學展示與原型驗證。',
+        tags: ['HTML', 'Live Preview', '前端工具'],
+        features: [
+          '即時編輯與預覽：所見即所得，縮短試錯時間',
+          '程式碼搜尋：快速定位段落與標記',
+          '可調整編輯 / 預覽比例：更符合閱讀習慣',
+        ],
+        link: './tools/preview_html.html',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'id-photo-crop', category: 'utility',
+        cover: 'assets/img/證件照裁切.GIF',
+        title: '證件照裁切工具',
+        desc: '協助裁切與排版證件照，對應常見尺寸需求，並可輸出列印版面。',
+        tags: ['影像處理', '排版', '列印'],
+        features: [
+          '快速裁切：按常見規範調整頭部與背景比例',
+          '多尺寸：支援不同證件需求的尺寸配置',
+          '合併排版：一次輸出多張，方便列印',
+        ],
+        link: './tools/ID%20Photo%20Crop%20%26%20Layout%20Tool.html',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'voice-loop', category: 'utility',
+        cover: 'assets/img/錄音應用程式.GIF',
+        title: '錄音重複撥放器',
+        desc: '錄下訊息並循環播放，減少重複講解的負擔，簡單直接好上手。',
+        tags: ['錄音', 'Loop', '效率'],
+        features: [
+          '一鍵錄音、停止、播放',
+          '支援循環播放，適合固定提醒或教學語句',
+          '降低重複說明與嗓音消耗',
+        ],
+        link: './tools/recordvoice.html',
+        linkLabel: '開啟工具',
+      },
+      {
+        slug: 'wip', category: 'utility',
+        cover: 'assets/img/cover-coming-soon-v2.png',
+        title: '未完待續',
+        desc: '更多作品正在打磨中：一看就懂、一用就順，完成後再上線。',
+        tags: ['WIP', 'Roadmap'],
+        features: [
+          '持續新增：把高頻、重複流程工具化',
+          '優先原則：可交付、可重用、可維護',
+        ],
+        link: null,
+        note: '開發中 — 尚未開放',
+      },
+    ];
+
+    /* ================= Helpers ================= */
+
+    const pad = (n) => String(n).padStart(2, '0');
+
+    const searchText = (w) =>
+      [w.title, w.desc, w.tags.join(' '), w.features.join(' '), CATEGORY_META[w.category].label]
+        .join(' ').toLowerCase();
+
+    // 遞迴掃描資料物件，計算還有幾處含 ✎ 的未填欄位
+    function countTodos(value) {
+      if (typeof value === 'string') return value.includes(TODO) ? 1 : 0;
+      if (Array.isArray(value)) return value.reduce((n, v) => n + countTodos(v), 0);
+      if (value && typeof value === 'object') {
+        return Object.values(value).reduce((n, v) => n + countTodos(v), 0);
       }
+      return 0;
+    }
 
-      function applyTheme(mode) {
-        const resolved = mode === 'auto' ? getSystemTheme() : mode;
-        root.setAttribute('data-theme', resolved);
-        themeLabel.textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
-      }
+    /* ================= Hooks ================= */
 
-      function nextTheme(current) {
-        if (current === 'auto') return 'light';
-        if (current === 'light') return 'dark';
-        return 'auto';
-      }
+    function useImage(src) {
+      const [state, setState] = useState({ src: null, done: false });
+      useEffect(() => {
+        if (!src) { setState({ src: null, done: true }); return; }
+        let cancelled = false;
+        setState({ src: null, done: false });
+        const img = new Image();
+        img.onload = () => { if (!cancelled) setState({ src: encodeURI(src), done: true }); };
+        img.onerror = () => { if (!cancelled) setState({ src: null, done: true }); };
+        img.src = encodeURI(src);
+        return () => { cancelled = true; };
+      }, [src]);
+      return state;
+    }
 
-      let currentTheme = localStorage.getItem(THEME_KEY) || 'auto';
-      applyTheme(currentTheme);
+    // 先試 data-cover，失敗才回退到 assets/works/<slug>/cover.*
+    function useCoverImage(explicit, slug) {
+      const [state, setState] = useState({ src: null, done: false });
 
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-      if (mediaQuery.addEventListener) {
-        mediaQuery.addEventListener('change', () => {
-          if (localStorage.getItem(THEME_KEY) === 'auto') applyTheme('auto');
-        });
-      }
+      useEffect(() => {
+        let cancelled = false;
+        setState({ src: null, done: false });
 
-      themeBtn.addEventListener('click', () => {
-        currentTheme = nextTheme(currentTheme);
-        localStorage.setItem(THEME_KEY, currentTheme);
-        applyTheme(currentTheme);
-      });
-
-      // Current Year
-      document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-      // Cards and Stats
-      const cards = document.querySelectorAll('.card');
-      const searchInput = document.getElementById('searchInput');
-      const filterChips = document.querySelectorAll('.filter-chip');
-      const emptyState = document.getElementById('emptyState');
-      const totalCount = document.getElementById('totalCount');
-      const visibleCount = document.getElementById('visibleCount');
-
-      totalCount.textContent = cards.length;
-      let activeFilter = 'all';
-
-      function normalize(str) {
-        return (str || '').toLowerCase().trim();
-      }
-
-      function getCardText(card) {
-        const title = card.querySelector('.card-title')?.textContent || '';
-        const desc = card.querySelector('.card-desc')?.textContent || '';
-        const tags = card.getAttribute('data-tags') || '';
-        const details = card.querySelector('.details-content')?.textContent || '';
-        return normalize([title, desc, tags, details].join(' '));
-      }
-
-      function filterCards() {
-        const query = normalize(searchInput.value);
-        let visible = 0;
-
-        cards.forEach(card => {
-          const category = card.getAttribute('data-category') || '';
-          const matchCategory = activeFilter === 'all' || category === activeFilter;
-          const matchQuery = !query || getCardText(card).includes(query);
-          const show = matchCategory && matchQuery;
-
-          card.classList.toggle('hidden', !show);
-          if (show) visible++;
-        });
-
-        visibleCount.textContent = visible;
-        emptyState.style.display = visible === 0 ? 'block' : 'none';
-      }
-
-      filterChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-          filterChips.forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          activeFilter = chip.getAttribute('data-filter') || 'all';
-          filterCards();
-        });
-      });
-
-      searchInput.addEventListener('input', filterCards);
-
-      // Cover Image Loader (優先 data-cover；沒有才回退用 slug cover.webp/jpg/png)
-      function setupCoverImage(card) {
-        const img = card.querySelector('.card-img');
-        const placeholder = card.querySelector('.card-placeholder');
-        if (!img || !placeholder) return;
-
-        const explicit = (img.dataset.cover || img.getAttribute('data-cover') || '').trim();
-        const slug = (card.getAttribute('data-slug') || '').trim();
-
-        const setVisible = (ok) => {
-          if (ok) {
-            img.style.display = 'block';
-            placeholder.style.display = 'none';
-          } else {
-            img.style.display = 'none';
-            placeholder.style.display = 'flex';
-          }
-        };
-
-        // 嘗試載入指定路徑
-        const trySrc = (src) => new Promise((resolve) => {
+        const tryLoad = (url) => new Promise((resolve) => {
+          const img = new Image();
           img.onload = () => resolve(true);
           img.onerror = () => resolve(false);
-          img.src = encodeURI(src);
+          img.src = encodeURI(url);
         });
+
+        // cover 明確為 null 者（內部專案無截圖）直接跳過，避免無謂的 404 請求
+        if (!explicit) { setState({ src: null, done: true }); return; }
 
         (async () => {
-          // 1) 有寫 data-cover -> 直接用它
-          if (explicit) {
-            const ok = await trySrc(explicit);
-            setVisible(ok);
-            if (ok) return;
-            // 若 explicit 失敗，才繼續 fallback
+          const candidates = [explicit];
+          // 指定路徑失敗才回退到 assets/works/<slug>/cover.*
+          if (slug) for (const ext of ['webp', 'jpg', 'png', 'gif']) {
+            candidates.push(`./assets/works/${slug}/cover.${ext}`);
           }
-
-          // 2) 沒有 data-cover（或失敗）-> 用 slug 嘗試 cover.webp/jpg/png
-          if (!slug) {
-            setVisible(false);
-            return;
+          for (const url of candidates) {
+            const ok = await tryLoad(url);
+            if (cancelled) return;
+            if (ok) { setState({ src: encodeURI(url), done: true }); return; }
           }
-
-          const base = `./assets/works/${slug}/cover`;
-          const formats = ['webp', 'jpg', 'png', 'gif'];
-          for (const ext of formats) {
-            const ok = await trySrc(`${base}.${ext}`);
-            if (ok) { setVisible(true); return; }
-          }
-
-          setVisible(false);
+          if (!cancelled) setState({ src: null, done: true });
         })();
-      }
 
-      cards.forEach(setupCoverImage);
+        return () => { cancelled = true; };
+      }, [explicit, slug]);
 
-      // Initial filter
-      filterCards();
+      return state;
+    }
 
-      // Smooth scroll
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-          e.preventDefault();
-          const target = document.querySelector(this.getAttribute('href'));
-          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      });
+    function useDesktopHover() {
+      const [ok, setOk] = useState(false);
+      useEffect(() => {
+        const mq = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1024px)');
+        const update = () => setOk(mq.matches);
+        update();
+        mq.addEventListener('change', update);
+        return () => mq.removeEventListener('change', update);
+      }, []);
+      return ok;
+    }
 
-      // Details toggle animation
-      document.querySelectorAll('.card-details').forEach(details => {
-        details.addEventListener('toggle', function() {
-          if (this.open) {
-            const content = this.querySelector('.details-content');
-            if (content) content.style.animation = 'slideDown 0.3s ease';
+    /* ================= Shared bits ================= */
+
+    function SectionHead({ num, en, title, note, id }) {
+      return (
+        <div className="sectionhead" id={id}>
+          <span className="label accent">{num} — {en}</span>
+          <h2>{title}</h2>
+          {note && <p>{note}</p>}
+        </div>
+      );
+    }
+
+    function CursorPreview({ src, active }) {
+      const elRef = useRef(null);
+      const target = useRef({ x: 0, y: 0 });
+      const pos = useRef({ x: 0, y: 0 });
+
+      useEffect(() => {
+        const onMove = (e) => {
+          const w = 300, h = 230, gap = 24;
+          let x = e.clientX + gap;
+          let y = e.clientY + gap;
+          if (x + w > window.innerWidth) x = e.clientX - w - gap;
+          if (y + h > window.innerHeight) y = window.innerHeight - h - gap;
+          target.current = { x, y };
+        };
+        window.addEventListener('mousemove', onMove);
+
+        let raf;
+        const tick = () => {
+          pos.current.x += (target.current.x - pos.current.x) * 0.18;
+          pos.current.y += (target.current.y - pos.current.y) * 0.18;
+          if (elRef.current) {
+            elRef.current.style.transform =
+              `translate3d(${pos.current.x.toFixed(1)}px, ${pos.current.y.toFixed(1)}px, 0)`;
           }
-        });
+          raf = requestAnimationFrame(tick);
+        };
+        raf = requestAnimationFrame(tick);
+
+        return () => { window.removeEventListener('mousemove', onMove); cancelAnimationFrame(raf); };
+      }, []);
+
+      return (
+        <div ref={elRef} className={`cursorpreview${active && src ? ' show' : ''}`} aria-hidden="true">
+          {src && <img src={src} alt="" />}
+        </div>
+      );
+    }
+
+    /* ================= Sections ================= */
+
+    function Masthead({ theme, onCycleTheme }) {
+      const jump = (id) => (e) => {
+        e.preventDefault();
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      return (
+        <header className="masthead">
+          <div className="wrap">
+            <div className="masthead-inner">
+              <a href="#" className="wordmark"
+                 onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                {IDENTITY.show && IDENTITY.nameEn ? IDENTITY.nameEn : IDENTITY.handle}
+              </a>
+              <nav className="masthead-nav">
+                <a className="navlink" href="#about" onClick={jump('about')}>About</a>
+                <a className="navlink" href="#skills" onClick={jump('skills')} data-optional="true">Skills</a>
+                <a className="navlink" href="#experience" onClick={jump('experience')} data-optional="true">Experience</a>
+                <a className="navlink" href="#work" onClick={jump('work')}>Work</a>
+                <a className="navlink" href="#contact" onClick={jump('contact')}>Contact</a>
+                <button type="button" className="navlink" onClick={onCycleTheme} aria-label="切換主題">
+                  {theme}
+                </button>
+              </nav>
+            </div>
+          </div>
+        </header>
+      );
+    }
+
+    function Colophon({ total }) {
+      return (
+        <div className="wrap">
+          <div className="colophon label">
+            <span>{PROFILE.role}</span>
+            <span>{pad(total)} Projects</span>
+            <span>Food Reg · QA · Automation</span>
+            <span>{PROFILE.location}</span>
+          </div>
+        </div>
+      );
+    }
+
+    function Portrait({ caption }) {
+      const { src, done } = useImage(PROFILE.portrait);
+      return (
+        <figure className="portrait">
+          {src
+            ? <img src={src} alt="" />
+            : <div className="portrait-fallback">
+                {done ? <span>放一張大頭照<br />assets/img/portrait.jpg</span> : <span>Loading</span>}
+              </div>}
+          <figcaption>{caption}</figcaption>
+        </figure>
+      );
+    }
+
+    function Hero() {
+      const jumpWork = (e) => {
+        e.preventDefault();
+        document.getElementById('work')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+
+      const named = IDENTITY.show && IDENTITY.nameZh;
+
+      return (
+        <div className="wrap">
+          <section className="hero">
+            <div>
+              <span className="hero-eyebrow label">01 — Profile</span>
+              {named ? (
+                <React.Fragment>
+                  <h1>{IDENTITY.nameZh}</h1>
+                  <div className="hero-nameen">{IDENTITY.nameEn}</div>
+                </React.Fragment>
+              ) : (
+                <React.Fragment>
+                  <h1>法規條文<br />變成自動邏輯</h1>
+                  <div className="hero-nameen">Regulatory Affairs × GenAI</div>
+                </React.Fragment>
+              )}
+              <p className="hero-role">{PROFILE.role}<br />{PROFILE.roleSecond}</p>
+              <p className="hero-tagline">{PROFILE.tagline}</p>
+              <div className="actions">
+                <a className="openlink" href="#work" onClick={jumpWork}>作品集 <span aria-hidden="true">↓</span></a>
+                {PROFILE.resume && (
+                  <a className="openlink quiet" href={PROFILE.resume} download>
+                    下載履歷 <span aria-hidden="true">↓</span>
+                  </a>
+                )}
+              </div>
+            </div>
+            <Portrait caption={PROFILE.location} />
+          </section>
+
+          <div className="metrics">
+            {METRICS.map((m) => (
+              <div className="metric" key={m.label}>
+                <div className="metric-value">{m.value}</div>
+                <div className="metric-label">{m.label}</div>
+                <div className="metric-note">{m.note}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function About({ total }) {
+      return (
+        <section className="section" id="about">
+          <div className="wrap">
+            <SectionHead num="02" en="About" title="關於我" />
+            <div className="about-grid">
+              <div className="about-body">
+                {PROFILE.about.map((p, i) => <p key={i}>{p}</p>)}
+
+                <dl className="datablock">
+                  <div className="datarow">
+                    <dt className="label">領域</dt>
+                    <dd>食品與化妝品法規 · 標示合規 · 食安稽核</dd>
+                  </div>
+                  <div className="datarow">
+                    <dt className="label">年資</dt>
+                    <dd>{PROFILE.years}</dd>
+                  </div>
+                  <div className="datarow">
+                    <dt className="label">角色</dt>
+                    <dd>專案經理 · 法規顧問 · 稽核員 · 內部 AI 講師</dd>
+                  </div>
+                  <div className="datarow">
+                    <dt className="label">自建工具</dt>
+                    <dd>{pad(total)} 件，皆為解決實際業務痛點而做</dd>
+                  </div>
+                  <div className="datarow">
+                    <dt className="label">現況</dt>
+                    <dd>開放工作機會與合作洽談</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Skills() {
+      return (
+        <section className="section" id="skills">
+          <div className="wrap">
+            <SectionHead
+              num="03" en="Capabilities" title="能力矩陣"
+              note="領域知識是本業，程式與平台是我用來讓本業做得更快、更不容易出錯的手段。"
+            />
+            <div className="skillgrid">
+              {SKILLS.map((col) => (
+                <div className="skillcol" key={col.en}>
+                  <span className="label">{col.group} / {col.en}</span>
+                  <ul>
+                    {col.items.map((it) => (
+                      <li key={it.name}>
+                        <span className="skillname">{it.name}</span>
+                        <span className="skillnote">{it.note}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Experience() {
+      return (
+        <section className="section" id="experience">
+          <div className="wrap">
+            <SectionHead num="04" en="Experience" title="工作經歷" />
+            <div className="timeline">
+              {EXPERIENCE.map((job, i) => (
+                <div className="tlrow" key={i}>
+                  <div className="tlperiod label">{job.period}</div>
+                  <div>
+                    <div className="tlrole">{job.role}</div>
+                    <div className="tlorg">{job.org}</div>
+                  </div>
+                  <ul className="tlpoints">
+                    {job.points.map((p, k) => (
+                      <li key={k}><span>{pad(k + 1)}</span><span>{p}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Credentials() {
+      return (
+        <section className="section" id="credentials">
+          <div className="wrap">
+            <SectionHead
+              num="05" en="Credentials" title="學歷 · 證照 · 進修"
+              note="本科背景與國家級證照打底，近年持續補上 AI 與資料科學的訓練。"
+            />
+            <div className="credgrid">
+              {[
+                { label: '學歷 / Education', items: EDUCATION },
+                { label: '專業證照 / Certificates', items: CERTIFICATES },
+                { label: 'AI 進修 / Continuing Ed.', items: AI_EDUCATION },
+              ].map((col) => (
+                <div className="credcol" key={col.label}>
+                  <span className="label">{col.label}</span>
+                  <ul>
+                    {col.items.map((it, i) => (
+                      <li key={i}>
+                        <div className="credmain">{it.main}</div>
+                        <div className="credsub">{it.sub}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            {PROFILE.resume && (
+              <a className="openlink" href={PROFILE.resume} download>
+                下載完整履歷 PDF <span aria-hidden="true">↓</span>
+              </a>
+            )}
+          </div>
+        </section>
+      );
+    }
+
+    function WorkRow({ work, n, i, open, onToggle, onHover, onLeave }) {
+      const { src, done } = useCoverImage(work.cover, work.slug);
+      const cat = CATEGORY_META[work.category];
+
+      return (
+        <article className={`workrow${open ? ' open' : ''}`} style={{ '--i': i }}>
+          <button
+            type="button" className="workhead" onClick={onToggle}
+            onMouseEnter={() => onHover(src)} onMouseLeave={onLeave}
+            aria-expanded={open}
+          >
+            <span className="worknum">{pad(n)}</span>
+            <h3 className="worktitle">{work.title}</h3>
+            <span className="workcat">{cat.label}</span>
+            <span className="workarrow" aria-hidden="true">→</span>
+          </button>
+
+          {open && (
+            <div className="workpanel">
+              <div className="panel-body">
+                <p className="panel-desc">{work.desc}</p>
+
+                {work.components && (
+                  <div className="panel-section">
+                    <span className="label">系統組成 / Components</span>
+                    <ul className="complist">
+                      {work.components.map((c) => (
+                        <li key={c.name}>
+                          <span className="comp-name">{c.name}</span>
+                          <span className="comp-tech">{c.tech}</span>
+                          <span className="comp-note">{c.note}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="panel-section">
+                  <span className="label">Highlights</span>
+                  <ul className="featurelist">
+                    {work.features.map((f, k) => (
+                      <li key={k}><span>{pad(k + 1)}</span><span>{f}</span></li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="panel-section">
+                  <span className="label">Tags</span>
+                  <ul className="taglist">
+                    {work.tags.map((t) => <li key={t}>{t}</li>)}
+                  </ul>
+                </div>
+
+                {work.link ? (
+                  <a className="openlink" href={work.link} target="_blank" rel="noopener">
+                    {work.linkLabel} <span aria-hidden="true">↗</span>
+                  </a>
+                ) : (
+                  <span className="label">{work.note || '開發中 — 尚未開放'}</span>
+                )}
+              </div>
+
+              <div className="panel-media">
+                <figure>
+                  {src
+                    ? <img src={src} alt={work.title} loading="lazy" />
+                    : <div className="media-fallback">{done ? 'No preview' : 'Loading'}</div>}
+                  <figcaption>{cat.en} / {work.slug}</figcaption>
+                </figure>
+              </div>
+            </div>
+          )}
+        </article>
+      );
+    }
+
+    function Work({ onHover, onLeave }) {
+      const [query, setQuery] = useState('');
+      const [filter, setFilter] = useState('all');
+      const [openSlug, setOpenSlug] = useState(null);
+
+      const counts = useMemo(() => {
+        const c = { all: WORKS.length };
+        for (const w of WORKS) c[w.category] = (c[w.category] || 0) + 1;
+        return c;
+      }, []);
+
+      const filtered = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return WORKS.filter((w) =>
+          (filter === 'all' || w.category === filter) &&
+          (!q || searchText(w).includes(q))
+        );
+      }, [query, filter]);
+
+      useEffect(() => {
+        if (openSlug && !filtered.some((w) => w.slug === openSlug)) setOpenSlug(null);
+      }, [filtered, openSlug]);
+
+      const entries = [['all', 'All'], ...Object.entries(CATEGORY_META).map(([k, m]) => [k, m.en])];
+
+      return (
+        <section className="section" id="work">
+          <div className="wrap">
+            <SectionHead
+              num="06" en="Selected Work" title="作品集"
+              note="每一件都源自實際業務裡重複、易錯或耗時的環節。點開任一項目可看到做法與成果。"
+            />
+
+            <div className="filterbar">
+              <div className="filterset">
+                {entries.map(([key, en]) => (
+                  <button
+                    key={key} type="button" className="filterbtn"
+                    aria-pressed={filter === key} onClick={() => setFilter(key)}
+                  >
+                    {en}<sup>{pad(counts[key] || 0)}</sup>
+                  </button>
+                ))}
+              </div>
+
+              <div className="searchfield">
+                <span className="label">Search</span>
+                <input
+                  type="search" value={query} onChange={(e) => setQuery(e.target.value)}
+                  placeholder="營養標示、PDF、AI…" aria-label="搜尋作品" autoComplete="off"
+                />
+                {query && (
+                  <button type="button" className="clearbtn" onClick={() => setQuery('')} aria-label="清除搜尋">×</button>
+                )}
+              </div>
+            </div>
+
+            <div key={filter}>
+              {filtered.length === 0 ? (
+                <div className="emptystate">
+                  <span className="label">No results</span>
+                  <h3>沒有符合的作品</h3>
+                  <p>試著換個關鍵字，或切換上方的分類。</p>
+                </div>
+              ) : (
+                filtered.map((w, i) => (
+                  <WorkRow
+                    key={w.slug} work={w} n={i + 1} i={i}
+                    open={openSlug === w.slug}
+                    onToggle={() => setOpenSlug((s) => (s === w.slug ? null : w.slug))}
+                    onHover={onHover} onLeave={onLeave}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Contact() {
+      const email = IDENTITY.show ? IDENTITY.email : '';
+
+      const rows = [
+        email            && { label: 'Email',    value: email, href: `mailto:${email}` },
+        PROFILE.github   && { label: 'GitHub',   value: PROFILE.github.replace(/^https?:\/\//, ''), href: PROFILE.github },
+        PROFILE.linkedin && { label: 'LinkedIn', value: PROFILE.linkedin.replace(/^https?:\/\//, ''), href: PROFILE.linkedin },
+        PROFILE.phone    && { label: 'Phone',    value: PROFILE.phone,  href: `tel:${PROFILE.phone.replace(/\s/g, '')}` },
+      ].filter(Boolean);
+
+      return (
+        <section className="section" id="contact">
+          <div className="wrap">
+            <SectionHead
+              num="07" en="Contact" title="聯絡我"
+              note="對食品法規、品保或流程自動化的職缺與合作都歡迎來信。"
+            />
+            <div className="contact-lines">
+              {rows.map((r) => (
+                <a
+                  className="contactrow" key={r.label} href={r.href}
+                  target={r.href.startsWith('http') ? '_blank' : undefined}
+                  rel={r.href.startsWith('http') ? 'noopener' : undefined}
+                >
+                  <span className="label">{r.label}</span>
+                  <span className="contactvalue">{r.value}</span>
+                  <span className="contactarrow" aria-hidden="true">↗</span>
+                </a>
+              ))}
+            </div>
+            {!email && (
+              <p style={{ marginTop: 24, color: 'var(--muted)', fontSize: 14 }}>
+                目前僅開放 GitHub 聯繫。開放 email 請填寫 IDENTITY.email 並將 show 設為 true。
+              </p>
+            )}
+          </div>
+        </section>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer className="footer">
+          <div className="wrap">
+            <div className="footer-base label">
+              <span>© {new Date().getFullYear()} {IDENTITY.show && IDENTITY.nameEn ? IDENTITY.nameEn : IDENTITY.handle}</span>
+              <span>{PROFILE.location}</span>
+            </div>
+          </div>
+        </footer>
+      );
+    }
+
+    // 只在還有 ✎ 未填欄位時出現，填完自動消失
+    function DraftBar({ count }) {
+      const [hidden, setHidden] = useState(false);
+      if (!count || hidden) return null;
+      return (
+        <div className="draftbar">
+          <span>尚有 {count} 處待填寫（搜尋檔案中的「✎」符號）— 上線前請先補完</span>
+          <button type="button" onClick={() => setHidden(true)}>本次隱藏</button>
+        </div>
+      );
+    }
+
+    /* ================= App ================= */
+
+    function App() {
+      const [theme, setTheme] = useState(() => {
+        try { return localStorage.getItem('portfolio_theme') || 'auto'; }
+        catch (e) { return 'auto'; }
       });
-    })();
+      const [hoverSrc, setHoverSrc] = useState(null);
+      const canHover = useDesktopHover();
+
+      useEffect(() => {
+        const resolve = (m) =>
+          m === 'auto'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : m;
+
+        document.documentElement.setAttribute('data-theme', resolve(theme));
+        try { localStorage.setItem('portfolio_theme', theme); } catch (e) {}
+
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = () => {
+          if (theme === 'auto') document.documentElement.setAttribute('data-theme', resolve('auto'));
+        };
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+      }, [theme]);
+
+      const todoCount = useMemo(
+        () => countTodos(PROFILE) + countTodos(SKILLS) + countTodos(EXPERIENCE)
+            + countTodos(EDUCATION) + countTodos(CERTIFICATES) + countTodos(AI_EDUCATION),
+        []
+      );
+
+      const handleHover = useCallback((src) => { if (canHover) setHoverSrc(src); }, [canHover]);
+      const handleLeave = useCallback(() => setHoverSrc(null), []);
+
+      return (
+        <React.Fragment>
+          <Masthead
+            theme={theme}
+            onCycleTheme={() => setTheme((t) => (t === 'auto' ? 'light' : t === 'light' ? 'dark' : 'auto'))}
+          />
+          <Colophon total={WORKS.length} />
+          <main>
+            <Hero />
+            <About total={WORKS.length} />
+            <Skills />
+            <Experience />
+            <Credentials />
+            <Work onHover={handleHover} onLeave={handleLeave} />
+            <Contact />
+          </main>
+          <Footer />
+          {canHover && <CursorPreview src={hoverSrc} active={!!hoverSrc} />}
+          <DraftBar count={todoCount} />
+        </React.Fragment>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
