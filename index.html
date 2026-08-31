@@ -596,6 +596,134 @@
       .datarow{ grid-template-columns: 80px 1fr; }
     }
 
+
+    /* ==========================================================
+       行動裝置優化
+       ========================================================== */
+
+    /* 沒有大頭照時，Hero 文字獨佔整列（Portrait 回傳 null，文字 div 成為 :only-child） */
+    .hero > div:only-child{ grid-column: 1 / -1; }
+
+    /* 錨點捲動時不被固定頁首遮住 */
+    .section[id], #work, #about, #skills, #experience, #credentials, #contact{
+      scroll-margin-top: 84px;
+    }
+
+    /* 觸控裝置：關掉所有 hover 效果。
+       否則 iOS/Android 點過的項目會「卡住」保持 hover 樣式不還原。 */
+    @media (hover: none){
+      .navlink:hover,
+      .filterbtn:hover,
+      .clearbtn:hover,
+      .openlink:hover,
+      .contactrow:hover{ color: inherit; }
+
+      .openlink:hover{ color: var(--fg); gap: 12px; }
+      .contactrow:hover{ color: var(--fg); }
+      .contactrow:hover .contactarrow{ color: var(--faint); transform: none; }
+
+      .workhead:hover{ background: transparent; }
+      .workhead:hover .worktitle{ color: var(--fg); }
+      .workhead:hover .worknum{ color: var(--faint); }
+      .workhead:hover .workarrow{ color: var(--faint); transform: none; }
+
+      /* 展開中的項目仍要保持強調 */
+      .workrow.open .worknum{ color: var(--accent); }
+      .workrow.open .workarrow{ color: var(--accent); transform: rotate(90deg); }
+    }
+
+    /* 觸控回饋：改用 :active，點下去要有反應 */
+    @media (pointer: coarse){
+      *{ -webkit-tap-highlight-color: transparent; }
+
+      .workhead:active{ background: var(--hover-bg); }
+      .workhead:active .worktitle{ color: var(--accent); }
+      .filterbtn:active,
+      .navlink:active,
+      .openlink:active,
+      .contactrow:active{ color: var(--accent); }
+
+      /* 點擊區至少 44px，符合觸控最小尺寸 */
+      .navlink{
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .filterbtn{
+        min-height: 44px;
+        padding: 0 0 3px;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .clearbtn{
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: -12px;
+      }
+
+      .openlink{ min-height: 44px; }
+    }
+
+    @media (max-width: 620px){
+      /* iOS 在 font-size < 16px 的輸入框聚焦時會自動放大頁面 */
+      .searchfield input{ font-size: 16px; }
+
+      /* 直式截圖在窄螢幕會佔掉整個畫面，限高並置中 */
+      .panel-media img{
+        max-height: 62vh;
+        width: auto;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+
+      .metrics{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+      /* 展開面板的內縮在窄螢幕沒有意義，收掉換取寬度 */
+      .workpanel{ padding-left: 0; }
+
+      .featurelist li{ grid-template-columns: 22px 1fr; }
+      .tlpoints li{ grid-template-columns: 20px 1fr; }
+    }
+
+    /* 極窄螢幕：頁首改成兩行，避免導覽列擠爆 */
+    @media (max-width: 560px){
+      .masthead-inner{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px 0 12px;
+      }
+
+      .masthead-nav{
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .section[id], #work, #about, #skills, #experience, #credentials, #contact{
+        scroll-margin-top: 104px;
+      }
+
+      .colophon{ grid-template-columns: 1fr; }
+      .colophon span,
+      .colophon span:nth-child(2),
+      .colophon span:last-child{ text-align: left; }
+
+      .hero{ padding-top: 32px; }
+      .hero .portrait{ max-width: 100%; }
+
+      .contactvalue{ font-size: 20px; }
+    }
+
+    /* 底部提醒條避開瀏海機的安全區 */
+    .draftbar{
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    }
     @media (prefers-reduced-motion: reduce){
       *{ animation: none !important; transition: none !important; }
       .workrow{ opacity: 1; transform: none; }
@@ -1284,12 +1412,15 @@
 
     function Portrait({ caption }) {
       const { src, done } = useImage(PROFILE.portrait);
+      // 沒有照片就整個不渲染：公開站上不該出現「待補」佔位框
+      if (done && !src) return null;
+
       return (
         <figure className="portrait">
           {src
             ? <img src={src} alt="" />
             : <div className="portrait-fallback">
-                {done ? <span>放一張大頭照<br />assets/img/portrait.jpg</span> : <span>Loading</span>}
+                <span>Loading</span>
               </div>}
           <figcaption>{caption}</figcaption>
         </figure>
