@@ -52,6 +52,11 @@
       line-height: 1.6;
     }
 
+    /* 嵌入食品標籤規劃助理時：去掉外框與大標題，看起來像助理的一部分 */
+    body.embed-mode { min-height: 0; padding: 0; background: #fff; }
+    body.embed-mode .container { max-width: none; border: 0; border-radius: 0; box-shadow: none; }
+    body.embed-mode .container > .header { display: none; }
+
     .container {
       max-width: 860px;
       margin: 0 auto;
@@ -3290,7 +3295,92 @@
     }
 
     /* ===== 初始化 ===== */
+    /* ===== 從「食品標籤規劃助理」帶入（?from=label&name=…&type=liquid） ===== */
+    /* ===== 嵌入「食品標籤規劃助理」：?from=label&embed=1 時，完成後把營養標示回傳給父頁面 ===== */
+    const LABEL_MESSAGE_SOURCE = 'fufuohya-nutrition';
+    const isEmbeddedInLabel = () => window.parent !== window &&
+      new URLSearchParams(window.location.search).get('embed') === '1';
+
+    function postToLabelAssistant(payload) {
+      // 父頁面是 GAS（googleusercontent 子網域不固定），內容僅為營養標示，不含敏感資料
+      window.parent.postMessage(Object.assign({ source: LABEL_MESSAGE_SOURCE }, payload), '*');
+    }
+
+    function getExportData() {
+      return {
+        productType: formData.productType,
+        specificType: formData.specificType,
+        ageGroup: formData.ageGroup,
+        unit: formData.unit,
+        servingSize: formData.servingSize,
+        servingsPerContainer: formData.servingsPerContainer,
+        selectedFormat: formData.selectedFormat,
+        perServing: formData.perServing,
+        nutrients: formData.nutrients,
+        additionalNutrients: formData.additionalNutrients,
+        vitamins: formData.vitamins,
+        minerals: formData.minerals
+      };
+    }
+
+    function sendNutritionToLabel() {
+      const vertical = getPreviewNodes('vertical')[0];
+      const horizontal = getPreviewNodes('horizontal')[0];
+      if (!vertical) { alert('請先生成營養標示預覽'); return; }
+      postToLabelAssistant({
+        type: 'nutrition-label',
+        format: formData.selectedFormat,
+        verticalHtml: cloneWithoutNoDownload(vertical).outerHTML,
+        horizontalHtml: horizontal ? cloneWithoutNoDownload(horizontal).outerHTML : '',
+        text: horizontal ? horizontal.innerText.trim() : vertical.innerText.trim(),
+        data: getExportData()
+      });
+      const btn = document.getElementById('btnApplyToLabel');
+      if (btn) btn.textContent = '✅ 已套用到食品標籤（修改後可再按一次更新）';
+    }
+
+    function applyLabelAssistantParams() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('from') !== 'label') return;
+      const type = params.get('type');
+      if (type === 'solid' || type === 'liquid') {
+        const radio = document.getElementById(type);
+        if (radio) radio.checked = true;
+      }
+      const name = (params.get('name') || '').trim();
+      const net = (params.get('net') || '').trim();
+
+      if (isEmbeddedInLabel()) {
+        document.body.classList.add('embed-mode');
+        const actions = document.querySelector('#step4 .preview-actions');
+        if (actions) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.id = 'btnApplyToLabel';
+          btn.className = 'btn btn-primary';
+          btn.textContent = '✅ 套用到食品標籤';
+          btn.addEventListener('click', sendNutritionToLabel);
+          actions.prepend(btn);
+        }
+        // 回報高度，讓父頁面的 iframe 不出現內捲軸
+        const container = document.querySelector('.container');
+        const reportHeight = () => postToLabelAssistant({ type: 'nutrition-height', height: Math.ceil(container.getBoundingClientRect().height) });
+        if (container && window.ResizeObserver) new ResizeObserver(reportHeight).observe(container);
+        reportHeight();
+        return;
+      }
+
+      const banner = document.createElement('div');
+      banner.style.cssText = 'margin:16px 24px 0;padding:12px 16px;background:var(--primary-light);border:1.5px solid var(--primary);border-radius:var(--radius-md);color:#1e3a8a;font-weight:600;line-height:1.6';
+      banner.textContent = '✅ 標籤內容已完成｜第 2 階段：營養標示' + (name ? '（產品：' + name + '）' : '') +
+        (net ? '，淨重 ' + net : '') +
+        (type === 'liquid' ? '。已預選「液體」，' : '。') + '照著下方步驟填入營養數值即可。';
+      const header = document.querySelector('.container > .header');
+      if (header) header.insertAdjacentElement('afterend', banner);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+      applyLabelAssistantParams();
       // 固液混合：選下拉時即時更新 formData.unit
       document.getElementById('mixedUnitSelect').addEventListener('change', function () {
         const sel = this.value;
@@ -3414,20 +3504,7 @@
     }
 
     function exportDataToJson() {
-      const exportData = {
-        productType: formData.productType,
-        specificType: formData.specificType,
-        ageGroup: formData.ageGroup,
-        unit: formData.unit,
-        servingSize: formData.servingSize,
-        servingsPerContainer: formData.servingsPerContainer,
-        selectedFormat: formData.selectedFormat,
-        perServing: formData.perServing,
-        nutrients: formData.nutrients,
-        additionalNutrients: formData.additionalNutrients,
-        vitamins: formData.vitamins,
-        minerals: formData.minerals
-      };
+      const exportData = getExportData();
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
       const a = document.createElement('a');
       a.href = dataStr;
