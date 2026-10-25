@@ -529,6 +529,412 @@
     }
     .emptystate p{ color: var(--muted); max-width: 40ch; }
 
+    /* ---------- Interactive regulatory portfolio book ---------- */
+
+    .lawbook-shell{
+      --book-ink: #24352d;
+      --book-muted: #748077;
+      --book-line: #d9d8ce;
+      --book-paper: #fbfaf5;
+      --book-paper-deep: #f1efe5;
+      --book-cover: #2d4538;
+      --book-gold: #c6b27c;
+      --leaf-w: 520px;
+      --leaf-h: 650px;
+      margin-top: clamp(28px, 5vw, 64px);
+      color: var(--book-ink);
+    }
+
+    .lawbook-tools{
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 18px; flex-wrap: wrap; margin-bottom: 18px;
+    }
+
+    .lawbook-tabs{
+      display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+    }
+
+    .lawbook-tab{
+      min-height: 38px; padding: 8px 12px;
+      border: 1px solid var(--rule); border-radius: 2px;
+      background: transparent; color: var(--muted); cursor: pointer;
+      font: 600 10px/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase;
+      transition: color .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .lawbook-tab:hover{ color: var(--fg); border-color: var(--rule-strong); }
+    .lawbook-tab[aria-pressed="true"]{
+      color: #fff; border-color: var(--book-cover); background: var(--book-cover);
+    }
+    .lawbook-tab sup{ margin-left: 4px; opacity: .65; font-size: 8px; }
+
+    .lawbook-contents{
+      display: flex; align-items: center; gap: 10px;
+      min-width: min(100%, 260px);
+    }
+    .lawbook-contents label{ white-space: nowrap; }
+    .lawbook-contents select{
+      width: 100%; min-height: 38px; padding: 7px 34px 7px 10px;
+      border: 1px solid var(--rule); border-radius: 2px;
+      background: var(--bg); color: var(--fg); font: 500 12px/1.4 var(--sans);
+    }
+
+    .lawbook-stage{
+      position: relative; padding: clamp(28px, 5vw, 62px) clamp(14px, 3.8vw, 52px) 24px;
+      border: 1px solid #d3d0c4;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(255,255,255,.92), transparent 42%),
+        linear-gradient(145deg, #e9e6dc, #dcd9cf);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+      overflow: hidden;
+    }
+
+    [data-theme="dark"] .lawbook-stage{
+      border-color: #393c38;
+      background: radial-gradient(circle at 50% 12%, #333832, transparent 48%), #252925;
+    }
+
+    .lawbook-stage::before{
+      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .25;
+      background-image: repeating-linear-gradient(90deg, transparent 0 3px, rgba(54,63,55,.025) 3px 4px);
+    }
+
+    .lawbook-deskhead{
+      position: relative; z-index: 1;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      max-width: calc(var(--leaf-w) * 2); margin: 0 auto 20px;
+      color: #70786f; font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    }
+
+    .lawbook-progress{
+      width: 116px; height: 2px; overflow: hidden; background: rgba(45,69,56,.16);
+    }
+    .lawbook-progress span{
+      display: block; height: 100%; background: var(--book-cover);
+      transition: width .35s cubic-bezier(.22,1,.36,1);
+    }
+
+    .lawbook-area{
+      position: relative; z-index: 1;
+      width: min(100%, calc(var(--leaf-w) * 2)); margin: 0 auto;
+    }
+
+    .lawbook{
+      position: relative; width: 100%; min-height: var(--leaf-h);
+      margin: 0 auto;
+      filter: drop-shadow(0 24px 25px rgba(31,42,34,.18));
+    }
+
+    .lawbook.is-closed{
+      width: 100%;
+    }
+
+    .lawbook-spread{
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      min-height: var(--leaf-h); perspective: 1600px;
+    }
+
+    .lawbook.is-closed .lawbook-spread{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lawbook.is-closed .lawbook-cover{
+      grid-column: 1 / -1; width: 50%; justify-self: center;
+      border-left: 13px solid #20362a;
+    }
+
+    .lawbook-cover{
+      position: relative; min-height: var(--leaf-h); padding: 40px 34px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      color: #d3c8ab; border-radius: 2px 6px 6px 2px; overflow: hidden;
+      background-color: var(--book-cover);
+      background-image:
+        radial-gradient(ellipse at var(--light-x, 30%) var(--light-y, 20%), rgba(165,185,137,.16), transparent 62%),
+        linear-gradient(90deg, rgba(19,42,32,.58), transparent 8%, rgba(255,255,255,.04) 9%, transparent 12%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 4px);
+      box-shadow: inset 10px 0 12px -10px rgba(15,35,26,.55);
+    }
+
+    .lawbook-cover::before{
+      content: ''; position: absolute; inset: 24px;
+      border: 1px solid rgba(198,178,124,.34); pointer-events: none;
+    }
+
+    .lawbook-cover-series{
+      position: relative; font-size: 10px; font-weight: 600; letter-spacing: .22em;
+      color: #c0c8b8; padding: 8px 0 26px;
+    }
+    .lawbook-cover-number{
+      position: relative; font-size: 10px; letter-spacing: .22em; color: #a5b19c;
+      margin-bottom: 34px;
+    }
+    .lawbook-cover h3{
+      position: relative; margin: 0;
+      font: 500 clamp(32px, 4.4vw, 44px)/1.62 'Noto Serif TC','PMingLiU',serif;
+      letter-spacing: .12em; color: #e5dfcc;
+    }
+    .lawbook-cover-sub{
+      position: relative; margin: 27px 0 34px;
+      font: 500 10px/1.9 var(--sans); letter-spacing: .2em; color: #aebba6;
+    }
+    .lawbook-open{
+      position: relative; min-height: 44px; padding: 10px 24px;
+      border: 1px solid rgba(198,178,124,.48); border-radius: 2px;
+      background: transparent; color: #e0e4d8; cursor: pointer;
+      font: 600 11px/1.4 var(--sans); letter-spacing: .12em;
+      transition: transform .18s ease, background .18s ease;
+    }
+    .lawbook-open:hover{ transform: translateY(-2px); background: rgba(255,255,255,.06); }
+    .lawbook-cover-author{
+      position: relative; margin-top: auto; padding-top: 34px;
+      font-size: 9px; font-weight: 600; letter-spacing: .2em; color: #9cae96;
+    }
+
+    .lawbook-page{
+      position: relative; min-width: 0; min-height: var(--leaf-h);
+      padding: 28px 28px 42px; overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(70,77,69,.035), transparent 10%, transparent 90%, rgba(70,77,69,.025)),
+        var(--book-paper);
+      border: 1px solid #d5d2c5;
+      transform-origin: right center;
+      backface-visibility: hidden;
+    }
+    .lawbook-page + .lawbook-page{ transform-origin: left center; --turn-angle: -7deg; --turn-x: -10px; }
+    .lawbook-page:first-child{ border-radius: 4px 0 0 4px; }
+    .lawbook-page:last-child{ border-left: 0; border-radius: 0 4px 4px 0; }
+    .lawbook-page:first-child::after{
+      content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 24px;
+      background: linear-gradient(90deg, transparent, rgba(63,67,61,.08)); pointer-events: none;
+    }
+    .lawbook-page:last-child::before{
+      content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 24px;
+      background: linear-gradient(90deg, rgba(63,67,61,.08), transparent); pointer-events: none;
+    }
+
+    .lawbook-running{
+      display: flex; justify-content: space-between; gap: 12px;
+      padding-bottom: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--book-line);
+      color: var(--book-muted); font-size: 9px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    }
+
+    .lawbook-picture{
+      display: grid; grid-template-rows: auto 1fr auto auto; min-height: var(--leaf-h);
+    }
+    .lawbook-picture-frame{
+      min-height: 0; height: 450px; overflow: hidden; position: relative;
+      border: 1px solid #c9c9bf; background: #e8e7df; cursor: zoom-in; touch-action: pan-y;
+    }
+    .lawbook-picture-frame.is-zoomed{ cursor: grab; touch-action: none; }
+    .lawbook-picture-frame.is-dragging{ cursor: grabbing; }
+    .lawbook-picture-frame img{
+      width: 100%; height: 100%; display: block; object-fit: contain;
+      transform-origin: center; user-select: none; -webkit-user-drag: none;
+      transition: transform .12s ease-out;
+    }
+    .lawbook-picture-frame.is-dragging img{ transition: none; }
+
+    .lawbook-image-fallback{
+      height: 100%; display: grid; place-items: center; padding: 36px;
+      color: #778076; text-align: center;
+      background: repeating-linear-gradient(135deg, #f2f1e9 0 12px, #ecebe2 12px 24px);
+    }
+    .lawbook-image-fallback span{
+      padding: 15px 18px; border: 1px solid #b9bcb2;
+      font: 600 10px/1.7 var(--sans); letter-spacing: .12em; text-transform: uppercase;
+      background: rgba(251,250,245,.82);
+    }
+
+    .lawbook-figcaption{
+      display: flex; justify-content: space-between; gap: 10px;
+      padding: 9px 0 0; color: var(--book-muted); font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .lawbook-zoom{
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      margin-top: 12px;
+    }
+    .lawbook-zoom button{
+      min-width: 38px; min-height: 38px; padding: 5px 10px;
+      border: 1px solid #d1d5c8; border-radius: 3px;
+      background: transparent; color: #56654b; cursor: pointer; font: 600 12px/1 var(--sans);
+    }
+    .lawbook-zoom button:hover:not(:disabled){ background: #e9ece3; }
+    .lawbook-zoom button:disabled{ opacity: .35; cursor: default; }
+    .lawbook-zoom output{ min-width: 46px; text-align: center; color: var(--book-muted); font-size: 11px; }
+    .lawbook-zoom-note{ margin-top: 5px; color: #8a9182; text-align: center; font-size: 10px; }
+
+    .lawbook-title{
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 18px;
+      margin-bottom: 20px;
+    }
+    .lawbook-title h3{
+      margin: 0; color: var(--book-ink);
+      font: 600 clamp(23px, 2.2vw, 31px)/1.42 'Noto Serif TC','PMingLiU',serif;
+      letter-spacing: .02em;
+    }
+    .lawbook-chapter{ color: #8a9582; font: 400 17px/1.8 Georgia,serif; }
+    .lawbook-summary{
+      color: #4d5a52; font: 400 14px/1.85 var(--sans); margin-bottom: 22px;
+    }
+    .lawbook-description-rule{ width: 42px; height: 2px; margin-bottom: 22px; background: #6f806f; }
+    .lawbook-description h4{
+      margin: 0 0 10px; color: #69776e; font-size: 9px; letter-spacing: .16em; text-transform: uppercase;
+    }
+    .lawbook-points{ list-style: none; counter-reset: point; display: grid; gap: 0; }
+    .lawbook-points li{
+      counter-increment: point; display: grid; grid-template-columns: 24px 1fr; gap: 7px;
+      padding: 9px 0; border-top: 1px solid var(--book-line);
+      color: #3f4d45; font-size: 12.5px; line-height: 1.65;
+    }
+    .lawbook-points li::before{
+      content: counter(point, decimal-leading-zero); color: #889389; font: 500 9px/1.9 var(--sans);
+    }
+    .lawbook-note{
+      margin-top: 16px; padding: 10px 12px; border-left: 2px solid #91a08f;
+      background: #f1f2eb; color: #657067; font-size: 11px; line-height: 1.65;
+    }
+    .lawbook-tags{
+      display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 15px;
+      color: #78847a; font-size: 9px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    }
+    .lawbook-link{ margin-top: 18px; }
+    .lawbook-folio{
+      position: absolute; left: 28px; right: 28px; bottom: 18px;
+      display: flex; justify-content: space-between; color: #9a9c94;
+      font: 500 9px/1 var(--sans); letter-spacing: .12em;
+    }
+
+    .lawbook-arrow{
+      position: absolute; z-index: 4; top: 50%; transform: translateY(-50%);
+      width: 48px; height: 74px; display: grid; place-items: center;
+      border: 1px solid rgba(45,69,56,.38); border-radius: 2px;
+      background: rgba(251,250,245,.88); color: var(--book-cover); cursor: pointer;
+      font: 400 24px/1 Georgia,serif; box-shadow: 0 7px 18px rgba(40,49,42,.12);
+      transition: transform .18s ease, background .18s ease, opacity .18s ease;
+      backdrop-filter: blur(7px);
+    }
+    .lawbook-arrow:hover:not(:disabled){ background: #fff; transform: translateY(-50%) scale(1.05); }
+    .lawbook-arrow:disabled{ opacity: .2; cursor: default; }
+    .lawbook-arrow--left{ left: -64px; }
+    .lawbook-arrow--right{ right: -64px; }
+
+    .lawbook-status{
+      position: relative; z-index: 1; max-width: calc(var(--leaf-w) * 2); margin: 18px auto 0;
+      display: flex; justify-content: center; align-items: center; min-height: 22px;
+      color: #70786f; font-size: 10px; letter-spacing: .08em; text-align: center;
+    }
+
+    /* The next spread is mounted underneath before the old paper turns. */
+    .lawbook-turn-overlay{
+      position: absolute; inset: 0; z-index: 8; pointer-events: none;
+      perspective: 1800px; transform-style: preserve-3d;
+      animation: lawbookOverlayLifetime .76s linear both;
+    }
+    .lawbook-turn-overlay .lawbook-spread{
+      position: absolute; inset: 0; min-height: var(--leaf-h);
+      filter: drop-shadow(0 14px 18px rgba(28,39,31,.12));
+    }
+    .lawbook-turn-overlay.is-forward .lawbook-page:first-child{
+      animation: lawbookOldLeft .76s cubic-bezier(.45,0,.2,1) both;
+    }
+    .lawbook-turn-overlay.is-forward .lawbook-page:last-child{
+      z-index: 3; transform-origin: left center;
+      animation: lawbookTurnForward .76s cubic-bezier(.45,0,.2,1) both;
+    }
+    .lawbook-turn-overlay.is-backward .lawbook-page:first-child{
+      z-index: 3; transform-origin: right center;
+      animation: lawbookTurnBackward .76s cubic-bezier(.45,0,.2,1) both;
+    }
+    .lawbook-turn-overlay.is-backward .lawbook-page:last-child{
+      animation: lawbookOldRight .76s cubic-bezier(.45,0,.2,1) both;
+    }
+    .lawbook-turn-overlay.is-cover{
+      display: grid; place-items: center;
+      background: linear-gradient(145deg, #e9e6dc, #dcd9cf);
+      animation: lawbookCoverShield .78s cubic-bezier(.45,0,.2,1) both;
+    }
+    [data-theme="dark"] .lawbook-turn-overlay.is-cover{
+      background: radial-gradient(circle at 50% 12%, #333832, transparent 48%), #252925;
+    }
+    .lawbook-turn-overlay.is-cover .lawbook-cover{
+      width: 50%; height: 100%; min-height: var(--leaf-h);
+      border-left: 13px solid #20362a;
+      transform-origin: left center;
+      animation: lawbookOpenCover .78s cubic-bezier(.45,0,.2,1) both;
+    }
+
+    @keyframes lawbookOverlayLifetime{ from{ visibility: visible; } to{ visibility: visible; } }
+    @keyframes lawbookOldLeft{
+      0%, 42%{ opacity: 1; filter: brightness(1); }
+      72%, 100%{ opacity: 0; filter: brightness(.96); }
+    }
+    @keyframes lawbookOldRight{
+      0%, 42%{ opacity: 1; filter: brightness(1); }
+      72%, 100%{ opacity: 0; filter: brightness(.96); }
+    }
+    @keyframes lawbookTurnForward{
+      0%{ transform: rotateY(0deg); filter: brightness(1); box-shadow: none; opacity: 1; }
+      48%{ filter: brightness(.8); box-shadow: -18px 8px 28px rgba(30,40,33,.2); opacity: 1; }
+      100%{ transform: rotateY(-178deg); filter: brightness(.95); box-shadow: -3px 3px 8px rgba(30,40,33,.08); opacity: 0; }
+    }
+    @keyframes lawbookTurnBackward{
+      0%{ transform: rotateY(0deg); filter: brightness(1); box-shadow: none; opacity: 1; }
+      48%{ filter: brightness(.8); box-shadow: 18px 8px 28px rgba(30,40,33,.2); opacity: 1; }
+      100%{ transform: rotateY(178deg); filter: brightness(.95); box-shadow: 3px 3px 8px rgba(30,40,33,.08); opacity: 0; }
+    }
+    @keyframes lawbookCoverShield{
+      0%, 28%{ background-color: transparent; }
+      72%, 100%{ background: transparent; }
+    }
+    @keyframes lawbookOpenCover{
+      0%{ transform: translateX(0) rotateY(0deg); filter: brightness(1); opacity: 1; }
+      48%{ transform: translateX(-22%) rotateY(-82deg); filter: brightness(.72); opacity: 1; }
+      100%{ transform: translateX(-50%) rotateY(-178deg); filter: brightness(.92); opacity: 0; }
+    }
+
+    @media (max-width: 1180px){
+      .lawbook-area{ width: calc(100% - 88px); }
+      .lawbook-arrow--left{ left: -50px; }
+      .lawbook-arrow--right{ right: -50px; }
+    }
+
+    @media (max-width: 760px){
+      .lawbook-shell{ --leaf-h: auto; }
+      .lawbook-tools{ align-items: stretch; }
+      .lawbook-contents{ width: 100%; }
+      .lawbook-stage{ padding: 18px 12px 76px; overflow: visible; }
+      .lawbook-deskhead{ font-size: 8px; letter-spacing: .08em; }
+      .lawbook-area{ width: 100%; }
+      .lawbook, .lawbook.is-closed{ width: 100%; min-height: 0; }
+      .lawbook-spread{ grid-template-columns: 1fr; min-height: 0; }
+      .lawbook.is-closed .lawbook-spread{ grid-template-columns: 1fr; }
+      .lawbook.is-closed .lawbook-cover{ grid-column: 1; width: 100%; }
+      .lawbook-page, .lawbook-cover{ min-height: 560px; padding: 24px 22px 42px; }
+      .lawbook-page:last-child{ border-left: 1px solid #d5d2c5; border-top: 0; border-radius: 0 0 4px 4px; }
+      .lawbook-page:first-child{ border-radius: 4px 4px 0 0; }
+      .lawbook-picture-frame{ height: 430px; }
+      .lawbook-arrow{ top: auto; bottom: -60px; transform: none; width: 64px; height: 44px; }
+      .lawbook-arrow:hover:not(:disabled){ transform: scale(1.04); }
+      .lawbook-arrow--left{ left: calc(50% - 76px); }
+      .lawbook-arrow--right{ right: calc(50% - 76px); }
+      .lawbook-status{ margin-top: 76px; }
+      .lawbook-cover h3{ font-size: 34px; }
+      .lawbook-turn-overlay .lawbook-spread{ position: absolute; display: block; overflow: hidden; }
+      .lawbook-turn-overlay .lawbook-page{ position: absolute; inset: 0; }
+      .lawbook-turn-overlay .lawbook-page:last-child{ display: none; }
+      .lawbook-turn-overlay.is-backward .lawbook-page:first-child{ animation: lawbookTurnBackward .62s cubic-bezier(.45,0,.2,1) both; }
+      .lawbook-turn-overlay.is-forward .lawbook-page:first-child{ animation: lawbookTurnForward .62s cubic-bezier(.45,0,.2,1) both; }
+      .lawbook-turn-overlay.is-cover .lawbook-cover{ width: 100%; }
+    }
+
+    @media (max-width: 480px){
+      .lawbook-tabs{ display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); width: 100%; }
+      .lawbook-tab{ width: 100%; }
+      .lawbook-cover, .lawbook-page{ min-height: 520px; }
+      .lawbook-picture-frame{ height: 360px; }
+      .lawbook-title h3{ font-size: 24px; }
+    }
+
+    @media (pointer: coarse){
+      .lawbook-tab, .lawbook-zoom button{ min-height: 44px; min-width: 44px; }
+    }
+
     /* ---------- Contact ---------- */
 
     .contact-lines{ display: grid; }
@@ -710,8 +1116,11 @@
       .masthead-nav{
         width: 100%;
         justify-content: space-between;
-        gap: 8px;
+        gap: 5px;
       }
+
+      .masthead-nav .navlink{ letter-spacing: .09em; }
+      .masthead-nav .resumebtn{ padding-left: 8px; padding-right: 9px; }
 
       .section[id], #work, #about, #skills, #experience, #credentials, #contact{
         scroll-margin-top: 104px;
@@ -760,11 +1169,20 @@
 
     .resume{
       position: absolute; top: 0; right: 0; bottom: 0;
-      width: min(980px, 100%);
-      background: var(--bg); color: var(--fg);
+      width: min(1080px, 100%);
+      background: #f5f3ec; color: #20332a;
       overflow-y: auto; overscroll-behavior: contain;
-      border-left: 1px solid var(--rule-strong);
+      border-left: 1px solid #263d31;
+      box-shadow: -24px 0 70px rgba(0,0,0,.18);
       animation: slideIn .38s cubic-bezier(.22,1,.36,1);
+      --bg: #f5f3ec;
+      --fg: #20332a;
+      --muted: #68756e;
+      --faint: #929a94;
+      --rule: rgba(32,51,42,.14);
+      --rule-strong: rgba(32,51,42,.78);
+      --accent: #9c4b3f;
+      --hover-bg: rgba(32,51,42,.035);
     }
 
     @keyframes fadeIn{ from{ opacity: 0; } }
@@ -774,23 +1192,48 @@
       position: sticky; top: 0; z-index: 2;
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
       padding: 10px clamp(20px, 4vw, 48px);
-      background: var(--bg); border-bottom: 1px solid var(--rule);
+      background: #294438; color: #f0eee4; border-bottom: 1px solid #1d3429;
     }
     .resume-bar-actions{ display: flex; align-items: center; gap: 20px; }
+    .resume-bar .label{ color: #d7d1bd; }
+    .resume-bar .navlink{ color: #d7d1bd; }
+    .resume-bar .navlink:hover{ color: #fff; }
 
     .closebtn{
       width: 44px; height: 44px; margin-right: -10px;
       background: none; border: 0; cursor: pointer;
-      font-family: inherit; font-size: 28px; line-height: 1; color: var(--fg);
+      font-family: inherit; font-size: 28px; line-height: 1; color: #f0eee4;
       transition: color .15s ease;
     }
-    .closebtn:hover{ color: var(--accent); }
+    .closebtn:hover{ color: #fff; }
+
+    .resume-index{
+      position: sticky; top: 65px; z-index: 1;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      padding: 9px clamp(20px, 4vw, 48px);
+      background: rgba(245,243,236,.94); border-bottom: 1px solid rgba(32,51,42,.14);
+      backdrop-filter: blur(10px);
+    }
+    .resume-index a, .resume-index button{
+      min-height: 34px; display: inline-flex; align-items: center;
+      padding: 6px 10px; border: 1px solid transparent;
+      background: transparent; color: #68756e; text-decoration: none; cursor: pointer;
+      font-family: inherit;
+      font-size: 9px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+    }
+    .resume-index a:hover, .resume-index button:hover{ color: #20332a; border-color: rgba(32,51,42,.24); }
+    .resume-index-note{ margin-left: auto; color: #8b938d; font-size: 10px; letter-spacing: .06em; }
 
     /* 面板內較窄：收斂字級、間距與欄數 */
     .resume .wrap{ padding: 0 clamp(20px, 4vw, 48px); }
-    .resume .hero{ padding: clamp(28px, 4vw, 48px) 0 clamp(28px, 4vw, 44px); }
+    .resume .hero{
+      padding: clamp(34px, 5vw, 62px) 0 clamp(30px, 4vw, 48px);
+      grid-template-columns: minmax(0, 1.4fr) minmax(220px, .7fr);
+    }
     .resume .hero h1{ font-size: clamp(34px, 5.6vw, 64px); }
-    .resume .section{ padding: clamp(36px, 5vw, 64px) 0; }
+    .resume .hero-role{ border-top-color: #294438; }
+    .resume .portrait img{ border-color: rgba(32,51,42,.18); filter: saturate(.78) contrast(.96); }
+    .resume .section{ padding: clamp(42px, 5vw, 68px) 0; border-top-color: rgba(32,51,42,.72); }
     .resume .sectionhead{ grid-template-columns: 1fr; }
     .resume .sectionhead h2, .resume .sectionhead p{ grid-column: 1; }
     .resume .sectionhead h2{ font-size: clamp(24px, 3vw, 34px); }
@@ -798,9 +1241,18 @@
     .resume .about-body{ grid-column: 1; }
     .resume .skillgrid, .resume .credgrid{ grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
     .resume .metric-value{ font-size: clamp(28px, 4vw, 44px); }
+    .resume .skillcard, .resume .credcol{
+      padding: 20px; border: 1px solid rgba(32,51,42,.14); background: rgba(255,255,255,.32);
+    }
+    .resume .timeline{ border-top-color: rgba(32,51,42,.2); }
+    .resume .tlrow{ border-bottom-color: rgba(32,51,42,.16); }
+    .resume .openlink{ color: #20332a; border-bottom-color: #9c4b3f; }
 
     @media (max-width: 760px){
       .resume{ border-left: 0; }
+      .resume-index{ top: 65px; overflow-x: auto; flex-wrap: nowrap; }
+      .resume-index-note{ display: none; }
+      .resume .hero{ grid-template-columns: 1fr; }
       .resume .tlrow{ grid-template-columns: 1fr; }
     }
 
@@ -1692,157 +2144,302 @@
       );
     }
 
-    function WorkRow({ work, n, i, open, onToggle, onHover, onLeave }) {
+    function BookImage({ work }) {
       const { src, done } = useCoverImage(work.cover, work.slug);
-      const cat = CATEGORY_META[work.category];
+      const frameRef = useRef(null);
+      const dragRef = useRef(null);
+      const [zoom, setZoom] = useState({ scale: 1, x: 0, y: 0, dragging: false });
+
+      useEffect(() => {
+        setZoom({ scale: 1, x: 0, y: 0, dragging: false });
+        dragRef.current = null;
+      }, [work.slug]);
+
+      const clampPosition = useCallback((next) => {
+        const frame = frameRef.current;
+        if (!frame) return next;
+        const maxX = frame.clientWidth * (next.scale - 1) / 2;
+        const maxY = frame.clientHeight * (next.scale - 1) / 2;
+        return {
+          ...next,
+          x: Math.max(-maxX, Math.min(maxX, next.x)),
+          y: Math.max(-maxY, Math.min(maxY, next.y)),
+        };
+      }, []);
+
+      const setScale = (scale) => setZoom((z) => {
+        const nextScale = Math.max(1, Math.min(4, scale));
+        return clampPosition({
+          ...z,
+          scale: nextScale,
+          x: nextScale === 1 ? 0 : z.x,
+          y: nextScale === 1 ? 0 : z.y,
+          dragging: false,
+        });
+      });
+
+      const onPointerDown = (e) => {
+        if (zoom.scale <= 1 || e.button !== 0) return;
+        e.preventDefault();
+        dragRef.current = { id: e.pointerId, px: e.clientX, py: e.clientY, x: zoom.x, y: zoom.y };
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setZoom((z) => ({ ...z, dragging: true }));
+      };
+
+      const onPointerMove = (e) => {
+        const drag = dragRef.current;
+        if (!drag || drag.id !== e.pointerId) return;
+        setZoom((z) => clampPosition({
+          ...z,
+          x: drag.x + e.clientX - drag.px,
+          y: drag.y + e.clientY - drag.py,
+          dragging: true,
+        }));
+      };
+
+      const stopDrag = (e) => {
+        const drag = dragRef.current;
+        if (!drag || drag.id !== e.pointerId) return;
+        dragRef.current = null;
+        setZoom((z) => ({ ...z, dragging: false }));
+      };
 
       return (
-        <article className={`workrow${open ? ' open' : ''}`} style={{ '--i': i }}>
-          <button
-            type="button" className="workhead" onClick={onToggle}
-            onMouseEnter={() => onHover(src)} onMouseLeave={onLeave}
-            aria-expanded={open}
+        <React.Fragment>
+          <div
+            ref={frameRef}
+            className={`lawbook-picture-frame${zoom.scale > 1 ? ' is-zoomed' : ''}${zoom.dragging ? ' is-dragging' : ''}`}
+            onPointerDown={onPointerDown} onPointerMove={onPointerMove}
+            onPointerUp={stopDrag} onPointerCancel={stopDrag}
+            onDoubleClick={() => setScale(zoom.scale > 1 ? 1 : 2)}
+            aria-label="作品圖片，可放大並拖曳查看細節"
           >
-            <span className="worknum">{pad(n)}</span>
-            <h3 className="worktitle">{work.title}</h3>
-            <span className="workmetric">{work.metric || ""}</span>
-            <span className="workcat">{cat.label}</span>
-            <span className="workarrow" aria-hidden="true">→</span>
-          </button>
-
-          {open && (
-            <div className="workpanel">
-              <div className="panel-body">
-                <p className="panel-desc">{work.desc}</p>
-
-                {work.components && (
-                  <div className="panel-section">
-                    <span className="label">系統組成 / Components</span>
-                    <ul className="complist">
-                      {work.components.map((c) => (
-                        <li key={c.name}>
-                          <span className="comp-name">{c.name}</span>
-                          <span className="comp-tech">{c.tech}</span>
-                          <span className="comp-note">{c.note}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="panel-section">
-                  <span className="label">Highlights</span>
-                  <ul className="featurelist">
-                    {work.features.map((f, k) => (
-                      <li key={k}><span>{pad(k + 1)}</span><span>{f}</span></li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="panel-section">
-                  <span className="label">Tags</span>
-                  <ul className="taglist">
-                    {work.tags.map((t) => <li key={t}>{t}</li>)}
-                  </ul>
-                </div>
-
-                {work.link ? (
-                  <a className="openlink" href={work.link} target="_blank" rel="noopener">
-                    {work.linkLabel} <span aria-hidden="true">↗</span>
-                  </a>
-                ) : (
-                  <span className="label">{work.note || '開發中 — 尚未開放'}</span>
-                )}
+            {src ? (
+              <img
+                src={src} alt={`${work.title}實際畫面`} draggable="false"
+                style={{ transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})` }}
+              />
+            ) : (
+              <div className="lawbook-image-fallback">
+                <span>{done ? 'Confidential case file\nNo public preview' : 'Loading case file'}</span>
               </div>
+            )}
+          </div>
+          <div className="lawbook-zoom" role="group" aria-label="圖片縮放控制">
+            <button type="button" onClick={() => setScale(zoom.scale - .25)} disabled={zoom.scale <= 1} aria-label="縮小圖片">−</button>
+            <output aria-live="polite">{Math.round(zoom.scale * 100)}%</output>
+            <button type="button" onClick={() => setScale(zoom.scale + .25)} disabled={zoom.scale >= 4} aria-label="放大圖片">＋</button>
+            <button type="button" onClick={() => setScale(1)}>還原</button>
+          </div>
+          <p className="lawbook-zoom-note">100%–400% · 雙擊放大 · 放大後可拖曳</p>
+        </React.Fragment>
+      );
+    }
 
-              <div className="panel-media">
-                <figure>
-                  {src
-                    ? <img src={src} alt={work.title} loading="lazy" />
-                    : <div className="media-fallback">{done ? 'No preview' : 'Loading'}</div>}
-                  <figcaption>{cat.en} / {work.slug}</figcaption>
-                </figure>
-              </div>
+    function BookSpread({ work, index, total }) {
+      const cat = CATEGORY_META[work.category];
+      const num = pad(index + 1);
+      const points = work.components
+        ? [...work.features.slice(0, 3), ...work.components.slice(0, 2).map((c) => `${c.name} — ${c.note}`)]
+        : work.features.slice(0, 5);
+
+      return (
+        <div className="lawbook-spread" key={work.slug}>
+          <article className="lawbook-page lawbook-picture">
+            <div className="lawbook-running"><span>第 {num} 案 / {cat.label}</span><span>作品展示</span></div>
+            <BookImage work={work} />
+            <div className="lawbook-figcaption"><span>FIG. {num}</span><span>{cat.en} / {work.slug}</span></div>
+            <div className="lawbook-folio"><span>FUFUOHYA · SELECTED WORKS</span><span>{pad(index * 2 + 1)}</span></div>
+          </article>
+
+          <article className="lawbook-page lawbook-description">
+            <div className="lawbook-running"><span>CASE STUDY {num}</span><span>{work.metric || cat.en}</span></div>
+            <div className="lawbook-title">
+              <h3>{work.title}</h3>
+              <span className="lawbook-chapter">{num}</span>
             </div>
-          )}
+            <p className="lawbook-summary">{work.desc}</p>
+            <div className="lawbook-description-rule" />
+            <h4>實作重點 / Highlights</h4>
+            <ol className="lawbook-points">
+              {points.map((point, i) => <li key={i}>{point}</li>)}
+            </ol>
+            <div className="lawbook-tags">{work.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+            {work.link ? (
+              <a className="openlink lawbook-link" href={work.link} target="_blank" rel="noopener">
+                {work.linkLabel || '開啟專案'} <span aria-hidden="true">↗</span>
+              </a>
+            ) : (
+              <p className="lawbook-note">{work.note || '案例內容已整理，展示版本尚未公開。'}</p>
+            )}
+            <div className="lawbook-folio"><span>{index + 1} / {total}</span><span>{pad(index * 2 + 2)}</span></div>
+          </article>
+        </div>
+      );
+    }
+
+    function BookCover({ coverRef, onPointerMove, onOpen, interactive = true }) {
+      return (
+        <article ref={coverRef} className="lawbook-cover" onPointerMove={onPointerMove}>
+          <div className="lawbook-cover-series">FUFUOHYA / SELECTED WORKS</div>
+          <div className="lawbook-cover-number">FIELD NOTES · VOL. 01</div>
+          <h3>法規實務<br />與自動化<br />作品集</h3>
+          <div className="lawbook-cover-sub">REGULATORY PRACTICE<br />&amp; AUTOMATION</div>
+          <button
+            type="button" className="lawbook-open" onClick={onOpen}
+            tabIndex={interactive ? 0 : -1} aria-hidden={interactive ? undefined : true}
+          >翻開作品集　→</button>
+          <div className="lawbook-cover-author">FOOD · COSMETICS · GENAI</div>
         </article>
       );
     }
 
-    function Work({ onHover, onLeave }) {
-      const [query, setQuery] = useState('');
+    function Work() {
       const [filter, setFilter] = useState('all');
-      const [openSlug, setOpenSlug] = useState(null);
+      const [page, setPage] = useState(-1);
+      const [turn, setTurn] = useState(null);
+      const coverRef = useRef(null);
+      const didFilterMount = useRef(false);
 
       const counts = useMemo(() => {
-        const c = { all: WORKS.length };
-        for (const w of WORKS) c[w.category] = (c[w.category] || 0) + 1;
-        return c;
+        const result = { all: WORKS.length };
+        WORKS.forEach((work) => { result[work.category] = (result[work.category] || 0) + 1; });
+        return result;
       }, []);
 
-      const filtered = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        return WORKS.filter((w) =>
-          (filter === 'all' || w.category === filter) &&
-          (!q || searchText(w).includes(q))
-        );
-      }, [query, filter]);
+      const filtered = useMemo(
+        () => WORKS.filter((work) => filter === 'all' || work.category === filter),
+        [filter]
+      );
 
       useEffect(() => {
-        if (openSlug && !filtered.some((w) => w.slug === openSlug)) setOpenSlug(null);
-      }, [filtered, openSlug]);
+        if (didFilterMount.current) {
+          setPage(-1);
+          setTurn(null);
+        }
+        else didFilterMount.current = true;
+      }, [filter]);
 
-      const entries = [['all', 'All'], ...Object.entries(CATEGORY_META).map(([k, m]) => [k, m.en])];
+      useEffect(() => {
+        WORKS.forEach((work) => {
+          if (!work.cover) return;
+          const image = new Image();
+          image.decoding = 'async';
+          image.src = encodeURI(work.cover);
+        });
+      }, []);
+
+      const turnTo = (next) => {
+        const max = filtered.length - 1;
+        const target = Math.max(-1, Math.min(max, next));
+        if (turn || target === page) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          setPage(target);
+          return;
+        }
+        setTurn({ from: page, to: target, direction: target > page ? 'forward' : 'backward' });
+      };
+
+      const finishTurn = (e) => {
+        if (e.target !== e.currentTarget || !turn) return;
+        setPage(turn.to);
+        setTurn(null);
+      };
+
+      const entries = [['all', 'All'], ...Object.entries(CATEGORY_META).map(([key, meta]) => [key, meta.en])];
+      const visiblePage = turn ? turn.to : page;
+      const current = visiblePage >= 0 ? filtered[visiblePage] : null;
+      const progress = visiblePage < 0 ? 0 : ((visiblePage + 1) / filtered.length) * 100;
+
+      const moveCoverLight = (e) => {
+        if (!coverRef.current || e.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const rect = coverRef.current.getBoundingClientRect();
+        coverRef.current.style.setProperty('--light-x', `${Math.round((e.clientX - rect.left) / rect.width * 100)}%`);
+        coverRef.current.style.setProperty('--light-y', `${Math.round((e.clientY - rect.top) / rect.height * 100)}%`);
+      };
 
       return (
         <section className="section" id="work">
           <div className="wrap">
             <SectionHead
-              num="01" en="Selected Work" title="作品集"
-              note="每一件都源自實際業務裡重複、易錯或耗時的環節。點開任一項目可看到做法與成果。"
+              num="01" en="Selected Work" title="法規實務與自動化作品集"
+              note="以一本可翻閱的法規實務書呈現：左頁看實際畫面，右頁讀設計判斷與成果。圖片支援放大與拖曳查看細節。"
             />
 
-            <div className="filterbar">
-              <div className="filterset">
-                {entries.map(([key, en]) => (
-                  <button
-                    key={key} type="button" className="filterbtn"
-                    aria-pressed={filter === key} onClick={() => setFilter(key)}
-                  >
-                    {en}<sup>{pad(counts[key] || 0)}</sup>
-                  </button>
-                ))}
-              </div>
-
-              <div className="searchfield">
-                <span className="label">Search</span>
-                <input
-                  type="search" value={query} onChange={(e) => setQuery(e.target.value)}
-                  placeholder="營養標示、PDF、AI…" aria-label="搜尋作品" autoComplete="off"
-                />
-                {query && (
-                  <button type="button" className="clearbtn" onClick={() => setQuery('')} aria-label="清除搜尋">×</button>
-                )}
-              </div>
-            </div>
-
-            <div key={filter}>
-              {filtered.length === 0 ? (
-                <div className="emptystate">
-                  <span className="label">No results</span>
-                  <h3>沒有符合的作品</h3>
-                  <p>試著換個關鍵字，或切換上方的分類。</p>
+            <div className="lawbook-shell">
+              <div className="lawbook-tools">
+                <div className="lawbook-tabs" aria-label="作品章節">
+                  {entries.map(([key, label]) => (
+                    <button
+                      key={key} type="button" className="lawbook-tab"
+                      aria-pressed={filter === key} onClick={() => setFilter(key)}
+                    >
+                      {label}<sup>{pad(counts[key] || 0)}</sup>
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                filtered.map((w, i) => (
-                  <WorkRow
-                    key={w.slug} work={w} n={i + 1} i={i}
-                    open={openSlug === w.slug}
-                    onToggle={() => setOpenSlug((s) => (s === w.slug ? null : w.slug))}
-                    onHover={onHover} onLeave={onLeave}
-                  />
-                ))
-              )}
+
+                <div className="lawbook-contents">
+                  <label className="label" htmlFor="lawbook-index">Contents</label>
+                  <select
+                    id="lawbook-index" value={visiblePage}
+                    onChange={(e) => turnTo(Number(e.target.value))}
+                    aria-label="直接選擇作品" disabled={!!turn}
+                  >
+                    <option value={-1}>封面</option>
+                    {filtered.map((work, i) => <option value={i} key={work.slug}>{pad(i + 1)}　{work.title}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="lawbook-stage">
+                <div className="lawbook-deskhead">
+                  <span>Regulatory Practice Archive · Vol. 01</span>
+                  <div className="lawbook-progress" aria-label={`閱讀進度 ${Math.round(progress)}%`}><span style={{ width: `${progress}%` }} /></div>
+                </div>
+
+                <div className="lawbook-area">
+                  <button
+                    type="button" className="lawbook-arrow lawbook-arrow--left"
+                    aria-label="向左翻頁" disabled={!!turn || visiblePage < 0} onClick={() => turnTo(visiblePage - 1)}
+                  >←</button>
+
+                  <div className={`lawbook${visiblePage < 0 ? ' is-closed' : ''}`} aria-busy={!!turn}>
+                    {visiblePage < 0 ? (
+                      <div className="lawbook-spread">
+                        <BookCover coverRef={coverRef} onPointerMove={moveCoverLight} onOpen={() => turnTo(0)} />
+                      </div>
+                    ) : (
+                      <BookSpread work={current} index={visiblePage} total={filtered.length} />
+                    )}
+
+                    {turn && (
+                      turn.from < 0 ? (
+                        <div className="lawbook-turn-overlay is-cover" onAnimationEnd={finishTurn} aria-hidden="true">
+                          <BookCover interactive={false} />
+                        </div>
+                      ) : (
+                        <div
+                          className={`lawbook-turn-overlay is-${turn.direction}`}
+                          onAnimationEnd={finishTurn} aria-hidden="true"
+                        >
+                          <BookSpread work={filtered[turn.from]} index={turn.from} total={filtered.length} />
+                        </div>
+                      )
+                    )}
+                  </div>
+
+                  <button
+                    type="button" className="lawbook-arrow lawbook-arrow--right"
+                    aria-label="向右翻頁" disabled={!!turn || visiblePage >= filtered.length - 1}
+                    onClick={() => turnTo(visiblePage + 1)}
+                  >→</button>
+                </div>
+
+                <div className="lawbook-status" aria-live="polite">
+                  {current ? `作品 ${visiblePage + 1} / ${filtered.length} · ${current.title}` : `封面 · ${filter === 'all' ? '完整作品集' : CATEGORY_META[filter].label}`}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1955,7 +2552,7 @@
             onClick={(e) => e.stopPropagation()}
           >
             <div className="resume-bar">
-              <span className="label accent">Résumé — 履歷</span>
+              <span className="label">Professional Dossier — 專業履歷卷宗</span>
               <div className="resume-bar-actions">
                 {PROFILE.resume && (
                   <a className="navlink" href={PROFILE.resume} download>PDF ↓</a>
@@ -1963,6 +2560,20 @@
                 <button type="button" className="closebtn" ref={closeRef} onClick={onClose} aria-label="關閉履歷">×</button>
               </div>
             </div>
+            <nav className="resume-index" aria-label="履歷章節">
+              {[
+                ['about', '摘要'],
+                ['skills', '專長'],
+                ['experience', '經歷'],
+                ['credentials', '學歷與證照'],
+              ].map(([id, label]) => (
+                <button
+                  type="button" key={id}
+                  onClick={() => panelRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >{label}</button>
+              ))}
+              <span className="resume-index-note">快速掃讀 · 成果導向 · 可下載 PDF</span>
+            </nav>
             <Hero />
             <About total={WORKS.length} />
             <Skills />
@@ -2015,8 +2626,6 @@
         try { return localStorage.getItem('portfolio_theme') || 'auto'; }
         catch (e) { return 'auto'; }
       });
-      const [hoverSrc, setHoverSrc] = useState(null);
-      const canHover = useDesktopHover();
       const [resumeOpen, openResume, closeResume] = useResumeHash();
 
       useEffect(() => {
@@ -2042,9 +2651,6 @@
         []
       );
 
-      const handleHover = useCallback((src) => { if (canHover) setHoverSrc(src); }, [canHover]);
-      const handleLeave = useCallback(() => setHoverSrc(null), []);
-
       return (
         <React.Fragment>
           <Masthead
@@ -2055,12 +2661,11 @@
           <Colophon total={WORKS.length} />
           <main>
             <Intro onOpenResume={openResume} />
-            <Work onHover={handleHover} onLeave={handleLeave} />
+            <Work />
             <Contact />
           </main>
           <Footer />
           <ResumeDrawer open={resumeOpen} onClose={closeResume} />
-          {canHover && <CursorPreview src={hoverSrc} active={!!hoverSrc && !resumeOpen} />}
           <DraftBar count={todoCount} />
         </React.Fragment>
       );
