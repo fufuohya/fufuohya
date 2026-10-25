@@ -22,6 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet" />
 
   <style>
     :root{
@@ -933,6 +934,111 @@
 
     @media (pointer: coarse){
       .lawbook-tab, .lawbook-zoom button{ min-height: 44px; min-width: 44px; }
+    }
+
+    /* ---------- Clothbound edition: materials, typography and reading controls ---------- */
+    #work{ background: #f7f6f2; }
+    #work .sectionhead{ margin-bottom: 34px; gap: 18px 48px; }
+    #work .sectionhead h2{ font-size: clamp(26px, 3.1vw, 40px); letter-spacing: -.025em; }
+    #work .sectionhead .accent{ color: #627365; }
+    #work .sectionhead p{ max-width: 44ch; line-height: 1.9; margin-top: 0; color: #657168; }
+    .lawbook-shell{ --book-cover: #243c32; --book-paper: #fffdf6; --leaf-h: 690px; margin-top: 32px; }
+    .lawbook-shell:focus-visible{ outline: 2px solid #937d4d; outline-offset: 10px; }
+    .lawbook-shell :is(button, select, a):focus-visible{ outline: 2px solid #937d4d; outline-offset: 4px; }
+    .lawbook-tools{ gap: 18px; margin-bottom: 24px; }
+    .lawbook-tabs{ gap: 4px; }
+    .lawbook-tab{ min-height: 44px; padding: 10px 13px; border-color: transparent; border-radius: 4px; font-size: 12px; letter-spacing: .03em; color: #5e6a61; }
+    .lawbook-tab:hover{ border-color: #d7dbd2; background: #eeefe8; }
+    .lawbook-tab[aria-pressed="true"]{ background: #e5e9e0; border-color: #cbd3c5; color: #283f32; }
+    .lawbook-tab:disabled{ cursor: default; }
+    .lawbook-contents{ flex: 0 1 280px; min-width: 0; }
+    .lawbook-contents select{ min-width: 0; min-height: 44px; border-color: #d6d8cf; border-radius: 4px; background: #fdfcf8; color: #34463b; }
+    .lawbook-stage{ padding: 30px 72px 24px; border: 1px solid #e1ded4; border-radius: 12px;
+      background: radial-gradient(ellipse at 50% 15%, #faf9f5 0, #efede5 60%, #e7e4db 100%);
+      box-shadow: inset 0 1px 0 #fff, 0 10px 40px #293a2c05; overflow: visible; }
+    .lawbook-deskhead{ margin-bottom: 28px; font-size: 9px; letter-spacing: .16em; color: #6c776c; }
+    .lawbook-edition{ font-weight: 400; color: #7b8177; letter-spacing: .08em; }
+    .lawbook-area{ width: 100%; }
+    .lawbook{ filter: drop-shadow(0 22px 16px #27362826); }
+    .lawbook-cover{ padding: 40px 32px 32px; color: #dbcc9f; border-radius: 3px 8px 8px 3px;
+      background-color: #243c32;
+      background-image: radial-gradient(ellipse at var(--light-x,30%) var(--light-y,20%), #b8c3a218, transparent 65%),
+        linear-gradient(90deg, #10261f88, transparent 5%, #ffffff0a 7%, #10251c60 9%, transparent 12%),
+        repeating-linear-gradient(0deg, #ffffff05 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, #00000009 0 1px, transparent 1px 3px);
+      box-shadow: inset 1px 0 2px #ffffff25, inset -2px 0 3px #00000055, 4px 3px 0 #ece6d6, 6px 5px 0 #b8b7a6, 8px 8px 0 #20382d; }
+    .lawbook-cover::before{ inset: 23px 24px 23px 30px; border-color: #bbab7255; }
+    .lawbook-cover::after{ content: ''; position: absolute; top: 0; bottom: 0; left: 18px; width: 4px;
+      background: linear-gradient(90deg, #081b1655, #ffffff0a, transparent); pointer-events: none; }
+    .lawbook-cover-series{ font-size: 9px; letter-spacing: .2em; padding: 2px 0 14px; color: #b6c0aa; }
+    .lawbook-cover-number{ font-size: 9px; letter-spacing: .16em; margin-bottom: 20px; color: #aab79f; }
+    .lawbook-seal{ width: 66px; height: 66px; flex: 0 0 auto; color: #c4b17c; stroke: currentColor; stroke-width: .9; margin: 6px 0 22px; }
+    .lawbook-seal circle:first-child{ stroke-opacity: .4; }
+    .lawbook-cover h3{ font-size: clamp(28px, 3.3vw, 43px); line-height: 1.7; font-weight: 500; letter-spacing: .13em;
+      color: #dfd1a8; text-shadow: 0 1px 1px #071e18; }
+    .lawbook-cover-caption{ margin-top: 16px; color: #bfb58f; font: 500 12px/1.5 'Noto Serif TC',serif; letter-spacing: .5em; }
+    .lawbook-cover-sub{ font-size: 9px; margin: 24px 0 26px; color: #a6b29d; letter-spacing: .2em; }
+    .lawbook-open{ border-color: #b8ab765e; border-radius: 3px; padding: 13px 24px; min-height: 46px; color: #e4d7b1; font-size: 12px; }
+    .lawbook-open:hover{ background: #d8c38b14; border-color: #d6c08c; }
+    .lawbook-cover-author{ padding-top: 28px; font-size: 8px; color: #a9b79e; }
+    .lawbook-spread{ border-radius: 4px; }
+    .lawbook:not(.is-closed) > .lawbook-spread{ box-shadow: 0 3px 0 #d5d0bf, 0 5px 0 #f5f1e4, 0 7px 0 #bfbcae, 0 10px 0 #263c30; }
+    .lawbook-page{ min-height: var(--leaf-h); padding: 30px 32px 48px; border-color: #ded9cc; }
+    .lawbook-page:first-child::after{ width: 30px; background: linear-gradient(90deg, transparent, #4c48340d 65%, #4c48341c); }
+    .lawbook-page:last-child::before{ width: 30px; background: linear-gradient(90deg, #4c483421, #4c48340a 35%, transparent); }
+    .lawbook-running{ font-size: 9px; letter-spacing: .06em; color: #718071; }
+    .lawbook-picture{ display: flex; flex-direction: column; }
+    .lawbook-picture-frame{ flex: 1 0 420px; height: auto; background: #eeede6; border-color: #dbd9ce; border-radius: 1px; }
+    .lawbook-zoom{ gap: 4px; margin-top: 16px; }
+    .lawbook-zoom button{ min-height: 40px; min-width: 40px; background: #f5f4ec; border-color: #d9dbce; color: #465740; }
+    .lawbook-zoom-note{ color: #74806e; }
+    .lawbook-figcaption{ font-size: 8px; padding-top: 12px; letter-spacing: .04em; overflow-wrap: anywhere; }
+    .lawbook-title{ margin: 28px 0 20px; }
+    .lawbook-title h3{ font-size: clamp(23px, 2.3vw, 32px); line-height: 1.5; font-weight: 500; }
+    .lawbook-summary{ font-size: 14px; line-height: 1.95; color: #536052; }
+    .lawbook-points li{ padding: 11px 0; font-size: 13px; line-height: 1.8; }
+    .lawbook-tags{ color: #65735c; gap: 7px 14px; font-size: 10px; letter-spacing: .02em; }
+    .lawbook-link{ color: #2e4938; border-color: #a18d5c; font-size: 12px; letter-spacing: .04em; }
+    .lawbook-folio{ color: #818675; left: 32px; right: 32px; bottom: 18px; font-size: 8px; }
+    .lawbook-arrow{ width: 44px; height: 52px; background: #f9f8f1; border-color: #d1d3c6; border-radius: 26px;
+      box-shadow: 0 4px 12px #293b2c0a; backdrop-filter: none; font-size: 22px; }
+    .lawbook-arrow--left{ left: -58px; }.lawbook-arrow--right{ right: -58px; }
+    .lawbook-arrow:disabled{ opacity: .3; }
+    .lawbook-status{ margin-top: 30px; color: #53634f; font-size: 11px; letter-spacing: .02em; }
+    .lawbook-reading-hint{ text-align: center; color: #79816f; font-size: 10px; margin-top: 8px; line-height: 1.8; }
+    .lawbook-reading-hint span{ padding: 0 8px; color: #a7ac9b; }
+    .lawbook-turn-overlay{ will-change: transform; }
+    [data-theme="dark"] #work{ background: #171d19; }
+    [data-theme="dark"] #work .sectionhead p{ color: #a7b1a3; }
+    [data-theme="dark"] .lawbook-tab{ color: #b2bcad; }
+    [data-theme="dark"] .lawbook-tab[aria-pressed="true"]{ background: #354638; color: #e9eade; border-color: #53624d; }
+    [data-theme="dark"] .lawbook-contents select{ background: #222c24; color: #d6ddcd; border-color: #485141; }
+    [data-theme="dark"] .lawbook-status, [data-theme="dark"] .lawbook-reading-hint{ color: #b0b8a6; }
+    @media(max-width:1000px) and (min-width:761px){
+      .lawbook-stage{ padding: 24px 56px; }
+      .lawbook-page{ padding: 24px 22px 48px; }
+      .lawbook-arrow--left{ left: -50px; }.lawbook-arrow--right{ right: -50px; }
+      .lawbook-title h3{ font-size: 24px; }
+    }
+    @media(max-width:760px){
+      .lawbook-shell{ --leaf-h: 640px; }
+      .lawbook-tools{ gap: 14px; }
+      .lawbook-tabs{ display: flex; flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 4px; }
+      .lawbook-tab{ flex: 0 0 auto; width: auto; }
+      .lawbook-contents{ flex: 1 1 100%; }
+      .lawbook-stage{ padding: 20px 14px; border-radius: 8px; }
+      .lawbook-deskhead{ font-size: 8px; gap: 16px; margin-bottom: 22px; }
+      .lawbook-edition{ display: none; }
+      .lawbook-progress{ width: 60px; flex-shrink: 0; }
+      .lawbook-cover{ min-height: 640px; padding: 34px 26px; }
+      .lawbook-cover h3{ font-size: 34px; }
+      .lawbook-page{ min-height: 600px; padding: 24px 22px 44px; }
+      .lawbook-picture-frame{ height: 380px; flex: 0 0 380px; }
+      .lawbook-arrow{ top: auto; bottom: -66px; width: 52px; height: 44px; }
+      .lawbook-arrow--left{ left: calc(50% - 64px); }.lawbook-arrow--right{ right: calc(50% - 64px); }
+      .lawbook-status{ margin-top: 88px; }
+      .lawbook-reading-hint{ font-size: 9px; }
+      .lawbook-folio{ left: 22px; right: 22px; }
     }
 
     /* ---------- Contact ---------- */
@@ -2282,8 +2388,13 @@
       return (
         <article ref={coverRef} className="lawbook-cover" onPointerMove={onPointerMove}>
           <div className="lawbook-cover-series">FUFUOHYA / SELECTED WORKS</div>
-          <div className="lawbook-cover-number">FIELD NOTES · VOL. 01</div>
-          <h3>法規實務<br />與自動化<br />作品集</h3>
+          <div className="lawbook-cover-number">VOLUME 01 · 實務典藏</div>
+          <svg className="lawbook-seal" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+            <circle cx="40" cy="40" r="35" /><circle cx="40" cy="40" r="30" />
+            <path d="M22 27c7-2 13 0 18 4 5-4 11-6 18-4v25c-7-2-13 0-18 4-5-4-11-6-18-4V27Zm18 4v25M28 34l6 2m-6 6 6 2m12-8 6-2m-6 10 6-2" />
+          </svg>
+          <h3>法規實務<br />與自動化</h3>
+          <div className="lawbook-cover-caption">作品選集</div>
           <div className="lawbook-cover-sub">REGULATORY PRACTICE<br />&amp; AUTOMATION</div>
           <button
             type="button" className="lawbook-open" onClick={onOpen}
@@ -2299,7 +2410,6 @@
       const [page, setPage] = useState(-1);
       const [turn, setTurn] = useState(null);
       const coverRef = useRef(null);
-      const didFilterMount = useRef(false);
 
       const counts = useMemo(() => {
         const result = { all: WORKS.length };
@@ -2312,13 +2422,21 @@
         [filter]
       );
 
+      const selectChapter = (key) => {
+        setTurn(null);
+        setPage(-1);
+        setFilter(key);
+      };
+
+      // Animation events can be skipped when a tab is hidden or motion settings change.
       useEffect(() => {
-        if (didFilterMount.current) {
-          setPage(-1);
+        if (!turn) return;
+        const timer = window.setTimeout(() => {
+          setPage(turn.to);
           setTurn(null);
-        }
-        else didFilterMount.current = true;
-      }, [filter]);
+        }, 900);
+        return () => window.clearTimeout(timer);
+      }, [turn]);
 
       useEffect(() => {
         WORKS.forEach((work) => {
@@ -2346,7 +2464,7 @@
         setTurn(null);
       };
 
-      const entries = [['all', 'All'], ...Object.entries(CATEGORY_META).map(([key, meta]) => [key, meta.en])];
+      const entries = [['all', '全部作品'], ...Object.entries(CATEGORY_META).map(([key, meta]) => [key, meta.label])];
       const visiblePage = turn ? turn.to : page;
       const current = visiblePage >= 0 ? filtered[visiblePage] : null;
       const progress = visiblePage < 0 ? 0 : ((visiblePage + 1) / filtered.length) * 100;
@@ -2363,16 +2481,23 @@
           <div className="wrap">
             <SectionHead
               num="01" en="Selected Work" title="法規實務與自動化作品集"
-              note="以一本可翻閱的法規實務書呈現：左頁看實際畫面，右頁讀設計判斷與成果。圖片支援放大與拖曳查看細節。"
+              note="從法規判讀到流程設計，將實務中的問題，整理成可翻閱的解答。"
             />
 
-            <div className="lawbook-shell">
+            <div className="lawbook-shell" tabIndex={0} role="region" aria-label="作品書，使用左右方向鍵翻頁"
+              onKeyDown={(e) => {
+                if (e.target.closest('input, select, textarea, button, a')) return;
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  turnTo(page + (e.key === 'ArrowRight' ? 1 : -1));
+                }
+              }}>
               <div className="lawbook-tools">
                 <div className="lawbook-tabs" aria-label="作品章節">
                   {entries.map(([key, label]) => (
                     <button
                       key={key} type="button" className="lawbook-tab"
-                      aria-pressed={filter === key} onClick={() => setFilter(key)}
+                      aria-pressed={filter === key} onClick={() => selectChapter(key)} disabled={!!turn}
                     >
                       {label}<sup>{pad(counts[key] || 0)}</sup>
                     </button>
@@ -2380,7 +2505,7 @@
                 </div>
 
                 <div className="lawbook-contents">
-                  <label className="label" htmlFor="lawbook-index">Contents</label>
+                  <label className="label" htmlFor="lawbook-index">目錄</label>
                   <select
                     id="lawbook-index" value={visiblePage}
                     onChange={(e) => turnTo(Number(e.target.value))}
@@ -2394,7 +2519,7 @@
 
               <div className="lawbook-stage">
                 <div className="lawbook-deskhead">
-                  <span>Regulatory Practice Archive · Vol. 01</span>
+                  <span>THE PRACTICE COLLECTION <span className="lawbook-edition">／ 第一卷</span></span>
                   <div className="lawbook-progress" aria-label={`閱讀進度 ${Math.round(progress)}%`}><span style={{ width: `${progress}%` }} /></div>
                 </div>
 
@@ -2415,13 +2540,14 @@
 
                     {turn && (
                       turn.from < 0 ? (
-                        <div className="lawbook-turn-overlay is-cover" onAnimationEnd={finishTurn} aria-hidden="true">
+                        <div className="lawbook-turn-overlay is-cover" onAnimationEnd={finishTurn} aria-hidden="true" inert="">
                           <BookCover interactive={false} />
                         </div>
                       ) : (
                         <div
                           className={`lawbook-turn-overlay is-${turn.direction}`}
                           onAnimationEnd={finishTurn} aria-hidden="true"
+                          inert=""
                         >
                           <BookSpread work={filtered[turn.from]} index={turn.from} total={filtered.length} />
                         </div>
@@ -2439,6 +2565,7 @@
                 <div className="lawbook-status" aria-live="polite">
                   {current ? `作品 ${visiblePage + 1} / ${filtered.length} · ${current.title}` : `封面 · ${filter === 'all' ? '完整作品集' : CATEGORY_META[filter].label}`}
                 </div>
+                <p className="lawbook-reading-hint">左右箭頭翻閱 <span>·</span> 目錄快速跳頁 <span>·</span> 圖片可放大檢視</p>
               </div>
             </div>
           </div>
